@@ -24,6 +24,11 @@ function fail(msg) {
   try {
     const context = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
     const page = await context.newPage();
+    if (process.env.SLOW) {
+      // Pretend to be a slow machine (SLOW=6 means six times slower).
+      const cdp = await context.newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.SLOW) });
+    }
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
@@ -52,6 +57,18 @@ function fail(msg) {
           brakeVisible: !document.getElementById('btn-brake').hidden,
         };
       });
+    // Hold a key until the game reaches a state (or time runs out), so slow
+    // machines that run fewer frames per second do not fail the test.
+    const vehicleSpeed = () => page.evaluate(() => {
+      const v = window.__fyriskaos.game.player.vehicle;
+      return v ? Math.hypot(v.vx, v.vy) : 0;
+    });
+    const holdUntilSpeed = async (key, target, maxMs) => {
+      await page.keyboard.down(key);
+      const t0 = Date.now();
+      while (Date.now() - t0 < maxMs && (await vehicleSpeed()) < target) await page.waitForTimeout(50);
+      await page.keyboard.up(key);
+    };
     const hold = async (key, ms) => {
       await page.keyboard.down(key);
       await page.waitForTimeout(ms);
@@ -83,7 +100,7 @@ function fail(msg) {
     if (!s3.brakeVisible) fail('brake button hidden on the bike');
 
     // Ride along the sidewalk.
-    await hold('ArrowRight', 1500);
+    await holdUntilSpeed('ArrowRight', 5, 6000);
     let s4 = await state();
     if (!(s4.speed > 3)) fail(`bike too slow: ${s4.speed}`);
     if (shots) await page.screenshot({ path: path.join(shots, '3-bike.png') });
@@ -111,17 +128,23 @@ function fail(msg) {
     await page.waitForTimeout(100);
     let s7 = await state();
     if (s7.vehicle !== 'car') fail('could not get in the car');
-    await hold('ArrowLeft', 2500);
+    await holdUntilSpeed('ArrowLeft', 14, 8000);
     let s8 = await state();
-    if (!(s8.speed > 10)) fail(`car too slow after 2.5 s: ${s8.speed}`);
-    if (!(s8.x < s7.x - 15)) fail('car did not drive left (west)');
+    if (!(s8.speed > 14)) fail(`car did not reach 50 km/h: ${s8.speed}`);
+    if (!(s8.x < s7.x - 6)) fail('car did not drive left (west)');
     if (shots) await page.screenshot({ path: path.join(shots, '4-car.png') });
     // Turn by pointing the stick down: the car should turn towards it.
-    await hold('ArrowDown', 800);
+    await page.keyboard.down('ArrowDown');
+    const tTurn = await page.evaluate(() => window.__fyriskaos.game.time);
+    await page.waitForFunction((t0) => window.__fyriskaos.game.time - t0 > 0.8, tTurn, { timeout: 8000 });
+    await page.keyboard.up('ArrowDown');
     const heading = await page.evaluate(() => window.__fyriskaos.game.player.vehicle.heading);
     if (!(Math.sin(heading) > 0.3)) fail(`car did not turn towards the stick (heading ${heading})`);
     await page.keyboard.down('Space');
-    await page.waitForTimeout(2000);
+    await page.waitForFunction(() => {
+      const v = window.__fyriskaos.game.player.vehicle;
+      return Math.hypot(v.vx, v.vy) < 0.5;
+    }, null, { timeout: 8000 }).catch(() => {});
     await page.keyboard.up('Space');
     let s9 = await state();
     if (!(s9.speed < 0.5)) fail(`car did not stop when braking: ${s9.speed}`);
@@ -143,11 +166,12 @@ function fail(msg) {
     await page.waitForTimeout(100);
     const sportName = await page.textContent('#speed');
     if (!/^Sportbil/.test(sportName)) fail(`expected the sports car, got "${sportName}"`);
-    await hold('ArrowRight', 1800);
+    await holdUntilSpeed('ArrowRight', 16, 8000);
     const before = await page.evaluate(() => window.__fyriskaos.game.player.vehicle.heading);
     await page.keyboard.down('Space');
     await page.keyboard.down('ArrowUp');
-    await page.waitForTimeout(450);
+    const tSlide = await page.evaluate(() => window.__fyriskaos.game.time);
+    await page.waitForFunction((t0) => window.__fyriskaos.game.time - t0 > 0.45, tSlide, { timeout: 8000 });
     const slide = await page.evaluate(() => {
       const v = window.__fyriskaos.game.player.vehicle;
       return { handbrake: v.handbrake, heading: v.heading, speed: Math.hypot(v.vx, v.vy) };
