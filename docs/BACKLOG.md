@@ -8,8 +8,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-002 | Hög | Öppen | Prototyp 1: gå, cykla och köra bil på mobilen (liggande läge) i en enkel grå testkarta. Joystick, smart knapp, broms. Ska även gå på dator. |
-| D-007 | Hög | Öppen | Publicering: hur spelet når ut (förslag GitHub Pages från `main`). |
+| F-002 | Hög | Pågår 2026-11-17 | Prototyp 1: gå, cykla och köra bil på mobilen (liggande läge) i en enkel grå testkarta. Joystick, smart knapp, broms. Ska även gå på dator. |
+| D-007 | Hög | Pågår 2026-11-17 | Publicering: hur spelet når ut (förslag GitHub Pages från `main`). |
 | D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
 | F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
