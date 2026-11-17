@@ -1,48 +1,115 @@
-// Drawing with PixiJS. The world is drawn in "units" (U px per metre)
-// and the whole world container is scaled to fit the screen.
+// Drawing the game with PixiJS in the Sommarkväll+ style (F-037).
+// The ground is baked into pictures piece by piece (ground.js); houses,
+// lamps and tree crowns lean away from the camera and are drawn each frame;
+// vehicles and people use the same drawing code as the graphics gallery.
 
-import { Container, Graphics } from '../vendor/pixi/pixi.min.mjs';
+import { Container, Graphics, RenderTexture, Sprite } from '../vendor/pixi/pixi.min.mjs';
 import { COLORS } from './config.js';
 import { speedOf } from './sim.js';
+import * as A from './art/draw.js';
+import * as D from './art/detail.js';
+import { PLUS_STYLE } from './art/styles.js';
+import { createGround } from './ground.js';
 
-const U = 16;
-const LEAN = 0.009; // how far roofs lean away from the camera, per metre of height and distance
+const U = A.U;
+const LEAN = A.LEAN;
+const STYLE = PLUS_STYLE;
+const BAKE_PX = 40; // picture pixels per metre for roofs and tree crowns
+
+D.setDetailDensity(0.35);
+
+// Bake something drawn in metres into a sprite, so it costs nothing per frame.
+function bakeSprite(app, draw, x, y, w, h) {
+  const g = new Graphics();
+  draw(g);
+  const holder = new Container();
+  holder.addChild(g);
+  g.position.set(-x * U, -y * U);
+  holder.scale.set(BAKE_PX / U);
+  const rt = RenderTexture.create({ width: Math.ceil(w * BAKE_PX), height: Math.ceil(h * BAKE_PX), antialias: true });
+  app.renderer.render({ container: holder, target: rt, clear: true });
+  holder.destroy({ children: true });
+  const sp = new Sprite(rt);
+  sp.scale.set(U / BAKE_PX);
+  return sp;
+}
 
 export function createRenderer(app, game) {
+  const map = game.map;
   const world = new Container();
   app.stage.addChild(world);
 
-  const ground = new Graphics();
-  drawGround(ground, game.map);
-  world.addChild(ground);
+  const ground = createGround(app, map, STYLE, COLORS.outside);
+  world.addChild(ground.layer);
 
   const skids = new Graphics();
   world.addChild(skids);
   const skidMarks = createSkidMarks(skids);
 
-  const shadows = new Graphics();
-  world.addChild(shadows);
+  // Shadows of moving things: same shape as the body, turned with it, but
+  // always offset towards the south-east.
+  const shadowLayer = new Container();
+  world.addChild(shadowLayer);
   const entityLayer = new Container();
   world.addChild(entityLayer);
-  const buildings = new Graphics();
-  world.addChild(buildings);
+  const walls = new Graphics();
+  world.addChild(walls);
+  const roofLayer = new Container();
+  world.addChild(roofLayer);
+  const tops = new Graphics();
+  world.addChild(tops);
+  const crownLayer = new Container();
+  world.addChild(crownLayer);
 
   const views = new Map();
   for (const v of game.vehicles) {
-    const view = v.spec.class === 'car' ? carView(v.type, v.spec, v.color) : bikeView(v.color);
+    const view = vehicleView(v);
     views.set(v, view);
-    entityLayer.addChild(view);
+    entityLayer.addChild(view.body);
+    shadowLayer.addChild(view.shadow);
   }
-  const playerView = personView(COLORS.player, COLORS.playerHead);
-  entityLayer.addChild(playerView);
+  const playerView = personView();
+  entityLayer.addChild(playerView.body);
+  shadowLayer.addChild(playerView.shadow);
+
+  // Roofs are baked once per house (lazily), then only moved with the lean.
+  const roofs = new Map();
+  function roofOf(b) {
+    let sp = roofs.get(b);
+    if (!sp) {
+      const look = { ...b, facade: STYLE.facades[b.facadeIndex], roofColor: b.roof === 'flat' ? 0x9a978f : STYLE.roofs[b.roofIndex] };
+      sp = bakeSprite(app, (g) => A.drawHouseRoofFlat(g, STYLE, look), b.x - 1.5, b.y - 1.5, b.w + 3, b.h + 3);
+      sp.userData = { ox: b.x - 1.5, oy: b.y - 1.5 };
+      roofLayer.addChild(sp);
+      roofs.set(b, sp);
+    }
+    return sp;
+  }
+
+  // A handful of tree crowns, baked once and reused (scaled per tree).
+  const crownTextures = [];
+  const CROWN_R = 3;
+  for (let k = 0; k < 6; k++) {
+    const sp = bakeSprite(app, (g) => D.detailedTree(g, STYLE, 0, 0, CROWN_R, 101 + k, { shadow: false }), -CROWN_R - 0.5, -CROWN_R - 0.5, CROWN_R * 2 + 1, CROWN_R * 2 + 1);
+    crownTextures.push(sp.texture);
+    sp.destroy();
+  }
+  const crowns = map.trees.map((t, i) => {
+    const sp = new Sprite(crownTextures[i % crownTextures.length]);
+    sp.anchor.set(0.5);
+    const scale = t.canopy / CROWN_R;
+    sp.scale.set((U / BAKE_PX) * scale);
+    sp.visible = false;
+    crownLayer.addChild(sp);
+    return sp;
+  });
 
   const cam = { x: game.player.x, y: game.player.y, ppm: 0 };
 
   function targetPpm() {
     const p = game.player;
-    // Large screens show more of the town instead of a giant close-up.
     const short = Math.min(app.screen.width, app.screen.height, 420);
-    let metres = 17; // visible metres across the short side of the screen, on foot
+    let metres = 17;
     if (p.vehicle) {
       const s = speedOf(p.vehicle);
       metres = p.vehicle.spec.class === 'car' ? 26 + s * 0.85 : 20 + s * 0.6;
@@ -54,10 +121,11 @@ export function createRenderer(app, game) {
     const p = game.player;
     const focus = p.vehicle || p;
     const look = p.vehicle ? 0.7 : 0.25;
-    let tx = focus.x + focus.vx * look;
-    let ty = focus.y + focus.vy * look;
+    const tx = focus.x + focus.vx * look;
+    const ty = focus.y + focus.vy * look;
     const k = 1 - Math.exp(-6 * dt);
-    if (cam.ppm === 0) {
+    const first = cam.ppm === 0;
+    if (first) {
       cam.ppm = targetPpm();
       cam.x = tx;
       cam.y = ty;
@@ -72,142 +140,78 @@ export function createRenderer(app, game) {
       sx = (Math.random() - 0.5) * game.shake * 10;
       sy = (Math.random() - 0.5) * game.shake * 10;
     }
-    const scale = cam.ppm / U;
-    world.scale.set(scale);
+    world.scale.set(cam.ppm / U);
     world.position.set(app.screen.width / 2 - cam.x * cam.ppm + sx, app.screen.height / 2 - cam.y * cam.ppm + sy);
 
-    // Visible area in metres, with a margin for leaning roofs.
     const halfW = app.screen.width / 2 / cam.ppm + 12;
     const halfH = app.screen.height / 2 / cam.ppm + 12;
     const vis = (x, y, r = 0) => Math.abs(x - cam.x) < halfW + r && Math.abs(y - cam.y) < halfH + r;
 
+    // At the start, make the whole screen at once; then a little per frame.
+    ground.update(cam.x, cam.y, halfW + 10, halfH + 10, first ? 99 : 1);
+
     skidMarks.update(game.vehicles);
-    shadows.clear();
+    const sun = STYLE.shadow;
     for (const v of game.vehicles) {
       const view = views.get(v);
       const on = vis(v.x, v.y, 3);
-      view.visible = on;
+      view.body.visible = view.shadow.visible = on;
       if (!on) continue;
-      view.position.set(v.x * U, v.y * U);
-      view.rotation = v.heading;
+      view.body.position.set(v.x * U, v.y * U);
+      view.body.rotation = v.heading;
+      view.shadow.position.set((v.x + sun.dx * view.lift) * U, (v.y + sun.dy * view.lift) * U);
+      view.shadow.rotation = v.heading;
     }
 
-    playerView.visible = !(p.vehicle && p.vehicle.spec.class === 'car');
-    playerView.position.set(p.x * U, p.y * U);
-    playerView.rotation = p.heading;
+    const inCar = p.vehicle && p.vehicle.spec.class === 'car';
+    playerView.body.visible = playerView.shadow.visible = !inCar;
+    playerView.body.position.set(p.x * U, p.y * U);
+    playerView.body.rotation = p.heading;
+    playerView.shadow.position.set((p.x + sun.dx * 0.35) * U, (p.y + sun.dy * 0.35) * U);
     // Knocked over: the figure lies flat and blinks.
-    playerView.scale.set(p.stun > 0 ? 1.25 : 1, p.stun > 0 ? 0.6 : 1);
-    playerView.alpha = p.stun > 0 && Math.floor(game.time * 10) % 2 ? 0.55 : 1;
-    entityLayer.setChildIndex(playerView, entityLayer.children.length - 1);
+    playerView.body.scale.set(p.stun > 0 ? 1.25 : 1, p.stun > 0 ? 0.6 : 1);
+    playerView.body.alpha = p.stun > 0 && Math.floor(game.time * 10) % 2 ? 0.55 : 1;
+    entityLayer.setChildIndex(playerView.body, entityLayer.children.length - 1);
 
-    drawBuildings(buildings, game.map, cam, vis);
-  }
-
-  return { frame, cam };
-}
-
-// ---------- static ground ----------
-
-function rect(g, r, color, grow = 0) {
-  g.rect((r.x - grow) * U, (r.y - grow) * U, (r.w + grow * 2) * U, (r.h + grow * 2) * U).fill(color);
-}
-
-function drawGround(g, map) {
-  g.rect(-2000 * U, -2000 * U, (map.width + 4000) * U, (map.height + 4000) * U).fill(COLORS.outside);
-  g.rect(0, 0, map.width * U, map.height * U).fill(COLORS.sidewalk);
-  for (const gr of map.grass) rect(g, gr, COLORS.grass);
-  for (const p of map.paths) rect(g, p, COLORS.path);
-
-  // River with darker edges.
-  const ry0 = map.water[0].y;
-  const ry1 = ry0 + map.water[0].h;
-  g.rect(0, (ry0 - 0.6) * U, map.width * U, (ry1 - ry0 + 1.2) * U).fill(COLORS.waterEdge);
-  g.rect(0, ry0 * U, map.width * U, (ry1 - ry0) * U).fill(COLORS.water);
-
-  for (const r of map.roads) rect(g, r, COLORS.curb, 0.35);
-  for (const b of map.bridges) rect(g, b, COLORS.sidewalk);
-  for (const r of map.roads) rect(g, r, COLORS.road);
-
-  // Bridge railings.
-  for (const b of map.bridges) {
-    g.rect(b.x * U, b.y * U, 0.4 * U, b.h * U).fill(COLORS.bridgeRail);
-    g.rect((b.x + b.w - 0.4) * U, b.y * U, 0.4 * U, b.h * U).fill(COLORS.bridgeRail);
-  }
-
-  // Dashed centre lines, not inside crossings.
-  const e = map.edge;
-  for (const r of map.roads) {
-    if (r.dir === 'h') {
-      for (let x = r.x + 2; x < r.x + r.w - 3; x += 6) {
-        if (map.vRoads.some((c) => Math.abs(x + 1.5 - c) < e + 1)) continue;
-        g.rect(x * U, (r.c - 0.12) * U, 3 * U, 0.24 * U).fill(COLORS.lane);
+    // Houses: walls lean each frame, the baked roof just moves.
+    walls.clear();
+    const list = [];
+    for (const b of map.buildings) {
+      const sp = roofs.get(b);
+      const on = vis(b.x + b.w / 2, b.y + b.h / 2, Math.max(b.w, b.h) / 2);
+      if (!on) {
+        if (sp) sp.visible = false;
+        continue;
       }
-    } else {
-      for (let y = r.y + 2; y < r.y + r.h - 3; y += 6) {
-        if (map.hRoads.some((c) => Math.abs(y + 1.5 - c) < e + 1)) continue;
-        g.rect((r.c - 0.12) * U, y * U, 0.24 * U, 3 * U).fill(COLORS.lane);
-      }
+      list.push(b);
     }
-  }
-
-  // Zebra crossings at the edges of each crossing.
-  const half = map.roadHalf;
-  for (const vx of map.vRoads)
-    for (const hy of map.hRoads) {
-      const crosses = map.roads.some((r) => r.dir === 'v' && r.c === vx && hy > r.y && hy < r.y + r.h);
-      if (!crosses) continue;
-      for (const sgn of [-1, 1]) {
-        for (let k = -half + 0.6; k < half - 0.4; k += 1.2) {
-          g.rect((vx + sgn * (half + 1.2) - 0.9) * U, (hy + k) * U, 1.8 * U, 0.6 * U).fill(COLORS.lane);
-          g.rect((vx + k) * U, (hy + sgn * (half + 1.2) - 0.9) * U, 0.6 * U, 1.8 * U).fill(COLORS.lane);
-        }
-      }
+    list.sort((a, b) => dist2(b, cam) - dist2(a, cam));
+    for (const b of list) {
+      const look2 = { ...b, facade: STYLE.facades[b.facadeIndex], roofColor: STYLE.roofs[b.roofIndex] };
+      A.drawHouseWalls(walls, STYLE, look2, cam);
+      const sp = roofOf(b);
+      const ox = (b.x + b.w / 2 - cam.x) * LEAN * b.height;
+      const oy = (b.y + b.h / 2 - cam.y) * LEAN * b.height;
+      sp.position.set((sp.userData.ox + ox) * U, (sp.userData.oy + oy) * U);
+      sp.visible = true;
     }
-}
+    // Keep roofs in the same far-to-near order as the walls.
+    list.forEach((b, i) => roofLayer.setChildIndex(roofs.get(b), Math.min(i, roofLayer.children.length - 1)));
 
-// ---------- buildings that lean away from the camera ----------
+    // Lamps (they lean too) and tree crowns.
+    tops.clear();
+    for (const l of map.lamps) if (vis(l.x, l.y, 3)) A.drawLamp(tops, STYLE, l.x, l.y, l.ay || 1, cam, l.ax);
+    map.trees.forEach((t, i) => {
+      const sp = crowns[i];
+      const on = vis(t.x, t.y, t.canopy + 2);
+      sp.visible = on;
+      if (!on) return;
+      const h = 7;
+      sp.position.set((t.x + (t.x - cam.x) * LEAN * h) * U, (t.y + (t.y - cam.y) * LEAN * h) * U);
+    });
+  }
 
-function drawBuildings(g, map, cam, vis) {
-  g.clear();
-  const list = [];
-  for (const b of map.buildings) {
-    const cx = b.x + b.w / 2;
-    const cy = b.y + b.h / 2;
-    if (!vis(cx, cy, Math.max(b.w, b.h) / 2)) continue;
-    list.push(b);
-  }
-  // Far buildings first, so near ones cover them.
-  list.sort((a, b) => dist2(b, cam) - dist2(a, cam));
-  for (const b of list) {
-    const cx = b.x + b.w / 2;
-    const cy = b.y + b.h / 2;
-    const ox = (cx - cam.x) * LEAN * b.height;
-    const oy = (cy - cam.y) * LEAN * b.height;
-    const x0 = b.x;
-    const y0 = b.y;
-    const x1 = b.x + b.w;
-    const y1 = b.y + b.h;
-    const quad = (ax, ay, bx, by, color) =>
-      g.poly([ax * U, ay * U, bx * U, by * U, (bx + ox) * U, (by + oy) * U, (ax + ox) * U, (ay + oy) * U]).fill(color);
-    if (oy < 0) quad(x0, y1, x1, y1, COLORS.wallLight); // south wall, facing the camera
-    if (oy > 0) quad(x0, y0, x1, y0, COLORS.wallDark);
-    if (ox < 0) quad(x1, y0, x1, y1, COLORS.wallMid);
-    if (ox > 0) quad(x0, y0, x0, y1, COLORS.wallMid);
-    g.rect((x0 + ox) * U, (y0 + oy) * U, b.w * U, b.h * U).fill(COLORS.roof);
-    const inset = 0.6;
-    g.rect((x0 + ox + inset) * U, (y0 + oy + inset) * U, (b.w - inset * 2) * U, (b.h - inset * 2) * U).fill(COLORS.roofInset);
-    // A roof hatch or two, so roofs are not completely flat.
-    const hx = x0 + ox + 1.5 + b.seed * Math.max(0, b.w - 4);
-    const hy = y0 + oy + 1.5 + ((b.seed * 7) % 1) * Math.max(0, b.h - 4);
-    g.rect(hx * U, hy * U, 1.2 * U, 1.2 * U).fill(COLORS.wallMid);
-  }
-  for (const t of map.trees) {
-    if (!vis(t.x, t.y, 4)) continue;
-    const ox = (t.x - cam.x) * LEAN * 6;
-    const oy = (t.y - cam.y) * LEAN * 6;
-    g.circle((t.x + ox * 0.5) * U, (t.y + oy * 0.5) * U, t.canopy * U).fill({ color: COLORS.treeCanopy, alpha: 0.92 });
-    g.circle((t.x + ox - t.canopy * 0.2) * U, (t.y + oy - t.canopy * 0.2) * U, t.canopy * 0.55 * U).fill({ color: COLORS.treeCanopyLight, alpha: 0.9 });
-  }
+  return { frame, cam, ground };
 }
 
 function dist2(b, cam) {
@@ -216,43 +220,28 @@ function dist2(b, cam) {
   return dx * dx + dy * dy;
 }
 
-// ---------- vehicles and people (drawn facing +x) ----------
+// ---------- views ----------
 
-function carView(type, spec, color) {
-  const c = new Container();
+function vehicleView(v) {
+  const body = new Container();
   const g = new Graphics();
-  const L = spec.length / 2;
-  const W = spec.width / 2;
-  const glass = 0x2c3440;
-  g.roundRect((-L) * U - 3, -W * U - 3, spec.length * U + 6, spec.width * U + 6, 0.6 * U).fill({ color: COLORS.shadow, alpha: 0.18 });
-  if (type === 'small') {
-    // Short and round, with a big glass roof.
-    g.roundRect(-L * U, -W * U, spec.length * U, spec.width * U, 0.7 * U).fill(color);
-    g.roundRect(0.1 * U, (-W + 0.15) * U, 0.7 * U, (spec.width - 0.3) * U, 0.25 * U).fill(glass);
-    g.roundRect(-1.35 * U, (-W + 0.2) * U, 0.45 * U, (spec.width - 0.4) * U, 0.15 * U).fill(glass);
-    g.roundRect(-0.85 * U, (-W + 0.2) * U, 0.9 * U, (spec.width - 0.4) * U, 0.25 * U).fill({ color: 0xffffff, alpha: 0.22 });
-  } else if (type === 'sport') {
-    // Long bonnet, the cabin far back, stripes and a rear wing.
-    g.roundRect(-L * U, -W * U, spec.length * U, spec.width * U, 0.55 * U).fill(color);
-    g.rect(-L * U, -0.32 * U, spec.length * U, 0.18 * U).fill({ color: 0xffffff, alpha: 0.75 });
-    g.rect(-L * U, 0.14 * U, spec.length * U, 0.18 * U).fill({ color: 0xffffff, alpha: 0.75 });
-    g.roundRect(-0.35 * U, (-W + 0.2) * U, 0.6 * U, (spec.width - 0.4) * U, 0.2 * U).fill(glass);
-    g.roundRect(-1.35 * U, (-W + 0.25) * U, 0.5 * U, (spec.width - 0.5) * U, 0.15 * U).fill(glass);
-    g.roundRect(-0.85 * U, (-W + 0.25) * U, 0.55 * U, (spec.width - 0.5) * U, 0.15 * U).fill({ color: 0x000000, alpha: 0.25 });
-    g.rect((-L - 0.1) * U, (-W + 0.05) * U, 0.3 * U, (spec.width - 0.1) * U).fill(0x1f1f22); // wing
-  } else {
-    g.roundRect(-L * U, -W * U, spec.length * U, spec.width * U, 0.45 * U).fill(color);
-    g.roundRect(0.35 * U, -0.78 * U, 0.75 * U, 1.56 * U, 0.2 * U).fill(glass); // windscreen
-    g.roundRect(-1.55 * U, -0.72 * U, 0.5 * U, 1.44 * U, 0.15 * U).fill(glass); // rear window
-    g.roundRect(-1.0 * U, -0.8 * U, 1.3 * U, 1.6 * U, 0.2 * U).fill({ color: 0xffffff, alpha: 0.18 }); // roof
-  }
-  const lx = L - 0.15;
-  g.rect(lx * U, (-W + 0.2) * U, 0.12 * U, 0.35 * U).fill(0xf3e7b0);
-  g.rect(lx * U, (W - 0.55) * U, 0.12 * U, 0.35 * U).fill(0xf3e7b0);
-  g.rect((-L + 0.02) * U, (-W + 0.2) * U, 0.1 * U, 0.3 * U).fill(0xb03a32);
-  g.rect((-L + 0.02) * U, (W - 0.5) * U, 0.1 * U, 0.3 * U).fill(0xb03a32);
-  c.addChild(g);
-  return c;
+  A.withoutShadows(() => (v.spec.class === 'car' ? A.drawCar(g, STYLE, v.type, v.color) : A.drawBike(g, STYLE, v.color)));
+  body.addChild(g);
+  const shadow = new Graphics();
+  const s = STYLE.shadow;
+  if (v.spec.class === 'car') shadow.roundRect((-v.spec.length / 2) * U, (-v.spec.width / 2) * U, v.spec.length * U, v.spec.width * U, 0.5 * U).fill({ color: s.color, alpha: s.alpha * 1.1 });
+  else shadow.roundRect(-0.9 * U, -0.12 * U, 1.8 * U, 0.24 * U, 0.12 * U).fill({ color: s.color, alpha: s.alpha });
+  return { body, shadow, lift: v.spec.class === 'car' ? 0.6 : 0.4 };
+}
+
+function personView() {
+  const body = new Container();
+  const g = new Graphics();
+  A.withoutShadows(() => A.drawPerson(g, STYLE, { shirt: COLORS.player, ring: true }));
+  body.addChild(g);
+  const s = STYLE.shadow;
+  const shadow = new Graphics().ellipse(0, 0, 0.24 * U, 0.38 * U).fill({ color: s.color, alpha: s.alpha });
+  return { body, shadow };
 }
 
 // Dark tyre marks where cars slide (F-034).
@@ -302,30 +291,4 @@ function createSkidMarks(g) {
       if (marks.length) g.stroke({ width: 0.28 * U, color: 0x2a2b2e, alpha: 0.45, cap: 'round' });
     },
   };
-}
-
-function bikeView(color) {
-  const c = new Container();
-  const g = new Graphics();
-  g.roundRect(-0.95 * U, -0.16 * U, 1.9 * U, 0.32 * U, 0.15 * U).fill({ color: COLORS.shadow, alpha: 0.15 });
-  g.roundRect(-0.9 * U, -0.1 * U, 0.62 * U, 0.2 * U, 0.1 * U).fill(0x222326);
-  g.roundRect(0.28 * U, -0.1 * U, 0.62 * U, 0.2 * U, 0.1 * U).fill(0x222326);
-  g.roundRect(-0.55 * U, -0.09 * U, 1.1 * U, 0.18 * U, 0.06 * U).fill(color);
-  g.roundRect(0.48 * U, -0.34 * U, 0.12 * U, 0.68 * U, 0.05 * U).fill(0x222326); // handlebar
-  g.roundRect(-0.48 * U, -0.13 * U, 0.34 * U, 0.26 * U, 0.1 * U).fill(0x2f2f33); // saddle
-  c.addChild(g);
-  return c;
-}
-
-function personView(body, head) {
-  const c = new Container();
-  const g = new Graphics();
-  // A soft ring so you always find yourself on a small screen.
-  g.circle(0, 0, 0.75 * U).fill({ color: 0xffffff, alpha: 0.12 }).stroke({ width: 2, color: 0xffffff, alpha: 0.55 });
-  g.ellipse(0, 0, 0.28 * U, 0.42 * U).fill({ color: COLORS.shadow, alpha: 0.2 });
-  g.ellipse(0, 0, 0.22 * U, 0.36 * U).fill(body);
-  g.circle(0.04 * U, 0, 0.16 * U).fill(head);
-  g.rect(0.14 * U, -0.05 * U, 0.08 * U, 0.1 * U).fill(0x6b4a2a); // nose, shows the facing
-  c.addChild(g);
-  return c;
 }

@@ -158,6 +158,51 @@ export function buildTestMap(seed = 1) {
     }
   }
 
+  // Looks of each house (F-037): a separate random series, so the layout
+  // above stays the same as before.
+  buildings.forEach((b, i) => {
+    const look = makeRng(seed * 7919 + i * 31 + 1);
+    b.roof = look() < 0.55 ? 'gable' : 'flat';
+    b.facadeIndex = Math.floor(look() * 6);
+    b.roofIndex = Math.floor(look() * 4);
+  });
+
+  // Street lamps, benches and bins along the sidewalks (own random series).
+  const furn = makeRng(seed * 104729 + 7);
+  const lamps = [];
+  const props = [];
+  const nearBridge = (x) => bridgeXs.some((bx) => Math.abs(x - bx) < EDGE + 3);
+  for (const r of roads) {
+    const along = r.dir === 'h' ? r.w : r.h;
+    const start0 = r.dir === 'h' ? r.x : r.y;
+    let side = 1;
+    for (let t = 14; t < along - 6; t += 28) {
+      const pos = start0 + t;
+      side = -side;
+      if (nearCrossing(pos, r.dir === 'h' ? vRoads : hRoads)) continue;
+      const off = side * (ROAD_HALF + 0.6);
+      const lx = r.dir === 'h' ? pos : r.c + off;
+      const ly = r.dir === 'h' ? r.c + off : pos;
+      if (r.dir === 'h' && Math.abs(r.c + off - (river.y0 + river.y1) / 2) < 25 && nearBridge(pos)) continue;
+      // The arm reaches out over the road.
+      lamps.push({ x: lx, y: ly, ax: r.dir === 'h' ? 0 : -side, ay: r.dir === 'h' ? -side : 0, r: 0.2 });
+      // Now and then a bench and a bin a little further along, by the houses.
+      if (furn() < 0.45) {
+        const boff = side * (ROAD_HALF + 2.3);
+        const p2 = pos + 6;
+        if (!nearCrossing(p2, r.dir === 'h' ? vRoads : hRoads)) {
+          props.push({ kind: 'bench', x: r.dir === 'h' ? p2 : r.c + boff, y: r.dir === 'h' ? r.c + boff : p2, rot: r.dir === 'h' ? 0 : Math.PI / 2 });
+          props.push({ kind: 'bin', x: r.dir === 'h' ? p2 + 2 : r.c + boff, y: r.dir === 'h' ? r.c + boff : p2 + 2 });
+        }
+      }
+    }
+  }
+  if (park) {
+    props.push({ kind: 'bench', x: park.x + park.w / 2 - 6, y: park.y + park.h / 2 - 2.6, rot: 0 });
+    props.push({ kind: 'bin', x: park.x + park.w / 2 - 3.6, y: park.y + park.h / 2 - 2.6 });
+    props.push({ kind: 'planter', x: park.x + park.w / 2 + 3, y: park.y + park.h / 2 + 3, w: 3, h: 1.4 });
+  }
+
   // Start: on the sidewalk with a bike and a car right next to the player.
   const start = { x: 200, y: 260 - ROAD_HALF - 1.5, heading: 0 };
   const clear = (x, y, d) => (o) => Math.hypot(o.x - x, o.y - y) > d;
@@ -167,6 +212,12 @@ export function buildTestMap(seed = 1) {
   keptCars.push({ x: start.x + 11, y: 260 - 4.3, heading: Math.PI, type: 'car', color: CAR_COLORS[0] });
   // A sports car across the street, so the owner can feel the difference at once.
   keptCars.push({ x: start.x + 4, y: 260 + 4.3, heading: 0, type: 'sport', color: SPORT_COLORS[0] });
+
+  // Keep street furniture clear of the start and of parked bikes.
+  const blockers = [start, ...keptBikes];
+  const clearOf = (o, d) => blockers.every((b) => Math.hypot(b.x - o.x, b.y - o.y) > d);
+  const keptLamps = lamps.filter((o) => clearOf(o, 2.2));
+  const keptProps = props.filter((o) => clearOf(o, 2.8));
 
   return {
     seed,
@@ -182,6 +233,10 @@ export function buildTestMap(seed = 1) {
     grass,
     paths,
     trees,
+    lamps: keptLamps,
+    props: keptProps,
+    bridgeXs,
+    river,
     buildings,
     spawns: { player: start, cars: keptCars, bikes: keptBikes },
   };

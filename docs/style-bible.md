@@ -1,6 +1,6 @@
 # Fyriskaos – stilbibel (D-003)
 
-Utkast 2026-11-17. Tre varianter väntar på ägarens val i grafikgalleriet: https://badbagel47.github.io/fyriskaos/gallery/ . Allt som inte står under *Varianterna* gäller oavsett vilken som väljs.
+Låst 2026-11-17 på **Sommarkväll+** (ägarens val). Galleriet: https://badbagel47.github.io/fyriskaos/gallery/ . Spelet använder `PLUS_STYLE` i `src/art/styles.js`.
 
 Ritkoden finns i `src/art/` (`styles.js` för varianterna, `draw.js` för själva ritandet). Varianterna skiljer sig bara i siffror och färger, så den valda kan flyttas in i spelet utan att ritas om.
 
@@ -66,7 +66,7 @@ Varje kvarter ska ha minst:
 
 ## Förslag Sommarkväll+ (D-038)
 
-Variant 1 med mer detalj, inspirerat av ägarens referensbilder. Ligger överst i galleriet bredvid variant 1 och väntar på ägarens val.
+Variant 1 med mer detalj, inspirerat av ägarens referensbilder. Vald av ägaren 2026-11-17 och används i spelet från v0.3.0.
 
 - **Textur:** kornig asfalt med svaga hjulspår och oljefläckar, trottoarplattor som skiljer sig lite i ton, kantsten i meterlängder med fogar, gräs med strån och blommor, grusgångar.
 - **Grönska:** träd, häckar och buskar byggda av många lövklungor; klungor mot solen (nordväst) är ljusare, kronans kant är ojämn.

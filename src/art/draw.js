@@ -38,6 +38,18 @@ const P = (pts) => pts.map((v) => v * U);
 // Things drawn rotated (cars, bikes, people) must still cast their shadow
 // towards the sun's direction in the world, not their own.
 let localRot = 0;
+let skipShadows = false;
+// Draw without the small built-in shadows (the game draws them separately,
+// so they stay in the world's sun direction while the object turns).
+export function withoutShadows(fn) {
+  const before = skipShadows;
+  skipShadows = true;
+  try {
+    fn();
+  } finally {
+    skipShadows = before;
+  }
+}
 export function rotated(rot, fn) {
   const before = localRot;
   localRot = rot;
@@ -51,6 +63,7 @@ export function rotated(rot, fn) {
 // Drop shadow of a flat shape, offset by the sun (north-west light).
 // Soft styles stack several slightly larger, fainter copies.
 function shadowShape(g, style, drawPath, lift = 1) {
+  if (skipShadows) return;
   const s = style.shadow;
   const c = Math.cos(-localRot);
   const sn = Math.sin(-localRot);
@@ -228,7 +241,24 @@ export function drawHouseShadow(g, style, b) {
   }
 }
 
+// Walls, windows and doors only, leaning away from the camera.
+export function drawHouseWalls(g, style, b, cam) {
+  drawHouseParts(g, style, b, cam, false);
+}
+
+// The roof drawn flat (no lean), for baking into a picture once.
+export function drawHouseRoofFlat(g, style, b) {
+  const r = rng(Math.floor(b.seed * 1e6) + 17);
+  const center = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  if (b.roof === 'gable') drawGableRoof(g, style, b, center, [0, 0], r);
+  else drawFlatRoof(g, style, b, [0, 0], r);
+}
+
 export function drawHouse(g, style, b, cam) {
+  drawHouseParts(g, style, b, cam, true);
+}
+
+function drawHouseParts(g, style, b, cam, withRoof) {
   const cx = b.x + b.w / 2;
   const cy = b.y + b.h / 2;
   const o = [(cx - cam.x) * LEAN * b.height, (cy - cam.y) * LEAN * b.height];
@@ -272,6 +302,7 @@ export function drawHouse(g, style, b, cam) {
       }
     }
   }
+  if (!withRoof) return;
   if (b.roof === 'gable') drawGableRoof(g, style, b, cam, o, r);
   else drawFlatRoof(g, style, b, o, r);
 }
@@ -451,24 +482,29 @@ export function drawBikeLane(g, style, x, y, w, h) {
   }
 }
 
-export function drawLamp(g, style, x, y, armDir = 1, cam = null) {
+export function drawLamp(g, style, x, y, armDir = 1, cam = null, armX = 0) {
   poleShadow(g, style, x, y, 6);
   // The luminaire sits 6 m up, so it leans away from the camera like a roof.
   const ox = cam ? (x - cam.x) * LEAN * 6 : 0;
   const oy = cam ? (y - cam.y) * LEAN * 6 : 0;
   const tx = x + ox;
   const ty = y + oy;
-  const hx = tx;
-  const hy = ty + armDir * 1.2;
+  // The arm points along y (armDir) or, for roads running north-south, along x (armX).
+  const ax = armX;
+  const ay = armX ? 0 : armDir;
+  const hx = tx + ax * 1.2;
+  const hy = ty + ay * 1.2;
   // Foot on the sidewalk, the pole up to the top, then the arm out over the lane.
   g.roundRect((x - 0.22) * U, (y - 0.22) * U, 0.44 * U, 0.44 * U, 0.08 * U);
   fin(g, style, shade(style.metal, 0.15), { outline: 0.6 });
   line(g, style, [x, y, tx, ty], 0.14, style.metal);
-  line(g, style, [tx, ty, hx, hy - armDir * 0.25], 0.08, style.metal);
+  line(g, style, [tx, ty, hx - ax * 0.25, hy - ay * 0.25], 0.08, style.metal);
   g.circle(tx * U, ty * U, 0.1 * U).fill(style.metal);
-  g.roundRect((hx - 0.38) * U, (hy - 0.22) * U, 0.76 * U, 0.44 * U, 0.18 * U);
+  const lw = ax ? 0.44 : 0.76;
+  const lh = ax ? 0.76 : 0.44;
+  g.roundRect((hx - lw / 2) * U, (hy - lh / 2) * U, lw * U, lh * U, 0.18 * U);
   fin(g, style, style.metal, { outline: 0.7 });
-  g.roundRect((hx - 0.24) * U, (hy - 0.1) * U, 0.48 * U, 0.2 * U, 0.08 * U).fill({ color: 0xfff2c0, alpha: 0.9 });
+  g.roundRect((hx - lw * 0.32) * U, (hy - lh * 0.23) * U, lw * 0.64 * U, lh * 0.46 * U, 0.08 * U).fill({ color: 0xfff2c0, alpha: 0.9 });
   return [hx, hy];
 }
 

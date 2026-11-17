@@ -7,6 +7,13 @@ import { shade, saturate } from './color.js';
 
 const col = (style, c) => saturate(c, style.saturation);
 
+// How many small specks and blades to draw (1 = gallery). The game uses
+// less, since its ground pictures are made while you play.
+let density = 1;
+export function setDetailDensity(d) {
+  density = d;
+}
+
 // Fine grain of light and dark specks, and darker wheel tracks along lanes.
 export function asphaltTexture(g, style, x, y, w, h, seed, lanes = []) {
   const r = rng(seed);
@@ -14,7 +21,7 @@ export function asphaltTexture(g, style, x, y, w, h, seed, lanes = []) {
   for (const ly of lanes) {
     for (const off of [-1.1, 1.1]) g.rect(x * U, (ly + off - 0.4) * U, w * U, 0.8 * U).fill({ color: 0x000000, alpha: 0.03 });
   }
-  const n = Math.floor(w * h * 9);
+  const n = Math.floor(w * h * 9 * density);
   for (let i = 0; i < n; i++) {
     const light = r() < 0.5;
     g.rect((x + r() * w) * U, (y + r() * h) * U, 0.07 * U, 0.07 * U).fill({ color: light ? shade(base, 0.35) : shade(base, -0.35), alpha: 0.35 });
@@ -36,7 +43,7 @@ export function slabTexture(g, style, x, y, w, h, seed) {
       if (r() < 0.06) g.circle((x0 + r() * (x1 - x0)) * U, (yy + r() * 0.8) * U, (0.12 + r() * 0.15) * U).fill({ color: 0x000000, alpha: 0.05 });
     }
   }
-  for (let i = 0; i < w * h * 4; i++) g.rect((x + r() * w) * U, (y + r() * h) * U, 0.05 * U, 0.05 * U).fill({ color: shade(base, -0.3), alpha: 0.3 });
+  for (let i = 0; i < w * h * 4 * density; i++) g.rect((x + r() * w) * U, (y + r() * h) * U, 0.05 * U, 0.05 * U).fill({ color: shade(base, -0.3), alpha: 0.3 });
 }
 
 // Curb stones in 1 m lengths with joints and granite speckle.
@@ -56,7 +63,7 @@ export function grassTexture(g, style, x, y, w, h, seed) {
   const r = rng(seed);
   const base = style.ground.grass;
   g.rect(x * U, y * U, w * U, h * U).fill(base);
-  for (let i = 0; i < w * h * 30; i++) {
+  for (let i = 0; i < w * h * 30 * density; i++) {
     const px = x + r() * w;
     const py = y + r() * h;
     const t = r();
@@ -97,13 +104,19 @@ function litAt(dx, dy, radius) {
 }
 
 // A tree built from many leaf clumps with a ragged edge.
-export function detailedTree(g, style, x, y, radius, seed) {
+export function treeShadow(g, style, x, y, radius) {
+  const s = style.shadow;
+  const k = (7 * 0.12) / 0.65;
+  g.circle((x + s.dx * k * 1.2) * U, (y + s.dy * k * 1.2) * U, radius * 0.85 * U).fill({ color: s.color, alpha: s.alpha * 1.25 });
+}
+
+export function detailedTree(g, style, x, y, radius, seed, { shadow = true } = {}) {
   const r = rng(seed);
   const tones = leafTones(style, style.tree[0]);
   const s = style.shadow;
   const k = (7 * 0.12) / 0.65;
   // One clear shadow, offset towards the south-east.
-  g.circle((x + s.dx * k * 1.2) * U, (y + s.dy * k * 1.2) * U, radius * 0.85 * U).fill({ color: s.color, alpha: s.alpha * 1.25 });
+  if (shadow) g.circle((x + s.dx * k * 1.2) * U, (y + s.dy * k * 1.2) * U, radius * 0.85 * U).fill({ color: s.color, alpha: s.alpha * 1.25 });
   g.circle(x * U, y * U, radius * 0.75 * U).fill(tones[0]);
   const clumps = Math.floor(radius * radius * 5);
   const list = [];
@@ -159,6 +172,6 @@ export function gravelPath(g, style, x, y, w, h, seed) {
   const r = rng(seed);
   const base = col(style, 0xcdbf9f);
   g.rect(x * U, y * U, w * U, h * U).fill(base);
-  for (let i = 0; i < w * h * 25; i++) g.circle((x + r() * w) * U, (y + r() * h) * U, (0.03 + r() * 0.04) * U).fill({ color: r() < 0.5 ? shade(base, -0.2) : shade(base, 0.2), alpha: 0.7 });
+  for (let i = 0; i < w * h * 25 * density; i++) g.circle((x + r() * w) * U, (y + r() * h) * U, (0.03 + r() * 0.04) * U).fill({ color: r() < 0.5 ? shade(base, -0.2) : shade(base, 0.2), alpha: 0.7 });
   g.rect(x * U, y * U, w * U, 0.08 * U).fill({ color: 0x000000, alpha: 0.12 });
 }

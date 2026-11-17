@@ -32,6 +32,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Nuläge (2026-11-17)
 
+- **v0.3.0 (F-037):** spelet ritas i Sommarkväll+. Marken (gator, plattor, gräs, vatten, skuggor, bänkar, papperskorgar) ritas en gång per 32 × 32 m och sparas som bild (`src/ground.js`); hus har lutande väggar med fönster och förbakade tak; gatlyktor och trädkronor lutar; fordon och folk använder galleriets ritkod. Lyktor, papperskorgar och bänkar är hinder. Kartan har fått husutseende, lyktor och möbler (`src/map.js`). Mätt i en simulerad långsam telefon: ritningen tar några millisekunder per bild, med en kort topp när en ny markbit ritas. Inte provat på ägarens telefon.
 - **Stilförslag Sommarkväll+ (D-038):** överst i galleriet bredvid variant 1: gata på dagen och på kvällen med ljus, park med grönska, explosion i tre steg och mynningsflamma. Koden i `src/art/detail.js`, `light.js` och `fx.js`. Granskat av en oberoende granskare; de viktigaste fynden rättade. Väntar på ägarens val.
 - **Namn (D-036):** `docs/names.md`.
 - **Grafik (D-003, F-004):** stilbibeln (`docs/style-bible.md`) och ett galleri med tre stilvarianter av gata, fordon och folk samt hus: https://badbagel47.github.io/fyriskaos/gallery/ . Ritkoden ligger i `src/art/` och används ännu inte i spelet (F-037, efter ägarens val). En oberoende granskare bedömde bilderna; dess fynd är rättade och den rekommenderar variant 1.
@@ -42,7 +43,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **Testat:** `npm test` kör `tests/driving.mjs` (fart per biltyp, handbromssväng jämfört med vanlig sväng) och `tests/smoke.cjs` (sidan i en mobilvy: joystick, cykel, bil, sportbil, handbroms, broms, kliva ur, tipset om liggande läge). Skärmdumparna är granskade av agenten.
 - **Publicerat:** https://badbagel47.github.io/fyriskaos/ , kontrollerat av agenten i en mobilvy. **Inte verifierat:** ägaren har inte provat på sin telefon.
 - **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
-- **Senaste:** stilförslag Sommarkväll+ och namn (2026-11-17) · stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
+- **Senaste:** Sommarkväll+ i spelet, v0.3.0 (2026-11-17) · stilförslag Sommarkväll+ och namn (2026-11-17) · stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 

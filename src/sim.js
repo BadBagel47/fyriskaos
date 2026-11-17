@@ -71,7 +71,15 @@ function buildGrid(map) {
   };
   map.buildings.forEach(addRect);
   map.water.forEach(addRect);
-  for (const t of map.trees) {
+  // Benches block the way too.
+  for (const p of map.props || []) {
+    if (p.kind !== 'bench') continue;
+    const horiz = Math.abs(Math.sin(p.rot)) < 0.5;
+    addRect(horiz ? { x: p.x - 0.9, y: p.y - 0.3, w: 1.8, h: 0.6 } : { x: p.x - 0.3, y: p.y - 0.9, w: 0.6, h: 1.8 });
+  }
+  // Tree trunks, lamp posts and bins are round obstacles.
+  const round = [...map.trees, ...(map.lamps || []), ...(map.props || []).filter((p) => p.kind === 'bin').map((p) => ({ x: p.x, y: p.y, r: 0.3 }))];
+  for (const t of round) {
     const cx = Math.floor(t.x / CELL);
     const cy = Math.floor(t.y / CELL);
     if (cx >= 0 && cy >= 0 && cx < cols && cy < rows) cells[cy * cols + cx].circles.push(t);
@@ -409,6 +417,7 @@ function placeFree(game, x, y) {
   const near = nearbyStatics(game.grid, x, y, { rects: [], circles: [] });
   for (const r of near.rects) if (circleRect(x, y, PERSON.radius + 0.05, r)) return false;
   for (const t of near.circles) if (Math.hypot(t.x - x, t.y - y) < t.r + PERSON.radius) return false;
+  for (const r of near.rects) if (circleRect(x, y, PERSON.radius, r)) return false;
   for (const v of game.vehicles) {
     if (v === game.player.vehicle) continue;
     for (const c of bodyCircles(v)) if (Math.hypot(c.x - probe.x, c.y - probe.y) < c.r + PERSON.radius) return false;
