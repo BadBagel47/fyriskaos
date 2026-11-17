@@ -11,4 +11,11 @@ Read them at the start of every session.
 
 ## Project rules (fyriskaos)
 
-None yet. A proposal is waiting for the owner under *Pending adaptation* in `docs/HANDOFF.md`.
+Owner decisions behind these rules are recorded under *Beslut* in `docs/HANDOFF.md`.
+
+- Everything visible in the game is in Swedish. Code, comments and commits in English. Never translate `docs/design.md`.
+- `docs/design.md` applies until the owner decides otherwise.
+- Graphics follow the working method in `docs/design.md` (*Arbetssätt för detaljrik grafik*): style bible first, one thing at a time in a gallery with test pages, a detail checklist per block, 2–3 variants to choose from, and an independent reviewer. Always look at your own result with screenshots and compare with the style bible before saying you are done.
+- Two-player mode uses `BadBagel47/network-kit`, only once solo works. Needs and questions about network-kit go to the network-kit agent, not into network-kit's repository.
+
+A further proposal is waiting for the owner under *Väntande anpassning* in `docs/HANDOFF.md`.

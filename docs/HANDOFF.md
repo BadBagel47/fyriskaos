@@ -17,11 +17,15 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 ## Beslut
 
 - **Designdokument (2026-11-17, D-001):** ägarens design från Claude-chatten gäller, se `docs/design.md`.
-- **Nätverk (2026-11-17, enligt designen):** två spelare bygger på `BadBagel47/network-kit`; en spelare är värd och kör simuleringen.
+- **Startinstruktioner (2026-11-17, issue #1):** ägarens instruktioner för första sessionen; innehållet finns här och i backloggen.
+- **Språk (2026-11-17):** allt som syns i spelet är på svenska. Kod, kommentarer och commits på engelska. Chatten på svenska. Designdokumentet översätts inte.
+- **Nätverk (2026-11-17):** två spelare bygger på `BadBagel47/network-kit` (se dess `docs/INTEGRATION.md`), men först när solo fungerar. En spelare är värd och kör simuleringen. Spelets behov är rapporterade i network-kit issue #1. Behov och frågor om network-kit tas till network-kit-agenten.
+- **Grafik (2026-11-17):** arbetssättet för grafik i designdokumentet gäller från start; agenten tittar på sitt resultat med skärmdumpar innan den säger att den är klar. Skrivet som projektregel i `AGENTS.md`.
+- **Första körningen (2026-11-17):** prototyp 1 (gå, cykla, köra bil i en grå testkarta), plus publicering så att ägaren kan prova på telefonen efter varje körning. Ingen kod förrän ägaren säger kör.
 
 ## Väntande anpassning
 
-- **1.1** Gör "Arbetssätt för detaljrik grafik" (stilbibel först, agenten tittar på sina skärmdumpar, galleri, checklistor, varianter, oberoende granskare) och satirens gränser (aldrig riktiga politiker, partier eller personal; inga lån från GTA) till projektregler i `AGENTS.md`. Rekommendation: ja, så att varje agent följer dem utan att läsa hela designdokumentet.
+- **1.1** Gör satirens gränser (aldrig riktiga politiker, partier, boende eller personal; inga lån från GTA) till projektregel i `AGENTS.md`. Rekommendation: ja, så att varje agent följer dem utan att läsa hela designdokumentet.
 
 ## Nuläge (2026-11-17)
 
@@ -36,3 +40,5 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 ## Dokumentkarta
 
 - `docs/design.md` – designdokumentet (D-001).
+- Issue #1 – ägarens startinstruktioner (stängd när innehållet flyttats hit).
+- network-kit issue #1 – Fyriskaos behov av network-kit.
