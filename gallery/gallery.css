@@ -1,0 +1,20 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #2b2c2e; color: #f2f1ee; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { padding: 14px 16px 4px; max-width: 1100px; }
+h1 { margin: 0 0 6px; font-size: 24px; }
+header p { margin: 0 0 6px; line-height: 1.4; }
+.small { font-size: 13px; opacity: 0.75; }
+a { color: #f0a43a; }
+main { padding: 8px 16px 40px; }
+.row { margin: 18px 0 8px; }
+.row h2 { font-size: 18px; margin: 0 0 8px; }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cell { background: #1f2022; border-radius: 10px; padding: 8px; }
+.cell h3 { margin: 0 0 4px; font-size: 15px; }
+.cell p { margin: 0 0 8px; font-size: 13px; opacity: 0.8; line-height: 1.35; }
+.cell img { width: 100%; height: auto; display: block; border-radius: 6px; cursor: zoom-in; image-rendering: auto; }
+@media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+#zoom { position: fixed; inset: 0; background: #000e; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: auto; }
+#zoom img { max-width: none; width: min(1600px, 200vw); }
+#zoom p { font-size: 13px; opacity: 0.7; }
+#zoom[hidden] { display: none; }

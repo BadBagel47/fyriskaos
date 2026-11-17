@@ -40,7 +40,7 @@ jobs:
       - name: Collect the site
         run: |
           mkdir _site
-          cp -r index.html css src vendor _site/
+          cp -r index.html css src vendor gallery _site/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
