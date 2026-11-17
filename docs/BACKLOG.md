@@ -8,6 +8,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
+| F-033 | Hög | Öppen | Olika bilar med olika fart (ägarens test 2026-11-17: "Bilen gick lite långsamt, men det är bra om vi har olika bilar, där de lite fräsigare har högre hastighet"). Vanliga bilar snabbare än i v0.1.0, fräsigare bilar ännu snabbare och mer sällsynta. |
 | D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
 | F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
@@ -45,19 +46,22 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 ## Körförslag
 
-- **A** – starkaste modellen, hög nivå – Stilbibel och galleri
+- **A** – starkaste modellen, medelnivå – Olika bilar
+  - F-033 – Snabbare vanlig bil och två nya biltyper, så att det känns skillnad på bilarna.
+  - Fråga A1: Vilka biltyper? Rekommendation: tre sorter – småbil (långsam, svängig), vanlig bil (snabbare än nu, cirka 90 km/h) och sportbil (cirka 120 km/h, snabb acceleration, sällsynt).
+- **B** – starkaste modellen, hög nivå – Stilbibel och galleri
   - D-003 – Ta fram stilbibeln med 2–3 varianter att välja mellan.
   - F-004 – Gör cykel, bil, hus och gata på testsidor för godkännande.
-  - Fråga A1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
-- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på A och på att kartdata går att hämta
+  - Fråga B1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
+- **C** – starkaste modellen, hög nivå – Första riktiga området – väntar på B och på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits till OpenStreetMap.
-  - Fråga B1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **C** – standardmodell, medelnivå – Lagar och licenser
+  - Fråga C1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
+- **D** – standardmodell, medelnivå – Lagar och licenser
   - D-009 – Gå igenom punkterna och föreslå åtgärder (credits, omdöpta parodier, integritetstext).
-- **D** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
+- **E** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
