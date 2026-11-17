@@ -1,6 +1,6 @@
 # Fyriskaos – designdokument
 
-Exporterat 2026-11-17 från designdokumentet i Claude-chatten där idén togs fram.
+Exporterat 2026-11-17 från designdokumentet i Claude-chatten där idén togs fram. Från och med nu är den här filen huvudversionen.
 
 ## Översikt
 
@@ -200,12 +200,12 @@ Grafik och världar blir platta när en agent gör allt i ett svep utan att titt
 
 - Versus-läge.
 - Ljuddämpare och smygande.
-- Fler städer, till exempel Stockholm.
+- Fler städer, till exempel Stockholm. Idéer för en Stockholm-profil: öar, broar och skärgård; gäng som Bostadsrättsmaffian, Elsparkcykelkartellen och Skärgårdsadeln; mål att bjudas in till Galamiddagen (en påhittad Nobelfest); uppdrag som båtjakter, kapa en sightseeingbåt, sabotera ett årsmöte i en bostadsrättsförening och stjäla tavlor från ett museum.
 - Köpa gömställe eller garage.
 
 **Öppna frågor:**
 
-- [ ] Slutligt namn på spelet.
+- [ ] Slutligt namn på spelet. Ägaren lutar åt Fyriskaos. Andra förslag: Slottsbackens kungar (gillat, används redan som titeln man kröns till), Ånfall, Punschkriget, Valborgskaos, Nationskriget, Cykelkriget, Kaos på Fyris och Tillgrepp: Uppsala. Undvik ”Grand Theft” och bokstäverna GTA. Kontrollera att namnet inte redan används av ett annat spel eller företag.
 - [ ] Ska en pågående runda kunna sparas och fortsättas en annan kväll?
 - [ ] Ska dag och natt finnas från start eller läggas till senare?
 - [ ] Vilka stadsdelar ska vara med i första versionen?
