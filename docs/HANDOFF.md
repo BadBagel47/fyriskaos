@@ -10,7 +10,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
   - Repot är publikt.
   - Känslig information: ingen. Hemligheter (t.ex. ElevenLabs-nyckel) får bara ligga som GitHub Secrets.
   - Lagar och licenser: se D-009 i backloggen.
-- **Publicering:** inte uppsatt än. Förslag: GitHub Pages från `main` (D-007, fråga A1 i körförslaget).
+- **Publicering:** GitHub Pages från `main` via `.github/workflows/pages.yml`: varje push till `main` kör testet (`npm test`, Playwright i Chromium) och publicerar bara om det går igenom. Adress: https://badbagel47.github.io/fyriskaos/
 - **Projektspråk:** svenska för allt spelaren ser och för README. Kod, kodkommentarer och commits på engelska.
 - **Miljö (2026-11-17, molnsession hos Claude Code):** push fungerar; npm-registret nås. OpenStreetMap (overpass-api.de, tile.openstreetmap.org) blockeras av sessionens nätverksregler, så kartdata kan inte hämtas härifrån än (behövs för F-005). Chromium med Playwright finns för skärmdumpar.
 
@@ -27,9 +27,12 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Nuläge (2026-11-17)
 
-- Bara design finns. Ingen kod, ingen publicering.
-- **Nästa:** körförslaget i `docs/BACKLOG.md` (först prototyp 1, styrningen på mobil).
-- **Senaste:** repot uppsatt enligt agentreglerna, backlog och körförslag (2026-11-17) · designdokumentet (2026-11-17).
+- **v0.1.0, prototyp 1 (F-002):** en grå teststad (rutnät, å med tre broar, park) där man kan gå, ta en cykel och köra bil. Styrning: flytande joystick på vänstra halvan, en smart knapp (Ta cykeln, Kliv in, Kliv ur, Kliv av) och en bromsknapp. Fordonet svänger mot joystickens riktning och gasar själv; dra bakåt när du står still för att backa. Man ramlar av cykeln vid krock. På dator: piltangenter/WASD, E och mellanslag.
+- **Teknik:** PixiJS 8 (kopia i `vendor/pixi`), inga byggsteg. Simuleringen (`src/sim.js`) är skild från ritningen och går i fasta steg, så att den senare kan köras hos värden i co-op. Kartan genereras från ett startnummer (`src/map.js`).
+- **Testat:** testet i `tests/smoke.cjs` startar sidan i en mobilvy och provar joystick, cykel, bil, broms, kliva ur och tipset om liggande läge. Skärmdumparna är granskade av agenten.
+- **Inte verifierat:** ägaren har inte provat på sin telefon än.
+- **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
+- **Senaste:** prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 
@@ -37,6 +40,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Dokumentkarta
 
+- `README.md` – kort om spelet och hur det körs lokalt.
 - `docs/design.md` – designdokumentet (D-001).
 - Issue #1 – ägarens startinstruktioner (stängd när innehållet flyttats hit).
 - network-kit issue #1 – Fyriskaos behov av network-kit.

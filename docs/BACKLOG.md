@@ -8,8 +8,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-002 | Hög | Pågår 2026-11-17 | Prototyp 1: gå, cykla och köra bil på mobilen (liggande läge) i en enkel grå testkarta. Joystick, smart knapp, broms. Ska även gå på dator. |
-| D-007 | Hög | Pågår 2026-11-17 | Publicering: hur spelet når ut (förslag GitHub Pages från `main`). |
 | D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
 | F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
@@ -47,24 +45,19 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 ## Körförslag
 
-- **A** – starkaste modellen, hög nivå – Prototyp 1 och publicering
-  - F-002 – Bygg styrningen (gå, cykel, bil) i en grå testkarta, så att den kan provas på mobilen.
-  - D-007 – Sätt upp publicering så att varje version går att öppna med en länk.
-  - Fråga A1: Hur ska spelet publiceras? Rekommendation: GitHub Pages från `main` (gratis, repot är publikt).
-  - Fråga A2: Grafikmotor? Rekommendation: PixiJS (WebGL, klarar många figurer på mobil, fri licens), utan byggsteg.
-- **B** – starkaste modellen, hög nivå – Stilbibel och galleri
+- **A** – starkaste modellen, hög nivå – Stilbibel och galleri
   - D-003 – Ta fram stilbibeln med 2–3 varianter att välja mellan.
   - F-004 – Gör cykel, bil, hus och gata på testsidor för godkännande.
-  - Fråga B1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
-- **C** – starkaste modellen, hög nivå – Första riktiga området – väntar på B och på att kartdata går att hämta
+  - Fråga A1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
+- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på A och på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits till OpenStreetMap.
-  - Fråga C1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **D** – standardmodell, medelnivå – Lagar och licenser
+  - Fråga B1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
+- **C** – standardmodell, medelnivå – Lagar och licenser
   - D-009 – Gå igenom punkterna och föreslå åtgärder (credits, omdöpta parodier, integritetstext).
-- **E** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
+- **D** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
@@ -74,4 +67,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
 | D-001 | 2026-11-17 | Designdokumentet (`docs/design.md`). |
+| F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
+| D-007 | 2026-11-17 | Publicering: GitHub Pages från `main`, efter att testet gått igenom. |
 | D-002 | 2026-11-17 | Repot uppsatt enligt agentreglerna och issue #1: AGENTS.md, överlämning och backlog med designens innehåll. |
