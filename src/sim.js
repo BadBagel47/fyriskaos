@@ -30,7 +30,7 @@ export function createGame(map) {
   };
   const vehicles = [];
   map.spawns.bikes.forEach((b, i) => vehicles.push(makeVehicle('bike', b, i)));
-  map.spawns.cars.forEach((c, i) => vehicles.push(makeVehicle('car', c, i)));
+  map.spawns.cars.forEach((c, i) => vehicles.push(makeVehicle(c.type || 'car', c, i)));
   const game = { map, player, vehicles, time: 0, events: [], shake: 0, grid: buildGrid(map) };
   return game;
 }
@@ -49,6 +49,8 @@ function makeVehicle(type, s, i) {
     color: s.color,
     driver: null,
     reversing: false,
+    grip: VEHICLES[type].grip, // current grip; drops during a handbrake turn
+    handbrake: false,
     mass: VEHICLES[type].mass,
     awake: false,
   };
@@ -229,7 +231,7 @@ function onBump(game, a, b, speed) {
     toast(game, 'Påkörd! Titta åt båda hållen nästa gång.');
   }
   for (const v of [a, b]) {
-    if (v.kind === 'vehicle' && v.driver && v.type === 'bike' && speed > v.spec.fallImpact) {
+    if (v.kind === 'vehicle' && v.driver && v.spec.class === 'bike' && speed > v.spec.fallImpact) {
       const other = v === a ? b : a;
       const nx = v.x - other.x;
       const ny = v.y - other.y;
@@ -293,7 +295,25 @@ function drive(game, v, input, dt) {
     }
   }
 
-  if (input.brake) {
+  // Handbrake turn (F-034): brake while pulling the stick to the side at speed
+  // and the rear lets go, so the car slides round the corner.
+  const hb = spec.handbrake;
+  // Once sliding, it keeps sliding while the brake is held, so the car can
+  // swing all the way round instead of stopping dead halfway.
+  const startSlide = active && vF > 6 && Math.abs(d) > 0.35;
+  v.handbrake = !!(hb && input.brake && !v.reversing && (v.handbrake ? vF > 3 : startSlide));
+  const gripTarget = v.handbrake ? hb.grip : spec.grip;
+  // Grip comes back gradually, so the car does not snap straight.
+  v.grip += (gripTarget - v.grip) * Math.min(1, (v.handbrake ? 12 : 2.5) * dt);
+
+  if (v.handbrake) {
+    vF = Math.max(0, vF - hb.decel * dt);
+    // Arcade help: part of the sideways slide is turned back into forward
+    // speed, so you come out of the corner with speed instead of stopping.
+    const moved = vR * Math.min(1, hb.redirect * dt);
+    vR -= moved;
+    vF += Math.abs(moved) * 0.85;
+  } else if (input.brake) {
     const dv = spec.brake * dt;
     if (vF > 0) vF = Math.max(0, vF - dv);
     else vF = Math.min(0, vF + dv);
@@ -310,14 +330,15 @@ function drive(game, v, input, dt) {
   }
   vF -= vF * spec.drag * dt;
   if (grassFactor < 1 && Math.abs(vF) > maxF) vF -= (vF - Math.sign(vF) * maxF) * Math.min(1, 3 * dt);
-  vR *= Math.exp(-spec.grip * dt);
+  vR *= Math.exp(-v.grip * dt);
 
   v.vx = fx * vF - fy * vR;
   v.vy = fy * vF + fx * vR;
 
   const speedFactor = clamp(Math.abs(vF) / spec.turnRefSpeed, spec.minTurn, 1);
   const highFactor = 1 - 0.35 * clamp(Math.abs(vF) / spec.maxSpeed, 0, 1);
-  v.heading = wrapAngle(v.heading + steer * spec.turnRate * speedFactor * highFactor * dt);
+  const boost = v.handbrake ? hb.turnBoost / highFactor : 1;
+  v.heading = wrapAngle(v.heading + steer * spec.turnRate * speedFactor * highFactor * boost * dt);
 }
 
 function coast(v, dt) {
@@ -378,6 +399,7 @@ function doAction(game) {
   v.driver = p;
   v.reversing = false;
   v.awake = true;
+  game.events.push({ type: 'enter', vehicle: v });
   p.vx = 0;
   p.vy = 0;
 }
@@ -420,6 +442,8 @@ function exitVehicle(game, v) {
   const speed = Math.hypot(v.vx, v.vy);
   p.vehicle = null;
   v.driver = null;
+  v.handbrake = false;
+  v.grip = v.spec.grip;
   p.x = spot[0];
   p.y = spot[1];
   p.heading = v.heading;
@@ -427,7 +451,7 @@ function exitVehicle(game, v) {
     p.vx = v.vx * 0.4;
     p.vy = v.vy * 0.4;
     p.stun = 0.8;
-    toast(game, v.type === 'bike' ? 'Du hoppade av i farten.' : 'Du kastade dig ut ur bilen. Snyggt.');
+    toast(game, v.spec.class === 'bike' ? 'Du hoppade av i farten.' : 'Du kastade dig ut ur bilen. Snyggt.');
   } else {
     p.vx = 0;
     p.vy = 0;
@@ -489,7 +513,7 @@ export function step(game, input, dt) {
   for (const m of [...movers, ...game.vehicles.filter((v) => v.awake && !movers.includes(v))]) {
     const hit = resolveStatics(game, m);
     if (m.kind === 'vehicle' && m.driver && hit.impact > 0) {
-      if (m.type === 'bike' && hit.impact > m.spec.fallImpact) fallOff(game, m, hit.nx, hit.ny);
+      if (m.spec.class === 'bike' && hit.impact > m.spec.fallImpact) fallOff(game, m, hit.nx, hit.ny);
       else if (hit.impact > 6) game.shake = Math.min(1, hit.impact / 15);
     }
   }

@@ -1,7 +1,7 @@
 // The grey test map for prototype 1: a small grid town with a river,
 // three bridges, a park and parked cars and bikes. Generated from a seed.
 
-import { CAR_COLORS, BIKE_COLORS } from './config.js';
+import { CAR_COLORS, BIKE_COLORS, SPORT_COLORS } from './config.js';
 
 export function makeRng(seed) {
   // mulberry32: small, fast and the same on every device
@@ -132,13 +132,13 @@ export function buildTestMap(seed = 1) {
         if (nearCrossing(x, vRoads)) continue;
         const side = rng() < 0.5 ? -1 : 1;
         // Right-hand traffic: cars on the north side face west.
-        cars.push({ x, y: r.c + side * 4.3, heading: side < 0 ? Math.PI : 0, color: pick(rng, CAR_COLORS) });
+        cars.push({ x, y: r.c + side * 4.3, heading: side < 0 ? Math.PI : 0, ...carKind(rng) });
       }
     } else {
       for (let y = r.y + 8; y < r.y + r.h - 8; y += 26 + rng() * 40) {
         if (nearCrossing(y, hRoads)) continue;
         const side = rng() < 0.5 ? -1 : 1;
-        cars.push({ x: r.c + side * 4.3, y, heading: side < 0 ? Math.PI / 2 : -Math.PI / 2, color: pick(rng, CAR_COLORS) });
+        cars.push({ x: r.c + side * 4.3, y, heading: side < 0 ? Math.PI / 2 : -Math.PI / 2, ...carKind(rng) });
       }
     }
   }
@@ -161,10 +161,12 @@ export function buildTestMap(seed = 1) {
   // Start: on the sidewalk with a bike and a car right next to the player.
   const start = { x: 200, y: 260 - ROAD_HALF - 1.5, heading: 0 };
   const clear = (x, y, d) => (o) => Math.hypot(o.x - x, o.y - y) > d;
-  const keptCars = cars.filter(clear(start.x + 10, start.y, 14));
+  const keptCars = cars.filter(clear(start.x + 8, 260, 16));
   const keptBikes = bikes.filter(clear(start.x, start.y, 6));
   keptBikes.push({ x: start.x + 1.9, y: start.y - 0.2, heading: 0, color: BIKE_COLORS[0] });
-  keptCars.push({ x: start.x + 11, y: 260 - 4.3, heading: Math.PI, color: CAR_COLORS[0] });
+  keptCars.push({ x: start.x + 11, y: 260 - 4.3, heading: Math.PI, type: 'car', color: CAR_COLORS[0] });
+  // A sports car across the street, so the owner can feel the difference at once.
+  keptCars.push({ x: start.x + 4, y: 260 + 4.3, heading: 0, type: 'sport', color: SPORT_COLORS[0] });
 
   return {
     seed,
@@ -183,6 +185,14 @@ export function buildTestMap(seed = 1) {
     buildings,
     spawns: { player: start, cars: keptCars, bikes: keptBikes },
   };
+}
+
+// Most cars are ordinary, some are small and a few are sports cars (F-033).
+function carKind(rng) {
+  const r = rng();
+  if (r < 0.08) return { type: 'sport', color: pick(rng, SPORT_COLORS) };
+  if (r < 0.38) return { type: 'small', color: pick(rng, CAR_COLORS) };
+  return { type: 'car', color: pick(rng, CAR_COLORS) };
 }
 
 function pick(rng, list) {

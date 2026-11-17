@@ -132,6 +132,32 @@ function fail(msg) {
     if (s10.vehicle) fail('could not get out of the car');
     if (shots) await page.screenshot({ path: path.join(shots, '5-out.png') });
 
+    // The sports car across the street: name in the corner, then a handbrake slide.
+    await page.evaluate(() => {
+      const g = window.__fyriskaos.game;
+      const car = g.vehicles.find((v) => v.type === 'sport');
+      Object.assign(g.player, { x: car.x - 3, y: car.y + 1.7, vx: 0, vy: 0, stun: 0 });
+    });
+    await page.waitForTimeout(100);
+    await page.keyboard.press('KeyE');
+    await page.waitForTimeout(100);
+    const sportName = await page.textContent('#speed');
+    if (!/^Sportbil/.test(sportName)) fail(`expected the sports car, got "${sportName}"`);
+    await hold('ArrowRight', 1800);
+    const before = await page.evaluate(() => window.__fyriskaos.game.player.vehicle.heading);
+    await page.keyboard.down('Space');
+    await page.keyboard.down('ArrowUp');
+    await page.waitForTimeout(450);
+    const slide = await page.evaluate(() => {
+      const v = window.__fyriskaos.game.player.vehicle;
+      return { handbrake: v.handbrake, heading: v.heading, speed: Math.hypot(v.vx, v.vy) };
+    });
+    if (shots) await page.screenshot({ path: path.join(shots, '6-handbrake.png') });
+    await page.keyboard.up('Space');
+    await page.keyboard.up('ArrowUp');
+    if (!(before - slide.heading > 0.6)) fail(`handbrake did not swing the car round (${before} -> ${slide.heading})`);
+    if (!(slide.speed > 5)) fail(`handbrake stopped the car dead (${slide.speed})`);
+
     // Portrait phone: ask to turn the phone.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(200);
@@ -139,7 +165,7 @@ function fail(msg) {
     if (rotate === 'none') fail('portrait hint not shown');
 
     if (errors.length) fail('errors on the page:\n' + errors.join('\n'));
-    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, portrait hint');
+    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint');
   } finally {
     await browser.close();
     server.kill();

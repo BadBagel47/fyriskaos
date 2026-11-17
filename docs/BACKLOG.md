@@ -8,8 +8,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-033 | Hög | Pågår 2026-11-17 | Olika bilar med olika fart (ägarens test 2026-11-17: "Bilen gick lite långsamt, men det är bra om vi har olika bilar, där de lite fräsigare har högre hastighet"). Vanliga bilar snabbare än i v0.1.0, fräsigare bilar ännu snabbare och mer sällsynta. |
-| F-034 | Hög | Pågår 2026-11-17 | Handbromssvängar för att ta kurvor snabbare (ägaren 2026-11-17: "Skulle även vara bra med handbromssvängar så att man kan ta kurvor snabbare"). |
 | D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
 | F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
@@ -47,24 +45,19 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 ## Körförslag
 
-- **A** – starkaste modellen, hög nivå – Olika bilar och handbromssvängar
-  - F-033 – Snabbare vanlig bil och två nya biltyper, så att det känns skillnad på bilarna.
-  - F-034 – Handbromssväng: bilen sladdar runt hörnet och man tar kurvor snabbare.
-  - Fråga A1: Vilka biltyper? Rekommendation: tre sorter – småbil (långsam, svängig), vanlig bil (snabbare än nu, cirka 90 km/h) och sportbil (cirka 120 km/h, snabb acceleration, sällsynt).
-  - Fråga A2: Hur görs handbromssvängen på mobilen? Rekommendation: ingen ny knapp – håll inne bromsen medan du drar åt sidan i fart, så sladdar bilen runt; bromsa rakt fram som vanligt. Färre knappar att hålla reda på. Alternativ: en egen handbromsknapp.
-- **B** – starkaste modellen, hög nivå – Stilbibel och galleri
+- **A** – starkaste modellen, hög nivå – Stilbibel och galleri
   - D-003 – Ta fram stilbibeln med 2–3 varianter att välja mellan.
   - F-004 – Gör cykel, bil, hus och gata på testsidor för godkännande.
-  - Fråga B1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
-- **C** – starkaste modellen, hög nivå – Första riktiga området – väntar på B och på att kartdata går att hämta
+  - Fråga A1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
+- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på A och på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits till OpenStreetMap.
-  - Fråga C1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **D** – standardmodell, medelnivå – Lagar och licenser
+  - Fråga B1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
+- **C** – standardmodell, medelnivå – Lagar och licenser
   - D-009 – Gå igenom punkterna och föreslå åtgärder (credits, omdöpta parodier, integritetstext).
-- **E** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
+- **D** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
@@ -74,6 +67,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
 | D-001 | 2026-11-17 | Designdokumentet (`docs/design.md`). |
+| F-033 | 2026-11-17 | Tre biltyper: småbil (cirka 70 km/h, svängig), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, snabb från start, sällsynt). Namn och fart visas i hörnet (v0.2.0). |
+| F-034 | 2026-11-17 | Handbromssväng: håll bromsen och dra åt sidan i fart, så sladdar bilen runt med däckspår och behåller farten (v0.2.0). |
 | F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
 | D-007 | 2026-11-17 | Publicering: GitHub Pages från `main` efter att testet gått igenom. Live och kontrollerad. |
 | D-002 | 2026-11-17 | Repot uppsatt enligt agentreglerna och issue #1: AGENTS.md, överlämning och backlog med designens innehåll. |

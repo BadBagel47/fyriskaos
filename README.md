@@ -15,7 +15,7 @@ Just nu finns prototyp 1: gå, cykla och köra bil i en grå teststad, för att 
 npm start
 ```
 
-Öppna sedan http://localhost:8080. Testet körs med `npm install` och `npm test` (Playwright med Chromium).
+Öppna sedan http://localhost:8080. Testerna körs med `npm install` och `npm test` (körmodellen i Node, sedan sidan i Chromium med Playwright).
 
 ## Licenser
 

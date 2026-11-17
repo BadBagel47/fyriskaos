@@ -28,12 +28,13 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Nuläge (2026-11-17)
 
+- **v0.2.0 (F-033, F-034):** tre biltyper med olika fart och känsla (värdena i `src/config.js`), och handbromssväng: bromsa och dra åt sidan i över cirka 20 km/h, så släpper bakhjulen, bilen svänger snabbare och en del av sladden blir fart framåt igen. Däckspår syns där bilar sladdar. En sportbil står på andra sidan gatan vid start.
 - **v0.1.0, prototyp 1 (F-002):** en grå teststad (rutnät, å med tre broar, park) där man kan gå, ta en cykel och köra bil. Styrning: flytande joystick på vänstra halvan, en smart knapp (Ta cykeln, Kliv in, Kliv ur, Kliv av) och en bromsknapp. Fordonet svänger mot joystickens riktning och gasar själv; dra bakåt när du står still för att backa. Man ramlar av cykeln vid krock. På dator: piltangenter/WASD, E och mellanslag.
 - **Teknik:** PixiJS 8 (kopia i `vendor/pixi`), inga byggsteg. Simuleringen (`src/sim.js`) är skild från ritningen och går i fasta steg, så att den senare kan köras hos värden i co-op. Kartan genereras från ett startnummer (`src/map.js`).
-- **Testat:** testet i `tests/smoke.cjs` startar sidan i en mobilvy och provar joystick, cykel, bil, broms, kliva ur och tipset om liggande läge. Skärmdumparna är granskade av agenten.
+- **Testat:** `npm test` kör `tests/driving.mjs` (fart per biltyp, handbromssväng jämfört med vanlig sväng) och `tests/smoke.cjs` (sidan i en mobilvy: joystick, cykel, bil, sportbil, handbroms, broms, kliva ur, tipset om liggande läge). Skärmdumparna är granskade av agenten.
 - **Publicerat:** https://badbagel47.github.io/fyriskaos/ , kontrollerat av agenten i en mobilvy. **Inte verifierat:** ägaren har inte provat på sin telefon.
 - **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
-- **Senaste:** prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
+- **Senaste:** biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 

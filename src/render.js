@@ -16,6 +16,10 @@ export function createRenderer(app, game) {
   drawGround(ground, game.map);
   world.addChild(ground);
 
+  const skids = new Graphics();
+  world.addChild(skids);
+  const skidMarks = createSkidMarks(skids);
+
   const shadows = new Graphics();
   world.addChild(shadows);
   const entityLayer = new Container();
@@ -25,7 +29,7 @@ export function createRenderer(app, game) {
 
   const views = new Map();
   for (const v of game.vehicles) {
-    const view = v.type === 'car' ? carView(v.color) : bikeView(v.color);
+    const view = v.spec.class === 'car' ? carView(v.type, v.spec, v.color) : bikeView(v.color);
     views.set(v, view);
     entityLayer.addChild(view);
   }
@@ -41,7 +45,7 @@ export function createRenderer(app, game) {
     let metres = 17; // visible metres across the short side of the screen, on foot
     if (p.vehicle) {
       const s = speedOf(p.vehicle);
-      metres = p.vehicle.type === 'car' ? 26 + s * 0.9 : 20 + s * 0.6;
+      metres = p.vehicle.spec.class === 'car' ? 26 + s * 0.85 : 20 + s * 0.6;
     }
     return short / metres;
   }
@@ -77,6 +81,7 @@ export function createRenderer(app, game) {
     const halfH = app.screen.height / 2 / cam.ppm + 12;
     const vis = (x, y, r = 0) => Math.abs(x - cam.x) < halfW + r && Math.abs(y - cam.y) < halfH + r;
 
+    skidMarks.update(game.vehicles);
     shadows.clear();
     for (const v of game.vehicles) {
       const view = views.get(v);
@@ -87,7 +92,7 @@ export function createRenderer(app, game) {
       view.rotation = v.heading;
     }
 
-    playerView.visible = !(p.vehicle && p.vehicle.type === 'car');
+    playerView.visible = !(p.vehicle && p.vehicle.spec.class === 'car');
     playerView.position.set(p.x * U, p.y * U);
     playerView.rotation = p.heading;
     // Knocked over: the figure lies flat and blinks.
@@ -213,20 +218,90 @@ function dist2(b, cam) {
 
 // ---------- vehicles and people (drawn facing +x) ----------
 
-function carView(color) {
+function carView(type, spec, color) {
   const c = new Container();
   const g = new Graphics();
-  g.roundRect(-2.2 * U - 3, -0.95 * U - 3, 4.4 * U + 6, 1.9 * U + 6, 0.6 * U).fill({ color: COLORS.shadow, alpha: 0.18 });
-  g.roundRect(-2.2 * U, -0.95 * U, 4.4 * U, 1.9 * U, 0.45 * U).fill(color);
-  g.roundRect(0.35 * U, -0.78 * U, 0.75 * U, 1.56 * U, 0.2 * U).fill(0x2c3440); // windscreen
-  g.roundRect(-1.55 * U, -0.72 * U, 0.5 * U, 1.44 * U, 0.15 * U).fill(0x2c3440); // rear window
-  g.roundRect(-1.0 * U, -0.8 * U, 1.3 * U, 1.6 * U, 0.2 * U).fill({ color: 0xffffff, alpha: 0.18 }); // roof
-  g.rect(2.05 * U, -0.75 * U, 0.12 * U, 0.35 * U).fill(0xf3e7b0);
-  g.rect(2.05 * U, 0.4 * U, 0.12 * U, 0.35 * U).fill(0xf3e7b0);
-  g.rect(-2.18 * U, -0.75 * U, 0.1 * U, 0.3 * U).fill(0xb03a32);
-  g.rect(-2.18 * U, 0.45 * U, 0.1 * U, 0.3 * U).fill(0xb03a32);
+  const L = spec.length / 2;
+  const W = spec.width / 2;
+  const glass = 0x2c3440;
+  g.roundRect((-L) * U - 3, -W * U - 3, spec.length * U + 6, spec.width * U + 6, 0.6 * U).fill({ color: COLORS.shadow, alpha: 0.18 });
+  if (type === 'small') {
+    // Short and round, with a big glass roof.
+    g.roundRect(-L * U, -W * U, spec.length * U, spec.width * U, 0.7 * U).fill(color);
+    g.roundRect(0.1 * U, (-W + 0.15) * U, 0.7 * U, (spec.width - 0.3) * U, 0.25 * U).fill(glass);
+    g.roundRect(-1.35 * U, (-W + 0.2) * U, 0.45 * U, (spec.width - 0.4) * U, 0.15 * U).fill(glass);
+    g.roundRect(-0.85 * U, (-W + 0.2) * U, 0.9 * U, (spec.width - 0.4) * U, 0.25 * U).fill({ color: 0xffffff, alpha: 0.22 });
+  } else if (type === 'sport') {
+    // Long bonnet, the cabin far back, stripes and a rear wing.
+    g.roundRect(-L * U, -W * U, spec.length * U, spec.width * U, 0.55 * U).fill(color);
+    g.rect(-L * U, -0.32 * U, spec.length * U, 0.18 * U).fill({ color: 0xffffff, alpha: 0.75 });
+    g.rect(-L * U, 0.14 * U, spec.length * U, 0.18 * U).fill({ color: 0xffffff, alpha: 0.75 });
+    g.roundRect(-0.35 * U, (-W + 0.2) * U, 0.6 * U, (spec.width - 0.4) * U, 0.2 * U).fill(glass);
+    g.roundRect(-1.35 * U, (-W + 0.25) * U, 0.5 * U, (spec.width - 0.5) * U, 0.15 * U).fill(glass);
+    g.roundRect(-0.85 * U, (-W + 0.25) * U, 0.55 * U, (spec.width - 0.5) * U, 0.15 * U).fill({ color: 0x000000, alpha: 0.25 });
+    g.rect((-L - 0.1) * U, (-W + 0.05) * U, 0.3 * U, (spec.width - 0.1) * U).fill(0x1f1f22); // wing
+  } else {
+    g.roundRect(-L * U, -W * U, spec.length * U, spec.width * U, 0.45 * U).fill(color);
+    g.roundRect(0.35 * U, -0.78 * U, 0.75 * U, 1.56 * U, 0.2 * U).fill(glass); // windscreen
+    g.roundRect(-1.55 * U, -0.72 * U, 0.5 * U, 1.44 * U, 0.15 * U).fill(glass); // rear window
+    g.roundRect(-1.0 * U, -0.8 * U, 1.3 * U, 1.6 * U, 0.2 * U).fill({ color: 0xffffff, alpha: 0.18 }); // roof
+  }
+  const lx = L - 0.15;
+  g.rect(lx * U, (-W + 0.2) * U, 0.12 * U, 0.35 * U).fill(0xf3e7b0);
+  g.rect(lx * U, (W - 0.55) * U, 0.12 * U, 0.35 * U).fill(0xf3e7b0);
+  g.rect((-L + 0.02) * U, (-W + 0.2) * U, 0.1 * U, 0.3 * U).fill(0xb03a32);
+  g.rect((-L + 0.02) * U, (W - 0.5) * U, 0.1 * U, 0.3 * U).fill(0xb03a32);
   c.addChild(g);
   return c;
+}
+
+// Dark tyre marks where cars slide (F-034).
+function createSkidMarks(g) {
+  const MAX = 900;
+  const marks = [];
+  const last = new Map();
+  let dirty = false;
+  return {
+    update(vehicles) {
+      for (const v of vehicles) {
+        if (v.spec.class !== 'car') continue;
+        const fx = Math.cos(v.heading);
+        const fy = Math.sin(v.heading);
+        const lateral = Math.abs(-v.vx * fy + v.vy * fx);
+        const sliding = (v.handbrake && Math.hypot(v.vx, v.vy) > 3) || lateral > 2.5;
+        if (!sliding) {
+          last.delete(v);
+          continue;
+        }
+        const rx = v.x - fx * v.spec.length * 0.32;
+        const ry = v.y - fy * v.spec.length * 0.32;
+        const w = v.spec.width * 0.4;
+        const wheels = [
+          [rx + fy * w, ry - fx * w],
+          [rx - fy * w, ry + fx * w],
+        ];
+        const prev = last.get(v);
+        if (prev) {
+          for (let i = 0; i < 2; i++) {
+            const [ax, ay] = prev[i];
+            const [bx, by] = wheels[i];
+            if (Math.hypot(bx - ax, by - ay) > 0.05) marks.push(ax, ay, bx, by);
+          }
+          dirty = true;
+        }
+        last.set(v, wheels);
+      }
+      if (marks.length > MAX * 4) {
+        marks.splice(0, marks.length - MAX * 4);
+        dirty = true;
+      }
+      if (!dirty) return;
+      dirty = false;
+      g.clear();
+      for (let i = 0; i < marks.length; i += 4) g.moveTo(marks[i] * U, marks[i + 1] * U).lineTo(marks[i + 2] * U, marks[i + 3] * U);
+      if (marks.length) g.stroke({ width: 0.28 * U, color: 0x2a2b2e, alpha: 0.45, cap: 'round' });
+    },
+  };
 }
 
 function bikeView(color) {

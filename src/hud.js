@@ -13,7 +13,7 @@ export function createHud(els) {
       const v = game.player.vehicle;
       els.brake.hidden = !v;
       els.speed.hidden = !v;
-      if (v) els.speed.textContent = `${Math.round(Math.hypot(v.vx, v.vy) * 3.6)} km/h`;
+      if (v) els.speed.textContent = `${v.spec.name} · ${Math.round(Math.hypot(v.vx, v.vy) * 3.6)} km/h`;
       if (toastTimer > 0) {
         toastTimer -= dt;
         if (toastTimer <= 0) els.toast.hidden = true;
