@@ -8,10 +8,10 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
-| F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
+| D-003 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
+| F-004 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
-| D-009 | Medel | Öppen | Lagar och licenser: OpenStreetMap (ODbL, credits), parodier på Swish och Blocket (varumärken), villkor för ElevenLabs-röster, GDPR när två spelare går via network-kit, lagring i webbläsaren om rundor ska sparas (LEK 9 kap. 28 §). |
+| D-009 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Lagar och licenser: OpenStreetMap (ODbL, credits), parodier på Swish och Blocket (varumärken), villkor för ElevenLabs-röster, GDPR när två spelare går via network-kit, lagring i webbläsaren om rundor ska sparas (LEK 9 kap. 28 §). |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
 | F-011 | Medel | Öppen | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
 | F-012 | Medel | Öppen | Strid och pengar: siktet låser på närmaste fiende, skjutknapp; pengar går bara till vård och vapen. |
