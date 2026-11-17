@@ -111,16 +111,16 @@ const CAR_SHAPES = {
   sport: { L: 4.5, W: 1.95, r: 0.55, cabin: [-1.35, 0.25], glassFront: 0.6, glassRear: 0.45 },
 };
 
-export function drawCar(g, style, kind, color) {
+export function drawCar(g, style, kind, color, { burnt = false } = {}) {
   outlineScale = style.vehicleOutline || 1;
   try {
-    drawCarBody(g, style, kind, color);
+    drawCarBody(g, style, kind, color, burnt);
   } finally {
     outlineScale = 1;
   }
 }
 
-function drawCarBody(g, style, kind, color) {
+function drawCarBody(g, style, kind, color, burnt = false) {
   const s = CAR_SHAPES[kind];
   const L = s.L / 2;
   const W = s.W / 2;
@@ -165,6 +165,11 @@ function drawCarBody(g, style, kind, color) {
     // Roof rails, a very Swedish estate-car detail.
     g.rect((c0 + 0.05) * U, (-W + 0.24) * U, (c1 - c0 - 0.1) * U, 0.07 * U).fill({ color: 0x1f2024, alpha: 0.7 });
     g.rect((c0 + 0.05) * U, (W - 0.31) * U, (c1 - c0 - 0.1) * U, 0.07 * U).fill({ color: 0x1f2024, alpha: 0.7 });
+  }
+  if (burnt) {
+    // Soot over the body, smashed lights.
+    g.roundRect(-L * U, -W * U, s.L * U, s.W * U, s.r * U).fill({ color: 0x0d0c0b, alpha: 0.55 });
+    return;
   }
   // Lights.
   g.roundRect((L - 0.14) * U, (-W + 0.18) * U, 0.12 * U, 0.38 * U, 0.05 * U).fill(0xfff2c0);
@@ -451,15 +456,20 @@ export function drawLamp(g, style, x, y, armDir = 1, cam = null) {
   // The luminaire sits 6 m up, so it leans away from the camera like a roof.
   const ox = cam ? (x - cam.x) * LEAN * 6 : 0;
   const oy = cam ? (y - cam.y) * LEAN * 6 : 0;
-  const hx = x + ox;
-  const hy = y + oy + armDir * 1.1;
-  line(g, style, [x, y, x + ox, y + oy], 0.12, style.metal);
-  line(g, style, [x + ox, y + oy, hx, hy], 0.07, style.metal);
-  g.circle(x * U, y * U, 0.16 * U);
-  fin(g, style, style.metal, { outline: 0.6 });
-  g.ellipse(hx * U, hy * U, 0.32 * U, 0.2 * U);
-  fin(g, style, mix(style.metal, 0xffffff, 0.25), { outline: 0.6 });
-  g.ellipse(hx * U, hy * U, 0.18 * U, 0.1 * U).fill({ color: 0xfff2c0, alpha: 0.9 });
+  const tx = x + ox;
+  const ty = y + oy;
+  const hx = tx;
+  const hy = ty + armDir * 1.2;
+  // Foot on the sidewalk, the pole up to the top, then the arm out over the lane.
+  g.roundRect((x - 0.22) * U, (y - 0.22) * U, 0.44 * U, 0.44 * U, 0.08 * U);
+  fin(g, style, shade(style.metal, 0.15), { outline: 0.6 });
+  line(g, style, [x, y, tx, ty], 0.14, style.metal);
+  line(g, style, [tx, ty, hx, hy - armDir * 0.25], 0.08, style.metal);
+  g.circle(tx * U, ty * U, 0.1 * U).fill(style.metal);
+  g.roundRect((hx - 0.38) * U, (hy - 0.22) * U, 0.76 * U, 0.44 * U, 0.18 * U);
+  fin(g, style, style.metal, { outline: 0.7 });
+  g.roundRect((hx - 0.24) * U, (hy - 0.1) * U, 0.48 * U, 0.2 * U, 0.08 * U).fill({ color: 0xfff2c0, alpha: 0.9 });
+  return [hx, hy];
 }
 
 export function drawBench(g, style, x, y) {

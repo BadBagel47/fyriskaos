@@ -63,13 +63,14 @@ export function grassTexture(g, style, x, y, w, h, seed) {
     g.rect(px * U, py * U, 0.05 * U, 0.16 * U).fill({ color: t < 0.5 ? shade(base, -0.18) : shade(base, 0.15), alpha: 0.55 });
   }
   const flowers = [0xffffff, 0xf2d24c, 0xd96a9a];
-  for (let i = 0; i < w * h * 0.6; i++) g.circle((x + r() * w) * U, (y + r() * h) * U, 0.06 * U).fill(col(style, flowers[Math.floor(r() * 3)]));
+  // Sparse, soft flowers, so they never look like something to pick up.
+  for (let i = 0; i < w * h * 0.08; i++) g.circle((x + r() * w) * U, (y + r() * h) * U, 0.05 * U).fill({ color: col(style, flowers[Math.floor(r() * 3)]), alpha: 0.55 });
 }
 
 // A clump of leaves. Lit clumps (towards the sun, north-west) get a
 // highlight; the rest stay in the mid or dark tone, so the crown has volume.
 function leafClump(g, style, x, y, rad, r, tones, lit) {
-  g.circle((x + rad * 0.15) * U, (y + rad * 0.15) * U, rad * U).fill(tones[0]);
+  g.circle((x + rad * 0.12) * U, (y + rad * 0.12) * U, rad * U).fill(mix3(tones[0], tones[1], 0.35));
   g.circle(x * U, y * U, rad * 0.85 * U).fill(lit > 0.2 ? tones[1] : mix3(tones[0], tones[1], 0.5));
   if (lit > 0.45) g.circle((x - rad * 0.28) * U, (y - rad * 0.28) * U, rad * 0.42 * U).fill({ color: tones[2], alpha: 0.5 + lit * 0.4 });
   // A few single leaves sticking out make the edge ragged.
@@ -101,17 +102,15 @@ export function detailedTree(g, style, x, y, radius, seed) {
   const tones = leafTones(style, style.tree[0]);
   const s = style.shadow;
   const k = (7 * 0.12) / 0.65;
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * Math.PI * 2;
-    g.circle((x + s.dx * k + Math.cos(a) * radius * 0.45) * U, (y + s.dy * k + Math.sin(a) * radius * 0.45) * U, radius * 0.55 * U).fill({ color: s.color, alpha: s.alpha * 0.45 });
-  }
-  g.circle(x * U, y * U, radius * 0.72 * U).fill(tones[0]);
-  const clumps = Math.floor(radius * radius * 11);
+  // One clear shadow, offset towards the south-east.
+  g.circle((x + s.dx * k * 1.2) * U, (y + s.dy * k * 1.2) * U, radius * 0.85 * U).fill({ color: s.color, alpha: s.alpha * 1.25 });
+  g.circle(x * U, y * U, radius * 0.75 * U).fill(tones[0]);
+  const clumps = Math.floor(radius * radius * 5);
   const list = [];
   for (let i = 0; i < clumps; i++) {
     const a = r() * Math.PI * 2;
-    const d = Math.sqrt(r()) * radius * 0.86;
-    list.push([Math.cos(a) * d, Math.sin(a) * d, 0.22 + r() * 0.26]);
+    const d = Math.sqrt(r()) * radius * 0.78;
+    list.push([Math.cos(a) * d, Math.sin(a) * d, 0.32 + r() * 0.3]);
   }
   // Inner and shaded clumps first, lit edge clumps last.
   list.sort((p, q) => litAt(p[0], p[1], radius) - litAt(q[0], q[1], radius));
@@ -125,9 +124,9 @@ export function hedge(g, style, x, y, w, h, seed) {
   const s = style.shadow;
   g.roundRect((x + s.dx * 0.7) * U, (y + s.dy * 0.7) * U, w * U, h * U, 0.4 * U).fill({ color: s.color, alpha: s.alpha * 1.3 });
   g.roundRect(x * U, y * U, w * U, h * U, 0.4 * U).fill(tones[0]);
-  const n = Math.floor(w * h * 11);
+  const n = Math.floor(w * h * 6);
   const list = [];
-  for (let i = 0; i < n; i++) list.push([x + 0.2 + r() * (w - 0.4), y + 0.2 + r() * (h - 0.4), 0.16 + r() * 0.14]);
+  for (let i = 0; i < n; i++) list.push([x + 0.25 + r() * (w - 0.5), y + 0.25 + r() * (h - 0.5), 0.22 + r() * 0.16]);
   const lit = (p) => Math.max(0, Math.min(1, 1 - ((p[1] - y) / h) * 0.9 - ((p[0] - x) / w) * 0.2));
   list.sort((p, q) => lit(p) - lit(q));
   for (const p of list) leafClump(g, style, p[0], p[1], p[2], r, tones, lit(p) + (r() - 0.5) * 0.3);
@@ -141,10 +140,10 @@ export function shrub(g, style, x, y, radius, seed, flower = 0xd96a9a) {
   g.circle((x + s.dx * 0.5) * U, (y + s.dy * 0.5) * U, radius * U).fill({ color: s.color, alpha: s.alpha * 1.2 });
   g.circle(x * U, y * U, radius * U).fill(tones[0]);
   const list = [];
-  for (let i = 0; i < radius * radius * 18; i++) {
+  for (let i = 0; i < radius * radius * 9; i++) {
     const a = r() * Math.PI * 2;
     const d = Math.sqrt(r()) * radius * 0.8;
-    list.push([Math.cos(a) * d, Math.sin(a) * d, 0.14 + r() * 0.12]);
+    list.push([Math.cos(a) * d, Math.sin(a) * d, 0.2 + r() * 0.14]);
   }
   list.sort((p, q) => litAt(p[0], p[1], radius) - litAt(q[0], q[1], radius));
   for (const [dx, dy, cr] of list) leafClump(g, style, x + dx, y + dy, cr, r, tones, litAt(dx, dy, radius));

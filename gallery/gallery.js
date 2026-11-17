@@ -5,7 +5,7 @@ import { Application, Container, Graphics, RenderTexture } from '../vendor/pixi/
 import { STYLES, PLUS_STYLE } from '../src/art/styles.js';
 import * as Dt from '../src/art/detail.js';
 import { createLightLayer } from '../src/art/light.js';
-import { explosion, scorch } from '../src/art/fx.js';
+import { explosion, scorch, muzzleFlash } from '../src/art/fx.js';
 import * as A from '../src/art/draw.js';
 import { VERSION } from '../src/config.js';
 
@@ -81,7 +81,9 @@ function houses(style) {
   return { root, w: 40, h: 27 };
 }
 
-function street(style, { evening = false } = {}) {
+function street(baseStyle, { evening = false } = {}) {
+  // At night the sun's shadows fade; light comes from lamps and windows instead.
+  const style = evening ? { ...baseStyle, shadow: { ...baseStyle.shadow, alpha: baseStyle.shadow.alpha * 0.3 } } : baseStyle;
   const root = new Container();
   const cam = { x: 15, y: 13 };
   const r = A.rng(17);
@@ -134,8 +136,7 @@ function street(style, { evening = false } = {}) {
   const top = new Graphics();
   A.drawTree(top, style, 27.5, 6.3, 2.3, 9);
   A.drawTree(top, style, 25, 25, 1.8, 3);
-  A.drawLamp(top, style, 5.5, 9.1, 1, cam);
-  A.drawLamp(top, style, 19.8, 9.1, 1, cam);
+  const lampHeads = [A.drawLamp(top, style, 5.5, 8.6, 1, cam), A.drawLamp(top, style, 19.8, 8.6, 1, cam)];
   const hg = new Graphics();
   const d2 = (b) => (b.x + b.w / 2 - cam.x) ** 2 + (b.y + b.h / 2 - cam.y) ** 2;
   // In the evening more windows are lit, in a warm colour.
@@ -146,16 +147,19 @@ function street(style, { evening = false } = {}) {
   if (evening) {
     const L = createLightLayer(30, 26.5, 0.58);
     root.addChild(L.root);
+    // The player's ring stays bright at night, so you always find yourself.
+    const ring = new Graphics().circle(4.5 * U, 7.7 * U, 0.75 * U).stroke({ width: 2.5, color: 0xffffff, alpha: 0.85 });
+    root.addChild(ring);
     if (style.detail) {
       // Street lamps (the heads lean like in drawLamp), lit windows, the moving car's headlights and the cyclist's lamp.
-      for (const [lx, ly] of [[5.5, 9.1], [19.8, 9.1]]) {
-        const hx = lx + (lx - cam.x) * 0.009 * 6;
-        const hy = ly + (ly - cam.y) * 0.009 * 6 + 1.1;
-        L.glow(hx, hy, 6.5, 0xffd59a, 0.55);
-        L.glow(hx, hy, 0.9, 0xffffff, 0.45);
+      // Warm pools of light under each lamp head.
+      for (const [hx, hy] of lampHeads) {
+        L.glow(hx, hy, 8, 0xffb35a, 0.6);
+        L.glow(hx, hy, 3, 0xffd89a, 0.45);
+        L.glow(hx, hy, 0.7, 0xffffff, 0.5);
       }
-      L.cone(15.75, 19.65, -0.04, 10, 0xfff1c8, 0.32);
-      L.cone(15.75, 20.75, 0.04, 10, 0xfff1c8, 0.32);
+      L.cone(15.75, 19.65, -0.04, 10, 0xffe2a8, 0.32);
+      L.cone(15.75, 20.75, 0.04, 10, 0xffe2a8, 0.32);
       L.glow(12.2, 19.7, 0.8, 0xff3020, 0.7);
       L.glow(12.2, 20.7, 0.8, 0xff3020, 0.7);
       L.cone(9.9, 10.3, 0, 5, 0xfff6d8, 0.45);
@@ -231,23 +235,25 @@ function blast(style) {
   const root = new Container();
   const g = new Graphics();
   const r = A.rng(71);
-  A.drawRoad(g, style, 0, 0, 39, 11, r, { patch: false, lanes: [5.5] });
-  A.drawLaneDashes(g, style, 0, 5.5, 39);
+  const W = 52;
+  A.drawRoad(g, style, 0, 0, W, 11, r, { patch: false, lanes: [5.5] });
+  A.drawLaneDashes(g, style, 0, 5.5, W);
   root.addChild(g);
-  const L = createLightLayer(39, 11, 0);
+  const L = createLightLayer(W, 11, 0);
   const fx = new Graphics();
-  const titles = [];
   for (let i = 0; i < 3; i++) {
     const cx = 6.5 + i * 13;
     const cy = 5.5;
     if (i > 0) scorch(g, cx, cy, 3.2, 80 + i);
-    at(root, cx, cy, -0.3, (gg) => A.drawCar(gg, style, 'car', i === 0 ? 0x7f95b0 : 0x2b2b2e));
+    at(root, cx, cy, -0.3, (gg) => A.drawCar(gg, style, 'car', i === 0 ? 0x7f95b0 : 0x3a3a3e, { burnt: i === 2 }));
     explosion(fx, cx + 0.6, cy - 0.2, i, 90 + i, L);
-    titles.push(cx);
   }
+  // Fourth panel: a muzzle flash.
+  at(root, 42, 7.5, -0.35, (gg) => A.drawPerson(gg, style, { shirt: 0xf0a43a, ring: true }));
+  muzzleFlash(fx, 42 + Math.cos(-0.35) * 0.45, 7.5 + Math.sin(-0.35) * 0.45 + 0.2, -0.35, 5, L);
   root.addChild(fx);
   root.addChild(L.root);
-  return { root, w: 39, h: 11 };
+  return { root, w: W, h: 11 };
 }
 
 const COMPARE = [
@@ -319,7 +325,7 @@ async function main() {
     for (const style of [STYLES[0], PLUS_STYLE]) await cell(app, cols, style, sc.make(style), `${sc.title}, ${style.name}`);
   }
   {
-    const { sec, cols } = row('Explosion', 'En bil som sprängs, i tre steg: blixten, eldklotet och röken. Ljuset från smällen lyser upp marken runt omkring.', 'jmf-explosion', 'one');
+    const { sec, cols } = row('Explosion', 'En bil som sprängs, i tre steg: blixten, eldklotet och vraket som brinner. Längst till höger: en mynningsflamma när spelaren skjuter.', 'jmf-explosion', 'one');
     grid.appendChild(sec);
     await cell(app, cols, PLUS_STYLE, blast(PLUS_STYLE), 'Explosion i tre steg');
   }

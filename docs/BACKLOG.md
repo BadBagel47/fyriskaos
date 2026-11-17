@@ -30,9 +30,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
-| D-038 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Förslag inspirerat av ägarens tre referensbilder (från andra spel, 2026-11-17; används bara som inspiration och läggs inte i repot), jämfört med variant 1 sida vid sida i galleriet. Ägaren: "De har mer detaljer. Den tredje har också snygga ljuseffekter. Explosioner syns inte så mycket där, men det behöver också se bra ut". Det som syns i bilderna: kornig asfalt och stenkanter med textur, täta buskar och träd byggda av många lövklungor, långa tydliga skuggor, lampor som lyser upp marken runt sig, mynningsflammor med glöd. Förslaget ska visa: mer textur och detalj i variant 1, ljuseffekter (gatlyktor, strålkastare, glöd) i kvällsljus, och en explosion. |
+| D-038 | Medel | Väntar på ägaren (val mellan variant 1 och Sommarkväll+) | Förslag inspirerat av ägarens tre referensbilder (från andra spel, 2026-11-17; används bara som inspiration och läggs inte i repot), jämfört med variant 1 sida vid sida i galleriet. Ägaren: "De har mer detaljer. Den tredje har också snygga ljuseffekter. Explosioner syns inte så mycket där, men det behöver också se bra ut". Det som syns i bilderna: kornig asfalt och stenkanter med textur, täta buskar och träd byggda av många lövklungor, långa tydliga skuggor, lampor som lyser upp marken runt sig, mynningsflammor med glöd. Förslaget ska visa: mer textur och detalj i variant 1, ljuseffekter (gatlyktor, strålkastare, glöd) i kvällsljus, och en explosion. |
 | F-037 | Medel | Öppen | Använd den valda stilen i spelet: byt den grå teststaden mot ritkoden i `src/art/` (bilar, cyklar, folk, hus med fönster och tak, gator med möbler). |
-| D-036 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Namn på parodier och verkliga organisationer (`docs/legal.md` punkt 2–3): Swish- och Blocket-parodierna, nationerna, Hemvärnet och polisens utseende. Behövs innan grupper, polis och uppdrag byggs. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
 | D-008 | Låg | Öppen | Öppna frågor i designen: slutligt namn, spara en runda till en annan kväll, dag och natt från start, vilka stadsdelar i första versionen. |
@@ -51,23 +50,17 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
-- **A** – starkaste modellen, hög nivå – Stilförslag från ägarens bilder
-  - D-038 – Variant 1 med mer textur och detalj, ljuseffekter i kvällsljus och en explosion, bredvid nuvarande variant 1 i galleriet.
-- **B** – starkaste modellen, hög nivå – Den valda stilen in i spelet – bygger på A
-  - D-003, F-004 – Ägaren väljer mellan variant 1 och det nya förslaget; stilbibeln låses.
-  - F-037 – Teststaden ritas med den valda stilen: riktiga bilar, cyklar, folk, hus med fönster och tak, gator med möbler.
-- **C** – starkaste modellen, hög nivå – Första riktiga området – bygger på B – väntar på att kartdata går att hämta
+- **A** – starkaste modellen, hög nivå – Den valda stilen in i spelet
+  - D-003, D-038, F-004 – Ägaren väljer mellan variant 1 och Sommarkväll+; stilbibeln låses.
+  - F-037 – Teststaden ritas med den valda stilen: riktiga bilar, cyklar, folk, hus med fönster och tak, gator med möbler och grönska.
+  - Fråga: Variant 1 eller Sommarkväll+? Rekommendation: Sommarkväll+ (mer detalj, ljus och explosioner, som ägaren bad om).
+- **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits och licenser.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **D** – standardmodell, medelnivå – Namn på parodier och verkliga organisationer
-  - D-036 – Bestäm namnen innan grupper, polis och uppdrag byggs.
-  - Fråga: Swish och Blocket? Rekommendation: påhittade namn som anspelar, t.ex. "Swosh" och "Plocket", med egna loggor.
-  - Fråga: Nationerna? Rekommendation: påhittade nationsnamn i stället för de riktiga.
-  - Fråga: Hemvärnet? Rekommendation: ett påhittat namn och emblem; polisen heter POLIS men utan polisens riktiga emblem.
-- **E** – starkaste modellen, hög nivå – Två spelare – bygger på C
+- **C** – starkaste modellen, hög nivå – Två spelare – bygger på B
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
@@ -81,6 +74,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-033 | 2026-11-17 | Tre biltyper: småbil (cirka 70 km/h, svängig), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, snabb från start, sällsynt). Namn och fart visas i hörnet (v0.2.0). |
 | F-034 | 2026-11-17 | Handbromssväng: håll bromsen och dra åt sidan i fart, så sladdar bilen runt med däckspår och behåller farten (v0.2.0). |
 | F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
+| D-036 | 2026-11-17 | Påhittade namn: Swosh, Plocket, sex påhittade nationer, Bygdeförsvaret, Polis utan riktigt emblem (`docs/names.md`). |
 | D-009 | 2026-11-17 | Lagar och licenser genomgångna: `docs/legal.md`. Åtgärder i F-028, F-035 och D-036. |
 | D-007 | 2026-11-17 | Publicering: GitHub Pages från `main` efter att testet gått igenom. Live och kontrollerad. |
 | D-002 | 2026-11-17 | Repot uppsatt enligt agentreglerna och issue #1: AGENTS.md, överlämning och backlog med designens innehåll. |
