@@ -28,6 +28,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
+| F-040 | Hög | Öppen | Styrning där upp är framåt (ägaren 2026-11-17: "Inte gå efter vilket håll de pekar åt, utan att upp blir framåt"): joysticken upp = gasa framåt, ned = bromsa och backa, åt sidan = svänga, i stället för att fordonet svänger mot joystickens riktning på skärmen. |
 | F-039 | Medel | Öppen | Dag och kväll i spelet: ljuset från galleriets kvällsscen (gatlyktor, fönster, strålkastare, bakljus) när det blir kväll under rundan. Hänger ihop med den öppna frågan i D-008. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
@@ -46,17 +47,21 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
-- Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
-- **A** – starkaste modellen, hög nivå – Första riktiga området – väntar på att kartdata går att hämta
+- Prioriterat för: ägarens önskemål först, sedan designdokumentets plan (styrning, grafik, första riktiga området, två spelare).
+- **A** – starkaste modellen, hög nivå – Styrning där upp är framåt
+  - F-040 – Joysticken upp gasar framåt, ned bromsar och backar, åt sidan svänger; tangenterna likadant.
+  - Fråga: Gäller det bara fordon eller även till fots? Rekommendation: bil och cykel; till fots går man åt det håll man drar, så att det är lätt att sikta och gå runt hörn.
+  - Fråga: Ska kameran vrida sig så att framåt alltid är uppåt på skärmen? Rekommendation: nej, staden står still (lättare att hitta, kartan och pilen stämmer), bara styrningen ändras.
+- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits och licenser.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **B** – starkaste modellen, medelnivå – Dag och kväll
+- **C** – starkaste modellen, medelnivå – Dag och kväll
   - F-039 – Det blir kväll under rundan, med gatlyktor, upplysta fönster och strålkastare.
   - Fråga: Dag och natt från start (D-008)? Rekommendation: dag och kväll nu, eftersom ljuset redan finns; mörk natt senare.
-- **C** – starkaste modellen, hög nivå – Två spelare – bygger på A
+- **D** – starkaste modellen, hög nivå – Två spelare – bygger på B
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
