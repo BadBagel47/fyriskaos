@@ -10,7 +10,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
   - Repot är publikt.
   - Känslig information: ingen. Hemligheter (t.ex. ElevenLabs-nyckel) får bara ligga som GitHub Secrets.
   - Lagar och licenser: se D-009 i backloggen.
-- **Publicering:** GitHub Pages från `main` via `.github/workflows/pages.yml`: varje push till `main` kör testet (`npm test`, Playwright i Chromium) och publicerar bara om det går igenom. Adress: https://badbagel47.github.io/fyriskaos/ . Inte live än: Pages måste slås på en gång av ägaren (2026-11-17 kunde arbetsflödet inte göra det själv: "Resource not accessible by integration").
+- **Publicering:** GitHub Pages från `main` via `.github/workflows/pages.yml`: varje push till `main` kör testet (`npm test`, Playwright i Chromium) och publicerar bara om det går igenom. Adress: https://badbagel47.github.io/fyriskaos/ . Live sedan 2026-11-17 (ägaren slog på Pages; arbetsflödet kan inte göra det själv). Arbetsflödet kan också startas för hand.
 - **Projektspråk:** svenska för allt spelaren ser och för README. Kod, kodkommentarer och commits på engelska.
 - **Miljö (2026-11-17, molnsession hos Claude Code):** push fungerar; npm-registret nås. OpenStreetMap (overpass-api.de, tile.openstreetmap.org) blockeras av sessionens nätverksregler, så kartdata kan inte hämtas härifrån än (behövs för F-005). Chromium med Playwright finns för skärmdumpar.
 
@@ -30,13 +30,13 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **v0.1.0, prototyp 1 (F-002):** en grå teststad (rutnät, å med tre broar, park) där man kan gå, ta en cykel och köra bil. Styrning: flytande joystick på vänstra halvan, en smart knapp (Ta cykeln, Kliv in, Kliv ur, Kliv av) och en bromsknapp. Fordonet svänger mot joystickens riktning och gasar själv; dra bakåt när du står still för att backa. Man ramlar av cykeln vid krock. På dator: piltangenter/WASD, E och mellanslag.
 - **Teknik:** PixiJS 8 (kopia i `vendor/pixi`), inga byggsteg. Simuleringen (`src/sim.js`) är skild från ritningen och går i fasta steg, så att den senare kan köras hos värden i co-op. Kartan genereras från ett startnummer (`src/map.js`).
 - **Testat:** testet i `tests/smoke.cjs` startar sidan i en mobilvy och provar joystick, cykel, bil, broms, kliva ur och tipset om liggande läge. Skärmdumparna är granskade av agenten.
-- **Inte verifierat:** inte publicerat än (D-007 väntar på ägaren); ägaren har inte provat på sin telefon.
+- **Publicerat:** https://badbagel47.github.io/fyriskaos/ , kontrollerat av agenten i en mobilvy. **Inte verifierat:** ägaren har inte provat på sin telefon.
 - **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
 - **Senaste:** prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 
-- Väntar: slå på GitHub Pages (Settings → Pages → Source: GitHub Actions), sedan köra arbetsflödet igen. Behövs för D-007.
+- Klart (2026-11-17): GitHub Pages påslaget med källan GitHub Actions.
 - Väntar: tillåt overpass-api.de i molnmiljöns nätverk, så att agenten kan hämta Uppsalas karta från OpenStreetMap (behövs för F-005).
 
 ## Dokumentkarta
