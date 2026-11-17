@@ -30,6 +30,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
+| D-038 | Medel | Väntar på ägaren (bilder) | Förslag inspirerat av ägarens referensbilder, jämfört med variant 1 sida vid sida i galleriet (ägaren 2026-11-17: "kan jag skicka bilder med stiler du kan inspireras av, och göra ett förslag som jämför med stil 1?"). Bilder från andra spel används bara som inspiration och läggs inte i det publika repot. |
 | F-037 | Medel | Öppen | Använd den valda stilen i spelet: byt den grå teststaden mot ritkoden i `src/art/` (bilar, cyklar, folk, hus med fönster och tak, gator med möbler). |
 | D-036 | Medel | Öppen | Namn på parodier och verkliga organisationer (`docs/legal.md` punkt 2–3): Swish- och Blocket-parodierna, nationerna, Hemvärnet och polisens utseende. Behövs innan grupper, polis och uppdrag byggs. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
@@ -50,22 +51,23 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
-- **A** – starkaste modellen, hög nivå – Den valda stilen in i spelet
-  - D-003, F-004 – Ägaren väljer variant i galleriet; stilbibeln låses.
+- **A** – starkaste modellen, hög nivå – Stilförslag från ägarens bilder – väntar på bilderna
+  - D-038 – Ett nytt förslag inspirerat av ägarens bilder, bredvid variant 1 i galleriet.
+- **B** – starkaste modellen, hög nivå – Den valda stilen in i spelet – bygger på A
+  - D-003, F-004 – Ägaren väljer mellan variant 1 och det nya förslaget; stilbibeln låses.
   - F-037 – Teststaden ritas med den valda stilen: riktiga bilar, cyklar, folk, hus med fönster och tak, gator med möbler.
-  - Fråga: Vilken variant? Rekommendation (också den oberoende granskarens): Variant 1 – Sommarkväll, med lite kraftigare kontur på fordon och folk.
-- **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
+- **C** – starkaste modellen, hög nivå – Första riktiga området – bygger på B – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits och licenser.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **C** – standardmodell, medelnivå – Namn på parodier och verkliga organisationer
+- **D** – standardmodell, medelnivå – Namn på parodier och verkliga organisationer
   - D-036 – Bestäm namnen innan grupper, polis och uppdrag byggs.
   - Fråga: Swish och Blocket? Rekommendation: påhittade namn som anspelar, t.ex. "Swosh" och "Plocket", med egna loggor.
   - Fråga: Nationerna? Rekommendation: påhittade nationsnamn i stället för de riktiga.
   - Fråga: Hemvärnet? Rekommendation: ett påhittat namn och emblem; polisen heter POLIS men utan polisens riktiga emblem.
-- **D** – starkaste modellen, hög nivå – Två spelare – bygger på B
+- **E** – starkaste modellen, hög nivå – Två spelare – bygger på C
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
