@@ -8,6 +8,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
+| D-007 | Hög | Väntar på ägaren | Publicering: GitHub Pages från `main` efter att testet gått igenom. Arbetsflödet finns; ägaren behöver slå på Pages en gång (se Engångsåtgärder i HANDOFF.md). |
 | D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
 | F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
@@ -68,5 +69,4 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | --- | --- | --- |
 | D-001 | 2026-11-17 | Designdokumentet (`docs/design.md`). |
 | F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
-| D-007 | 2026-11-17 | Publicering: GitHub Pages från `main`, efter att testet gått igenom. |
 | D-002 | 2026-11-17 | Repot uppsatt enligt agentreglerna och issue #1: AGENTS.md, överlämning och backlog med designens innehåll. |
