@@ -30,7 +30,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
-| D-038 | Medel | Väntar på ägaren (bilder) | Förslag inspirerat av ägarens referensbilder, jämfört med variant 1 sida vid sida i galleriet (ägaren 2026-11-17: "kan jag skicka bilder med stiler du kan inspireras av, och göra ett förslag som jämför med stil 1?"). Bilder från andra spel används bara som inspiration och läggs inte i det publika repot. |
+| D-038 | Medel | Öppen | Förslag inspirerat av ägarens tre referensbilder (från andra spel, 2026-11-17; används bara som inspiration och läggs inte i repot), jämfört med variant 1 sida vid sida i galleriet. Ägaren: "De har mer detaljer. Den tredje har också snygga ljuseffekter. Explosioner syns inte så mycket där, men det behöver också se bra ut". Det som syns i bilderna: kornig asfalt och stenkanter med textur, täta buskar och träd byggda av många lövklungor, långa tydliga skuggor, lampor som lyser upp marken runt sig, mynningsflammor med glöd. Förslaget ska visa: mer textur och detalj i variant 1, ljuseffekter (gatlyktor, strålkastare, glöd) i kvällsljus, och en explosion. |
 | F-037 | Medel | Öppen | Använd den valda stilen i spelet: byt den grå teststaden mot ritkoden i `src/art/` (bilar, cyklar, folk, hus med fönster och tak, gator med möbler). |
 | D-036 | Medel | Öppen | Namn på parodier och verkliga organisationer (`docs/legal.md` punkt 2–3): Swish- och Blocket-parodierna, nationerna, Hemvärnet och polisens utseende. Behövs innan grupper, polis och uppdrag byggs. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
@@ -51,8 +51,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
-- **A** – starkaste modellen, hög nivå – Stilförslag från ägarens bilder – väntar på bilderna
-  - D-038 – Ett nytt förslag inspirerat av ägarens bilder, bredvid variant 1 i galleriet.
+- **A** – starkaste modellen, hög nivå – Stilförslag från ägarens bilder
+  - D-038 – Variant 1 med mer textur och detalj, ljuseffekter i kvällsljus och en explosion, bredvid nuvarande variant 1 i galleriet.
 - **B** – starkaste modellen, hög nivå – Den valda stilen in i spelet – bygger på A
   - D-003, F-004 – Ägaren väljer mellan variant 1 och det nya förslaget; stilbibeln låses.
   - F-037 – Teststaden ritas med den valda stilen: riktiga bilar, cyklar, folk, hus med fönster och tak, gator med möbler.

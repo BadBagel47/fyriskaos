@@ -70,4 +70,4 @@ Varje kvarter ska ha minst:
 2. Agenten tar skärmdumpar, jämför med den här stilbibeln och checklistan och rättar innan den säger att den är klar.
 3. 2–3 varianter sida vid sida innan en ny stadsdel eller ett nytt fordon byggs.
 4. En separat granskare bedömer skärmdumparna mot stilbibeln och checklistan. Första granskningen (2026-11-17) ledde till rättade skuggor, skorstenar med höjd, lyktor som lutar, oregelbundna sprickor, tydligare cykelsymbol, blomlådor och tunnare kontur på människor.
-5. Referensbilder: inga egna foton än (ägarens beslut 2026-11-17); läggs till när de finns.
+5. Referensbilder: inga egna foton än (ägarens beslut 2026-11-17); läggs till när de finns. Ägaren har visat tre bilder från andra spel som inspiration (D-038): mer detalj och textur, ljuseffekter och snygga explosioner. Bilderna ligger inte i repot (upphovsrätt); bara vad som inspirerar beskrivs här.
