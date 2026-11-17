@@ -29,13 +29,15 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Nuläge (2026-11-17)
 
+- **Grafik (D-003, F-004):** stilbibeln (`docs/style-bible.md`) och ett galleri med tre stilvarianter av gata, fordon och folk samt hus: https://badbagel47.github.io/fyriskaos/gallery/ . Ritkoden ligger i `src/art/` och används ännu inte i spelet (F-037, efter ägarens val). En oberoende granskare bedömde bilderna; dess fynd är rättade och den rekommenderar variant 1.
+- **Lagar och licenser (D-009):** genomgång i `docs/legal.md`; åtgärder i F-028, F-035 och D-036.
 - **v0.2.0 (F-033, F-034):** tre biltyper med olika fart och känsla (värdena i `src/config.js`), och handbromssväng: bromsa och dra åt sidan i över cirka 20 km/h, så släpper bakhjulen, bilen svänger snabbare och en del av sladden blir fart framåt igen. Däckspår syns där bilar sladdar. En sportbil står på andra sidan gatan vid start.
 - **v0.1.0, prototyp 1 (F-002):** en grå teststad (rutnät, å med tre broar, park) där man kan gå, ta en cykel och köra bil. Styrning: flytande joystick på vänstra halvan, en smart knapp (Ta cykeln, Kliv in, Kliv ur, Kliv av) och en bromsknapp. Fordonet svänger mot joystickens riktning och gasar själv; dra bakåt när du står still för att backa. Man ramlar av cykeln vid krock. På dator: piltangenter/WASD, E och mellanslag.
 - **Teknik:** PixiJS 8 (kopia i `vendor/pixi`), inga byggsteg. Simuleringen (`src/sim.js`) är skild från ritningen och går i fasta steg, så att den senare kan köras hos värden i co-op. Kartan genereras från ett startnummer (`src/map.js`).
 - **Testat:** `npm test` kör `tests/driving.mjs` (fart per biltyp, handbromssväng jämfört med vanlig sväng) och `tests/smoke.cjs` (sidan i en mobilvy: joystick, cykel, bil, sportbil, handbroms, broms, kliva ur, tipset om liggande läge). Skärmdumparna är granskade av agenten.
 - **Publicerat:** https://badbagel47.github.io/fyriskaos/ , kontrollerat av agenten i en mobilvy. **Inte verifierat:** ägaren har inte provat på sin telefon.
 - **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
-- **Senaste:** biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
+- **Senaste:** stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 
@@ -46,5 +48,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 - `README.md` – kort om spelet och hur det körs lokalt.
 - `docs/design.md` – designdokumentet (D-001).
+- `docs/style-bible.md` – stilbibeln (D-003).
+- `docs/legal.md` – lagar och licenser (D-009).
 - Issue #1 – ägarens startinstruktioner (stängd när innehållet flyttats hit).
 - network-kit issue #1 – Fyriskaos behov av network-kit (i repot `BadBagel47/network-kit`).

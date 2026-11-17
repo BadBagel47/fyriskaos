@@ -15,7 +15,8 @@ export const STYLES = [
     name: 'Variant 1 – Sommarkväll',
     summary: 'Ljusa pastellfärger, tunn mörk kontur och mjuka skuggor snett nedåt höger, som en sen eftermiddag i maj.',
     outline: { width: 1.3, color: 0x3b3430, alpha: 0.7 },
-    shadow: { dx: 0.55, dy: 0.8, color: 0x2a2440, alpha: 0.2, layers: 1 },
+    shadow: { dx: 0.65, dy: 0.65, color: 0x2a2440, alpha: 0.2, layers: 1 },
+    personOutline: 0.9,
     light: 0.12, // how much lighter/darker lit and shaded sides are
     saturation: 0.85,
     ground: {
@@ -42,7 +43,8 @@ export const STYLES = [
     name: 'Variant 2 – Serietidning',
     summary: 'Kraftiga svarta konturer, mättade platta färger och hårda skuggor, som en tecknad serie. Tydligast på liten skärm.',
     outline: { width: 2.6, color: 0x1c1b20, alpha: 1 },
-    shadow: { dx: 0.7, dy: 0.95, color: 0x1c1b20, alpha: 0.32, layers: 1 },
+    shadow: { dx: 0.8, dy: 0.8, color: 0x1c1b20, alpha: 0.32, layers: 1 },
+    personOutline: 0.45,
     light: 0.18,
     saturation: 1.15,
     ground: {
@@ -62,14 +64,15 @@ export const STYLES = [
     windowLit: 0x7fb2e6,
     frame: 0xffffff,
     metal: 0x26272b,
-    tree: [0x4f9a45, 0x75c25f],
+    tree: [0x5c8f4c, 0x7aae62],
   },
   {
     id: 'nordisk',
     name: 'Variant 3 – Nordiskt mjuk',
     summary: 'Inga konturer, dova nordiska färger och mjuka, breda skuggor. Lugnare och mer verklighetsnära.',
     outline: { width: 0, color: 0x000000, alpha: 0 },
-    shadow: { dx: 0.6, dy: 0.85, color: 0x24262e, alpha: 0.07, layers: 4 },
+    shadow: { dx: 0.7, dy: 0.7, color: 0x24262e, alpha: 0.09, layers: 3 },
+    personOutline: 0,
     light: 0.1,
     saturation: 0.7,
     ground: {

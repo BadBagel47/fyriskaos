@@ -8,10 +8,9 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| D-003 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
-| F-004 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
+| D-003 | Medel | Väntar på ägaren | Stilbibel (utkast i `docs/style-bible.md`, tre varianter i galleriet; ägaren väljer variant): färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
+| F-004 | Medel | Väntar på ägaren | Grafikgalleri (https://badbagel47.github.io/fyriskaos/gallery/ ; ägaren godkänner): cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
-| D-009 | Medel | Pågår 2026-11-17 (session ccr-319e3a0a-gey2ih) | Lagar och licenser: OpenStreetMap (ODbL, credits), parodier på Swish och Blocket (varumärken), villkor för ElevenLabs-röster, GDPR när två spelare går via network-kit, lagring i webbläsaren om rundor ska sparas (LEK 9 kap. 28 §). |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
 | F-011 | Medel | Öppen | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
 | F-012 | Medel | Öppen | Strid och pengar: siktet låser på närmaste fiende, skjutknapp; pengar går bara till vård och vapen. |
@@ -31,6 +30,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
+| F-037 | Medel | Öppen | Använd den valda stilen i spelet: byt den grå teststaden mot ritkoden i `src/art/` (bilar, cyklar, folk, hus med fönster och tak, gator med möbler). |
 | D-036 | Medel | Öppen | Namn på parodier och verkliga organisationer (`docs/legal.md` punkt 2–3): Swish- och Blocket-parodierna, nationerna, Hemvärnet och polisens utseende. Behövs innan grupper, polis och uppdrag byggs. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
@@ -50,22 +50,26 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
-- **A** – starkaste modellen, hög nivå – Stilbibel och galleri
-  - D-003 – Ta fram stilbibeln med 2–3 varianter att välja mellan.
-  - F-004 – Gör cykel, bil, hus och gata på testsidor för godkännande.
-  - Fråga: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
+- **A** – starkaste modellen, hög nivå – Den valda stilen in i spelet
+  - D-003, F-004 – Ägaren väljer variant i galleriet; stilbibeln låses.
+  - F-037 – Teststaden ritas med den valda stilen: riktiga bilar, cyklar, folk, hus med fönster och tak, gator med möbler.
+  - Fråga: Vilken variant? Rekommendation (också den oberoende granskarens): Variant 1 – Sommarkväll, med lite kraftigare kontur på fordon och folk.
 - **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
-  - F-028 – Credits till OpenStreetMap.
+  - F-028 – Credits och licenser.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **C** – standardmodell, medelnivå – Lagar och licenser
-  - D-009 – Gå igenom punkterna och föreslå åtgärder (credits, omdöpta parodier, integritetstext).
+- **C** – standardmodell, medelnivå – Namn på parodier och verkliga organisationer
+  - D-036 – Bestäm namnen innan grupper, polis och uppdrag byggs.
+  - Fråga: Swish och Blocket? Rekommendation: påhittade namn som anspelar, t.ex. "Swosh" och "Plocket", med egna loggor.
+  - Fråga: Nationerna? Rekommendation: påhittade nationsnamn i stället för de riktiga.
+  - Fråga: Hemvärnet? Rekommendation: ett påhittat namn och emblem; polisen heter POLIS men utan polisens riktiga emblem.
 - **D** – starkaste modellen, hög nivå – Två spelare – bygger på B
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
+  - F-035 – Integritetstext innan man går med i ett rum.
 
 ## Klart
 
@@ -75,5 +79,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-033 | 2026-11-17 | Tre biltyper: småbil (cirka 70 km/h, svängig), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, snabb från start, sällsynt). Namn och fart visas i hörnet (v0.2.0). |
 | F-034 | 2026-11-17 | Handbromssväng: håll bromsen och dra åt sidan i fart, så sladdar bilen runt med däckspår och behåller farten (v0.2.0). |
 | F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
+| D-009 | 2026-11-17 | Lagar och licenser genomgångna: `docs/legal.md`. Åtgärder i F-028, F-035 och D-036. |
 | D-007 | 2026-11-17 | Publicering: GitHub Pages från `main` efter att testet gått igenom. Live och kontrollerad. |
 | D-002 | 2026-11-17 | Repot uppsatt enligt agentreglerna och issue #1: AGENTS.md, överlämning och backlog med designens innehåll. |

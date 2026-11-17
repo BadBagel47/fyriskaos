@@ -53,7 +53,7 @@ function shadowShape(g, style, drawPath, lift = 1) {
   const dx = (s.dx * c - s.dy * sn) * lift;
   const dy = (s.dx * sn + s.dy * c) * lift;
   for (let i = 0; i < s.layers; i++) {
-    drawPath(dx, dy, i * 0.1);
+    drawPath(dx, dy, i * 0.05);
     g.fill({ color: s.color, alpha: s.alpha });
   }
 }
@@ -64,7 +64,7 @@ function poleShadow(g, style, x, y, height, width = 0.12) {
   const k = height * 0.12;
   for (let i = 0; i < s.layers; i++) {
     g.moveTo(x * U, y * U).lineTo((x + s.dx * k) * U, (y + s.dy * k) * U);
-    g.stroke({ width: (width + i * 0.1) * U, color: s.color, alpha: s.alpha, cap: 'round' });
+    g.stroke({ width: (width + i * 0.05) * U, color: s.color, alpha: s.alpha, cap: 'round' });
   }
 }
 
@@ -83,17 +83,19 @@ export function rng(seed) {
 // ---------- people ----------
 
 export function drawPerson(g, style, { shirt = 0xf0a43a, hair = 0x5a3b26, skin = 0xf3cfa0, ring = false } = {}) {
-  shadowShape(g, style, (dx, dy, gr) => g.ellipse(dx * U * 0.5, dy * U * 0.5, (0.24 + gr) * U, (0.38 + gr) * U), 0.5);
+  const po = style.personOutline ?? 1;
+  shadowShape(g, style, (dx, dy, gr) => g.ellipse(dx * 0.35 * U, dy * 0.35 * U, (0.22 + gr) * U, (0.36 + gr) * U), 1);
   if (ring) g.circle(0, 0, 0.75 * U).fill({ color: 0xffffff, alpha: 0.14 }).stroke({ width: 2, color: 0xffffff, alpha: 0.6 });
   // Arms, then shoulders, then the head seen from above.
   g.circle(0.05 * U, -0.33 * U, 0.09 * U);
-  fin(g, style, col(style, skin), { outline: 0.6 });
+  fin(g, style, col(style, skin), { outline: 0.6 * po });
   g.circle(0.05 * U, 0.33 * U, 0.09 * U);
-  fin(g, style, col(style, skin), { outline: 0.6 });
+  fin(g, style, col(style, skin), { outline: 0.6 * po });
   g.ellipse(0, 0, 0.2 * U, 0.34 * U);
-  fin(g, style, col(style, shirt), { outline: 0.8 });
+  // The player's shirt keeps full colour in every variant, so you always find yourself.
+  fin(g, style, ring ? shirt : col(style, shirt), { outline: po });
   g.circle(0.02 * U, 0, 0.155 * U);
-  fin(g, style, col(style, skin), { outline: 0.7 });
+  fin(g, style, col(style, skin), { outline: 0.8 * po });
   g.ellipse(-0.03 * U, 0, 0.12 * U, 0.14 * U).fill(col(style, hair)); // hair on top, face towards +x
 }
 
@@ -193,7 +195,7 @@ export function drawHouseShadow(g, style, b) {
   const sy = s.dy * len;
   const { x, y, w, h } = b;
   for (let i = 0; i < s.layers; i++) {
-    const gr = i * 0.15;
+    const gr = i * 0.08;
     g.poly(P([x - gr, y - gr, x + w + gr, y - gr, x + w + sx + gr, y + sy - gr, x + w + sx + gr, y + h + sy + gr, x + sx - gr, y + h + sy + gr, x - gr, y + h + gr]));
     g.fill({ color: s.color, alpha: s.alpha * 1.1 });
   }
@@ -234,8 +236,8 @@ export function drawHouse(g, style, b, cam) {
         const uc = (i + 0.5) / n;
         const hw = 0.55 / wallLen;
         const isDoor = f === 0 && i === doorAt;
-        const v0 = isDoor ? 0.02 : (f * 3 + 1.0) / b.height;
-        const v1 = isDoor ? 2.3 / b.height : (f * 3 + 2.3) / b.height;
+        const v0 = isDoor ? 0.02 : (f * 3 + 0.8) / b.height;
+        const v1 = isDoor ? 2.4 / b.height : (f * 3 + 2.6) / b.height;
         const q = [...lerp2(p1, p2, o, uc - hw, v0), ...lerp2(p1, p2, o, uc + hw, v0), ...lerp2(p1, p2, o, uc + hw, v1), ...lerp2(p1, p2, o, uc - hw, v1)];
         g.poly(P(q));
         if (isDoor) fin(g, style, col(style, shade(b.roofColor, -0.25)), { outline: 0.6 });
@@ -266,9 +268,9 @@ function drawFlatRoof(g, style, b, o, r) {
   g.rect(ax * U, ay * U, 2 * U, 1.4 * U);
   fin(g, style, col(style, 0xb9bcc0), { outline: 0.7 });
   for (let k = 0; k < 4; k++) g.rect((ax + 0.2 + k * 0.45) * U, (ay + 0.25) * U, 0.12 * U, 0.9 * U).fill({ color: 0x000000, alpha: 0.2 });
-  for (let k = 0; k < 2; k++) {
+  for (let k = 0; k < 3; k++) {
     const vx = x + 1 + r() * (b.w - 2);
-    const vy = y + 1 + r() * (b.h - 2);
+    const vy = k === 2 ? y + b.h - 1.2 : y + 1 + r() * (b.h - 2);
     g.circle(vx * U, vy * U, 0.3 * U);
     fin(g, style, col(style, 0x8e9195), { outline: 0.6 });
     g.circle(vx * U, vy * U, 0.14 * U).fill({ color: 0x000000, alpha: 0.35 });
@@ -308,16 +310,30 @@ function drawGableRoof(g, style, b, cam, o, r) {
   // Ridge.
   const ridge = along ? [b.x - ov + o2[0], cy + o2[1], b.x + b.w + ov + o2[0], cy + o2[1]] : [cx + o2[0], b.y - ov + o2[1], cx + o2[0], b.y + b.h + ov + o2[1]];
   line(g, style, ridge, 0.16, shade(roof, -0.35));
-  // Chimney on one plane.
+  // Chimney: a small box with sides, a top and its own shadow on the roof.
   const t = 0.25 + r() * 0.5;
   const chx = along ? b.x + b.w * t : cx - b.w * 0.2;
   const chy = along ? cy - b.h * 0.2 : b.y + b.h * t;
-  const hk = LEAN * (b.height + roofH * 0.9);
-  const ox = (chx - cam.x) * hk;
-  const oy = (chy - cam.y) * hk;
-  g.rect((chx + ox - 0.45) * U, (chy + oy - 0.45) * U, 0.9 * U, 0.9 * U);
-  fin(g, style, col(style, 0x9a5a48), { outline: 0.8 });
-  g.rect((chx + ox - 0.3) * U, (chy + oy - 0.3) * U, 0.6 * U, 0.6 * U).fill({ color: 0x000000, alpha: 0.4 });
+  const baseH = b.height + roofH * 0.5;
+  const topH = b.height + roofH + 1.2;
+  const off = (h) => [(chx - cam.x) * LEAN * h, (chy - cam.y) * LEAN * h];
+  const [bx, by] = off(baseH);
+  const [tx, ty] = off(topH);
+  const s0 = style.shadow;
+  g.rect((chx + bx - 0.45 + s0.dx * 0.6) * U, (chy + by - 0.45 + s0.dy * 0.6) * U, 0.9 * U, 0.9 * U).fill({ color: s0.color, alpha: Math.min(0.35, s0.alpha * 1.6) });
+  const brick = col(style, 0x9a5a48);
+  const box = (dx0, dy0, dx1, dy1, sx0, sy0, sx1, sy1, c) => {
+    g.poly(P([chx + bx + dx0, chy + by + dy0, chx + bx + dx1, chy + by + dy1, chx + tx + sx1, chy + ty + sy1, chx + tx + sx0, chy + ty + sy0]));
+    fin(g, style, c, { outline: 0.6 });
+  };
+  const hw = 0.45;
+  box(-hw, hw, hw, hw, -hw, hw, hw, hw, shade(brick, -style.light)); // south side
+  box(hw, -hw, hw, hw, hw, -hw, hw, hw, shade(brick, -style.light * 0.5)); // east side
+  box(-hw, -hw, -hw, hw, -hw, -hw, -hw, hw, shade(brick, style.light * 0.5)); // west side
+  box(-hw, -hw, hw, -hw, -hw, -hw, hw, -hw, shade(brick, style.light)); // north side
+  g.rect((chx + tx - hw) * U, (chy + ty - hw) * U, 0.9 * U, 0.9 * U);
+  fin(g, style, brick, { outline: 0.8 });
+  g.rect((chx + tx - 0.28) * U, (chy + ty - 0.28) * U, 0.56 * U, 0.56 * U).fill({ color: 0x000000, alpha: 0.45 });
 }
 
 // ---------- street ----------
@@ -331,21 +347,30 @@ export function drawSidewalk(g, style, x, y, w, h) {
     for (let xx = x + (row % 2) * 0.5 + 1; xx < x + w; xx += 1) line(g, style, [xx, yy, xx, Math.min(y + h, yy + 1)], 0.04, gr.tileLine);
 }
 
-export function drawRoad(g, style, x, y, w, h, r) {
+export function drawRoad(g, style, x, y, w, h, r, { patch = true } = {}) {
   const gr = style.ground;
   g.rect(x * U, y * U, w * U, h * U).fill(gr.asphalt);
-  // A patched repair and some cracks.
-  g.rect((x + w * 0.62) * U, (y + h * 0.15) * U, 2.4 * U, 1.6 * U).fill(gr.asphaltDark);
-  for (let i = 0; i < 6; i++) {
-    let px = x + r() * w;
-    let py = y + r() * h;
+  if (patch) {
+    // A repaired patch: a bit darker, with tar seams round the edge.
+    const px = x + w * 0.62;
+    const py = y + h * 0.55;
+    g.rect(px * U, py * U, 2.4 * U, 1.6 * U).fill(gr.asphaltDark).stroke({ width: 0.07 * U, color: gr.crack, alpha: 0.6 });
+  }
+  // Hairline cracks: a wandering line with a small branch.
+  for (let i = 0; i < 5; i++) {
+    let px = x + 1 + r() * (w - 2);
+    let py = y + 1 + r() * (h - 2);
+    let a = r() * Math.PI * 2;
     const pts = [px, py];
-    for (let k = 0; k < 4; k++) {
-      px += (r() - 0.5) * 1.4;
-      py += (r() - 0.5) * 1.4;
+    for (let k = 0; k < 7; k++) {
+      a += (r() - 0.5) * 0.9;
+      px += Math.cos(a) * 0.35;
+      py += Math.sin(a) * 0.35;
       pts.push(px, py);
     }
-    line(g, style, pts, 0.05, gr.crack, 0.55);
+    line(g, style, pts, 0.035, gr.crack, 0.5);
+    const m = 4 * 2;
+    line(g, style, [pts[m], pts[m + 1], pts[m] + Math.cos(a + 1.2) * 0.5, pts[m + 1] + Math.sin(a + 1.2) * 0.5], 0.03, gr.crack, 0.45);
   }
 }
 
@@ -379,20 +404,33 @@ export function drawBikeLane(g, style, x, y, w, h) {
   // A painted bike symbol every 12 m.
   for (let xx = x + 3; xx < x + w - 1; xx += 12) {
     const cy = y + h / 2;
-    g.circle((xx - 0.35) * U, cy * U, 0.25 * U).stroke({ width: 0.06 * U, color: style.ground.lane });
-    g.circle((xx + 0.35) * U, cy * U, 0.25 * U).stroke({ width: 0.06 * U, color: style.ground.lane });
-    line(g, style, [xx - 0.35, cy, xx, cy - 0.25, xx + 0.35, cy], 0.06, style.ground.lane);
+    const c = style.ground.lane;
+    const by = cy + 0.15;
+    g.circle((xx - 0.42) * U, by * U, 0.27 * U).stroke({ width: 0.06 * U, color: c });
+    g.circle((xx + 0.42) * U, by * U, 0.27 * U).stroke({ width: 0.06 * U, color: c });
+    // Frame: rear wheel, pedals, front wheel, saddle and handlebar.
+    line(g, style, [xx - 0.42, by, xx - 0.02, by, xx + 0.3, by - 0.38, xx - 0.12, by - 0.38, xx - 0.02, by], 0.06, c);
+    line(g, style, [xx - 0.42, by, xx - 0.12, by - 0.38], 0.06, c);
+    line(g, style, [xx + 0.3, by - 0.38, xx + 0.42, by], 0.06, c);
+    line(g, style, [xx - 0.22, by - 0.46, xx - 0.02, by - 0.46], 0.07, c); // saddle
+    line(g, style, [xx + 0.24, by - 0.48, xx + 0.38, by - 0.42], 0.07, c); // handlebar
   }
 }
 
-export function drawLamp(g, style, x, y, armDir = 1) {
+export function drawLamp(g, style, x, y, armDir = 1, cam = null) {
   poleShadow(g, style, x, y, 6);
-  g.circle(x * U, y * U, 0.18 * U);
+  // The luminaire sits 6 m up, so it leans away from the camera like a roof.
+  const ox = cam ? (x - cam.x) * LEAN * 6 : 0;
+  const oy = cam ? (y - cam.y) * LEAN * 6 : 0;
+  const hx = x + ox;
+  const hy = y + oy + armDir * 1.1;
+  line(g, style, [x, y, x + ox, y + oy], 0.12, style.metal);
+  line(g, style, [x + ox, y + oy, hx, hy], 0.07, style.metal);
+  g.circle(x * U, y * U, 0.16 * U);
   fin(g, style, style.metal, { outline: 0.6 });
-  // The arm reaches out over the street; seen from above, with a little lean.
-  line(g, style, [x, y, x, y + armDir * 1.4], 0.1, style.metal);
-  g.roundRect((x - 0.25) * U, (y + armDir * 1.4 - 0.15) * U, 0.5 * U, 0.3 * U, 0.08 * U);
-  fin(g, style, mix(style.metal, 0xffffff, 0.2), { outline: 0.6 });
+  g.ellipse(hx * U, hy * U, 0.32 * U, 0.2 * U);
+  fin(g, style, mix(style.metal, 0xffffff, 0.25), { outline: 0.6 });
+  g.ellipse(hx * U, hy * U, 0.18 * U, 0.1 * U).fill({ color: 0xfff2c0, alpha: 0.9 });
 }
 
 export function drawBench(g, style, x, y) {
@@ -409,6 +447,21 @@ export function drawBin(g, style, x, y) {
   g.circle(x * U, y * U, 0.3 * U);
   fin(g, style, col(style, 0x3f6b4f), { outline: 0.7 });
   g.circle(x * U, y * U, 0.18 * U).fill({ color: 0x000000, alpha: 0.45 });
+}
+
+export function drawPlanter(g, style, x, y, w, h, seed) {
+  const r = rng(seed);
+  shadowShape(g, style, (dx, dy, gr) => g.roundRect((x + dx * 0.5 - gr) * U, (y + dy * 0.5 - gr) * U, (w + gr * 2) * U, (h + gr * 2) * U, (0.15 + gr) * U), 1);
+  g.roundRect(x * U, y * U, w * U, h * U, 0.15 * U);
+  fin(g, style, style.ground.curb, { outline: 0.6 });
+  g.rect((x + 0.15) * U, (y + 0.15) * U, (w - 0.3) * U, (h - 0.3) * U).fill(col(style, 0x6b5440));
+  const flowers = [0xe0506a, 0xf2c94c, 0xffffff, 0x9b6bd6];
+  for (let i = 0; i < w * h * 6; i++) {
+    const fx = x + 0.3 + r() * (w - 0.6);
+    const fy = y + 0.3 + r() * (h - 0.6);
+    g.circle(fx * U, fy * U, 0.16 * U).fill(col(style, style.tree[0]));
+    if (r() < 0.5) g.circle(fx * U, fy * U, 0.08 * U).fill(col(style, flowers[Math.floor(r() * flowers.length)]));
+  }
 }
 
 export function drawBikeRack(g, style, x, y, n) {
@@ -443,7 +496,8 @@ export function drawTree(g, style, x, y, r, seed) {
   // Grate around the trunk.
   g.rect((x - 0.7) * U, (y - 0.7) * U, 1.4 * U, 1.4 * U);
   fin(g, style, style.metal, { outline: 0.4, alpha: 0.85 });
-  shadowShape(g, style, (dx, dy, gr) => g.circle((x + dx * 3) * U, (y + dy * 3) * U, (r + gr) * U), 1);
+  // Same shadow length per metre of height as the houses (a tree is about 7 m).
+  shadowShape(g, style, (dx, dy, gr) => g.circle((x + dx) * U, (y + dy) * U, (r * 0.9 + gr) * U), 7 * 0.12 / 0.65);
   // Canopy built from overlapping blobs.
   const blobs = [];
   for (let i = 0; i < 6; i++) {

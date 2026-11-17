@@ -7,7 +7,7 @@ Ritkoden finns i `src/art/` (`styles.js` för varianterna, `draw.js` för själv
 ## Perspektiv och ljus
 
 - **Rakt uppifrån**, med höga saker som lutar bort från mitten av skärmen: lutning 0,009 per meter höjd och meter från kameran (samma som spelet). Väggar syns på den sida av huset som vetter mot kameran.
-- **Solen står i nordväst.** Skuggor faller snett nedåt höger (sydost) på marken, alltid i världens riktning, även när en bil eller cykel är vriden.
+- **Solen står i nordväst.** Skuggor faller snett nedåt höger (sydost, 45°) på marken, alltid i världens riktning, även när en bil eller cykel är vriden. Skuggans längd följer höjden: samma längd per meter för hus, träd och stolpar.
 - **Ljusa och mörka sidor:** norr- och västsidor är något ljusare, söder- och östsidor något mörkare. Takfall åt nordväst är ljusare än takfall åt sydost.
 - **Stolpar** (lyktor, skyltar) kastar en smal streckskugga, inte en fläck.
 
@@ -18,7 +18,7 @@ Ritkoden finns i `src/art/` (`styles.js` för varianterna, `draw.js` för själv
 | Fotgängare | cirka 0,4 × 0,7 (axlar) |
 | Cykel | 1,8 lång |
 | Småbil / bil / sportbil | 3,6 × 1,7 / 4,4 × 1,9 / 4,5 × 1,95 |
-| Körfält | 6 |
+| Gata | 12 (två körfält à 6, generöst för att det ska gå att köra fort) |
 | Trottoar | 3 (plattor 1 × 1, förskjutna) |
 | Cykelbana | cirka 1,6, rödaktig, med målad cykelsymbol |
 | Våningshöjd | 3 |
@@ -28,7 +28,7 @@ Ritkoden finns i `src/art/` (`styles.js` för varianterna, `draw.js` för själv
 
 - **Fasader (Uppsala):** ockra, ljusgult, laxrött, vitputs, rött tegel, blekgrönt.
 - **Tak:** tegelrött, ärggrönt (som domkyrkans spiror), skiffergrått, mörkt tegel. Platta tak är grå med grus, ventiler och fläktboxar.
-- **Spelaren:** orange tröja och en ljus ring runt sig, så att man alltid hittar sig själv.
+- **Spelaren:** orange tröja i full färg i alla varianter och en ljus ring runt sig, så att man alltid hittar sig själv. Människor får tunnare kontur än hus och fordon, så att de inte blir svarta klumpar.
 - Varje variant justerar mättnaden (se nedan) men behåller samma grundfärger.
 
 ## Vad varje stadsdel ska innehålla (förslag, från designen)
@@ -69,5 +69,5 @@ Varje kvarter ska ha minst:
 1. Ny grafik görs först på en testsida i galleriet och godkänns av ägaren innan den används i världen.
 2. Agenten tar skärmdumpar, jämför med den här stilbibeln och checklistan och rättar innan den säger att den är klar.
 3. 2–3 varianter sida vid sida innan en ny stadsdel eller ett nytt fordon byggs.
-4. En separat granskare bedömer skärmdumparna mot stilbibeln och checklistan.
+4. En separat granskare bedömer skärmdumparna mot stilbibeln och checklistan. Första granskningen (2026-11-17) ledde till rättade skuggor, skorstenar med höjd, lyktor som lutar, oregelbundna sprickor, tydligare cykelsymbol, blomlådor och tunnare kontur på människor.
 5. Referensbilder: inga egna foton än (ägarens beslut 2026-11-17); läggs till när de finns.
