@@ -21,6 +21,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **Språk (2026-11-17):** allt som syns i spelet är på svenska. Kod, kommentarer och commits på engelska. Chatten på svenska. Designdokumentet översätts inte.
 - **Nätverk (2026-11-17):** två spelare bygger på `BadBagel47/network-kit` (se dess `docs/INTEGRATION.md`), men först när solo fungerar. En spelare är värd och kör simuleringen. Spelets behov är rapporterade i network-kit issue #1. Behov och frågor om network-kit tas till network-kit-agenten.
 - **Grafik (2026-11-17):** arbetssättet för grafik i designdokumentet gäller från start; agenten tittar på sitt resultat med skärmdumpar innan den säger att den är klar. Skrivet som projektregel i `AGENTS.md`.
+- **Biltyper och handbroms (2026-11-17, fråga A1 och A2):** tre biltyper: småbil (svängig, långsam), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, sällsynt). Handbromssväng utan ny knapp: håll bromsen och dra åt sidan i fart.
 - **Satirens gränser (2026-11-17, punkt 1.1):** projektregel i `AGENTS.md`.
 - **Publicering och motor (2026-11-17, fråga A1 och A2):** GitHub Pages från `main`; PixiJS utan byggsteg.
 - **Första körningen (2026-11-17):** prototyp 1 (gå, cykla, köra bil i en grå testkarta), plus publicering så att ägaren kan prova på telefonen efter varje körning. Ingen kod förrän ägaren säger kör.

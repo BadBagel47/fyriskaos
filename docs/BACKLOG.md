@@ -8,8 +8,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-033 | Hög | Öppen | Olika bilar med olika fart (ägarens test 2026-11-17: "Bilen gick lite långsamt, men det är bra om vi har olika bilar, där de lite fräsigare har högre hastighet"). Vanliga bilar snabbare än i v0.1.0, fräsigare bilar ännu snabbare och mer sällsynta. |
-| F-034 | Hög | Öppen | Handbromssvängar för att ta kurvor snabbare (ägaren 2026-11-17: "Skulle även vara bra med handbromssvängar så att man kan ta kurvor snabbare"). |
+| F-033 | Hög | Pågår 2026-11-17 | Olika bilar med olika fart (ägarens test 2026-11-17: "Bilen gick lite långsamt, men det är bra om vi har olika bilar, där de lite fräsigare har högre hastighet"). Vanliga bilar snabbare än i v0.1.0, fräsigare bilar ännu snabbare och mer sällsynta. |
+| F-034 | Hög | Pågår 2026-11-17 | Handbromssvängar för att ta kurvor snabbare (ägaren 2026-11-17: "Skulle även vara bra med handbromssvängar så att man kan ta kurvor snabbare"). |
 | D-003 | Medel | Öppen | Stilbibel: färgpalett, ljus och skuggor, linjetjocklek, perspektiv, storlekar, vad varje stadsdel innehåller. |
 | F-004 | Medel | Öppen | Grafikgalleri: cykel, bil, ett hus och en gata på egna testsidor, godkänns innan de används. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
