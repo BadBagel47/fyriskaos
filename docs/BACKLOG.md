@@ -45,19 +45,22 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 ## Körförslag
 
+Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
+
+- Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
 - **A** – starkaste modellen, hög nivå – Stilbibel och galleri
   - D-003 – Ta fram stilbibeln med 2–3 varianter att välja mellan.
   - F-004 – Gör cykel, bil, hus och gata på testsidor för godkännande.
-  - Fråga A1: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
-- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på A och på att kartdata går att hämta
+  - Fråga: Egna foton från Uppsala som referens? Rekommendation: börja utan, lägg till foton när de finns.
+- **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits till OpenStreetMap.
-  - Fråga B1: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
+  - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
 - **C** – standardmodell, medelnivå – Lagar och licenser
   - D-009 – Gå igenom punkterna och föreslå åtgärder (credits, omdöpta parodier, integritetstext).
-- **D** – starkaste modellen, hög nivå – Två spelare – väntar på att solo fungerar
+- **D** – starkaste modellen, hög nivå – Två spelare – bygger på B
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.

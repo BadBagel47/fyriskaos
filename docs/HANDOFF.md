@@ -4,7 +4,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Agentregler och inventering
 
-- **Agentregler:** v1.11 (2026-11-17), https://raw.githubusercontent.com/BadBagel47/agent-rules/main/AGENTS.md . Repot har följt reglerna sedan 2026-11-17.
+- **Agentregler:** v1.12 (2026-11-17), https://raw.githubusercontent.com/BadBagel47/agent-rules/main/AGENTS.md . Repot har följt reglerna sedan 2026-11-17 (v1.11). v1.12: körförslaget börjar med vad ordningen bygger på, visar beroenden ("bygger på A") och sparar frågor utan etiketter; Pågår-märken anger gren eller session.
 - Inventory: 2026-11-17
   - Repot innehöll bara designdokumentet (`docs/design.md`, D-001) på `main`. Inga andra grenar, pull requests, issues eller äldre dokumentation.
   - Repot är publikt.
@@ -46,4 +46,4 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - `README.md` – kort om spelet och hur det körs lokalt.
 - `docs/design.md` – designdokumentet (D-001).
 - Issue #1 – ägarens startinstruktioner (stängd när innehållet flyttats hit).
-- network-kit issue #1 – Fyriskaos behov av network-kit.
+- network-kit issue #1 – Fyriskaos behov av network-kit (i repot `BadBagel47/network-kit`).
