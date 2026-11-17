@@ -2,7 +2,10 @@
 // rendered to images so they can sit side by side on any screen.
 
 import { Application, Container, Graphics, RenderTexture } from '../vendor/pixi/pixi.min.mjs';
-import { STYLES } from '../src/art/styles.js';
+import { STYLES, PLUS_STYLE } from '../src/art/styles.js';
+import * as Dt from '../src/art/detail.js';
+import { createLightLayer } from '../src/art/light.js';
+import { explosion, scorch } from '../src/art/fx.js';
 import * as A from '../src/art/draw.js';
 import { VERSION } from '../src/config.js';
 
@@ -78,7 +81,7 @@ function houses(style) {
   return { root, w: 40, h: 27 };
 }
 
-function street(style) {
+function street(style, { evening = false } = {}) {
   const root = new Container();
   const cam = { x: 15, y: 13 };
   const r = A.rng(17);
@@ -86,7 +89,7 @@ function street(style) {
   // Same widths as the game: two 6 m lanes, 3 m sidewalks, plus a bike lane.
   A.drawSidewalk(ground, style, 0, 0, 30, 9.5);
   A.drawBikeLane(ground, style, 0, 9.5, 30, 1.6);
-  A.drawRoad(ground, style, 0, 11.25, 30, 12, r);
+  A.drawRoad(ground, style, 0, 11.25, 30, 12, r, { lanes: [14.25, 20.25] });
   A.drawCurb(ground, style, 0, 11.2, 30);
   A.drawLaneDashes(ground, style, 0, 17.25, 20);
   A.drawCrosswalk(ground, style, 21, 11.3, 12);
@@ -135,11 +138,123 @@ function street(style) {
   A.drawLamp(top, style, 19.8, 9.1, 1, cam);
   const hg = new Graphics();
   const d2 = (b) => (b.x + b.w / 2 - cam.x) ** 2 + (b.y + b.h / 2 - cam.y) ** 2;
-  for (const b of [...list].sort((a, b) => d2(b) - d2(a))) A.drawHouse(hg, style, b, cam);
+  // In the evening more windows are lit, in a warm colour.
+  const hs = evening && style.detail ? { ...style, windowLit: 0xffcf7a, litChance: 0.5 } : style;
+  for (const b of [...list].sort((a, b) => d2(b) - d2(a))) A.drawHouse(hg, hs, b, cam);
   root.addChild(hg);
   root.addChild(top);
+  if (evening) {
+    const L = createLightLayer(30, 26.5, 0.58);
+    root.addChild(L.root);
+    if (style.detail) {
+      // Street lamps (the heads lean like in drawLamp), lit windows, the moving car's headlights and the cyclist's lamp.
+      for (const [lx, ly] of [[5.5, 9.1], [19.8, 9.1]]) {
+        const hx = lx + (lx - cam.x) * 0.009 * 6;
+        const hy = ly + (ly - cam.y) * 0.009 * 6 + 1.1;
+        L.glow(hx, hy, 6.5, 0xffd59a, 0.55);
+        L.glow(hx, hy, 0.9, 0xffffff, 0.45);
+      }
+      L.cone(15.75, 19.65, -0.04, 10, 0xfff1c8, 0.32);
+      L.cone(15.75, 20.75, 0.04, 10, 0xfff1c8, 0.32);
+      L.glow(12.2, 19.7, 0.8, 0xff3020, 0.7);
+      L.glow(12.2, 20.7, 0.8, 0xff3020, 0.7);
+      L.cone(9.9, 10.3, 0, 5, 0xfff6d8, 0.45);
+      L.glow(24.5, 8.4, 1.4, 0xfff0a0, 0.4);
+      for (const wx of [2, 5, 8, 12, 15, 18, 22, 25, 28]) L.glow(wx, 4.6, 1.3, 0xffb050, 0.25);
+    }
+  }
   return { root, w: 30, h: 26.5 };
 }
+
+function park(style) {
+  const root = new Container();
+  const g = new Graphics();
+  const W = 30;
+  const H = 20;
+  if (style.detail) {
+    Dt.grassTexture(g, style, 0, 0, W, H, 21);
+    Dt.gravelPath(g, style, 0, 8.5, W, 2.6, 22);
+    Dt.gravelPath(g, style, 13.5, 0, 2.6, H, 23);
+  } else {
+    g.rect(0, 0, W * U, H * U).fill(style.ground.grass);
+    g.rect(0, 8.5 * U, W * U, 2.6 * U).fill(style.ground.sidewalk);
+    g.rect(13.5 * U, 0, 2.6 * U, H * U).fill(style.ground.sidewalk);
+  }
+  // A small pond.
+  g.ellipse(23.5 * U, 15.5 * U, 4.6 * U, 2.8 * U).fill(0x5b7891);
+  g.ellipse(23.5 * U, 15.5 * U, 4.2 * U, 2.4 * U).fill(0x6f8ea6);
+  if (style.detail) {
+    const r = A.rng(31);
+    for (let i = 0; i < 40; i++) g.ellipse((20 + r() * 7) * U, (14 + r() * 3) * U, 0.25 * U, 0.06 * U).fill({ color: 0xffffff, alpha: 0.15 });
+    for (let i = 0; i < 6; i++) g.circle((21 + r() * 5) * U, (14.5 + r() * 2) * U, 0.35 * U).fill(0x5f8f4e);
+  }
+  root.addChild(g);
+  const v = new Graphics();
+  if (style.detail) {
+    Dt.hedge(v, style, 0.5, 0.5, 11, 1.6, 41);
+    Dt.hedge(v, style, 17, 0.5, 12.5, 1.6, 42);
+    for (const [x, y, rr, sd, fl] of [[3, 13.5, 1.1, 51, 0xd96a9a], [6, 15.8, 0.9, 52, 0xf2d24c], [9.5, 13.2, 1.0, 53, 0xffffff], [18.5, 4.5, 1.0, 54, 0xd96a9a]]) Dt.shrub(v, style, x, y, rr, sd, fl);
+  } else {
+    for (const [x, y, w, h] of [[0.5, 0.5, 11, 1.6], [17, 0.5, 12.5, 1.6]]) {
+      v.roundRect(x * U, y * U, w * U, h * U, 0.4 * U).fill(style.tree[0]);
+      if (style.outline.width) v.stroke({ width: style.outline.width, color: style.outline.color, alpha: style.outline.alpha });
+    }
+    for (const [x, y, rr] of [[3, 13.5, 1.1], [6, 15.8, 0.9], [9.5, 13.2, 1.0], [18.5, 4.5, 1.0]]) {
+      v.circle(x * U, y * U, rr * U).fill(style.tree[1]);
+      if (style.outline.width) v.stroke({ width: style.outline.width, color: style.outline.color, alpha: style.outline.alpha });
+    }
+  }
+  A.drawBench(v, style, 10, 7.6);
+  A.drawBin(v, style, 12, 7.6);
+  root.addChild(v);
+  at(root, 7, 9.6, 0.1, (gg) => A.drawPerson(gg, style, { shirt: 0x6a5acd, hair: 0xd9b26a }));
+  at(root, 14.8, 4, 1.6, (gg) => A.drawPerson(gg, style, { shirt: 0xf0a43a, ring: true }));
+  at(root, 21, 9.8, 0, (gg) => {
+    A.drawBike(gg, style, 0x4a76c0);
+    A.drawPerson(gg, style, { shirt: 0x3f9a6a, hair: 0x2b2b2b });
+  });
+  const t = new Graphics();
+  if (style.detail) {
+    Dt.detailedTree(t, style, 6, 4.8, 3.0, 61);
+    Dt.detailedTree(t, style, 24, 5.2, 2.6, 62);
+    Dt.detailedTree(t, style, 9.5, 17, 2.4, 63);
+  } else {
+    A.drawTree(t, style, 6, 4.8, 3.0, 61);
+    A.drawTree(t, style, 24, 5.2, 2.6, 62);
+    A.drawTree(t, style, 9.5, 17, 2.4, 63);
+  }
+  root.addChild(t);
+  return { root, w: W, h: H };
+}
+
+function blast(style) {
+  const root = new Container();
+  const g = new Graphics();
+  const r = A.rng(71);
+  A.drawRoad(g, style, 0, 0, 39, 11, r, { patch: false, lanes: [5.5] });
+  A.drawLaneDashes(g, style, 0, 5.5, 39);
+  root.addChild(g);
+  const L = createLightLayer(39, 11, 0);
+  const fx = new Graphics();
+  const titles = [];
+  for (let i = 0; i < 3; i++) {
+    const cx = 6.5 + i * 13;
+    const cy = 5.5;
+    if (i > 0) scorch(g, cx, cy, 3.2, 80 + i);
+    at(root, cx, cy, -0.3, (gg) => A.drawCar(gg, style, 'car', i === 0 ? 0x7f95b0 : 0x2b2b2e));
+    explosion(fx, cx + 0.6, cy - 0.2, i, 90 + i, L);
+    titles.push(cx);
+  }
+  root.addChild(fx);
+  root.addChild(L.root);
+  return { root, w: 39, h: 11 };
+}
+
+const COMPARE = [
+  { id: 'jmf-gata', title: 'Gata på dagen', text: 'Samma gata som nedan. Förslaget har kornig asfalt, stenkanter, varierade plattor, träd av lövklungor och lite kraftigare kontur på folk och fordon.', make: (st) => street(st) },
+  { id: 'jmf-kvall', title: 'Gata på kvällen', text: 'Variant 1 blir bara mörkare. Förslaget har gatlyktor som lyser upp marken, fönster som lyser, strålkastare och cykellampa.', make: (st) => street(st, { evening: true }) },
+  { id: 'jmf-park', title: 'Park och grönska', text: 'Gräs, grusgångar, häckar, buskar med blommor, träd och en damm.', make: (st) => park(st) },
+];
 
 const SCENES = [
   { id: 'gata', title: 'Gata med allt ihop', text: 'Hus, trottoar, cykelbana, väg och gatumöbler tillsammans. Viktigast att bedöma.', make: street },
@@ -164,33 +279,61 @@ async function render(app, scene) {
   return url;
 }
 
+function row(title, text, id, cls) {
+  const sec = document.createElement('section');
+  sec.className = 'row';
+  sec.id = id;
+  sec.innerHTML = `<h2>${title}</h2><p class="small">${text}</p>`;
+  const cols = document.createElement('div');
+  cols.className = `cols ${cls}`;
+  sec.appendChild(cols);
+  return { sec, cols };
+}
+
+async function cell(app, cols, style, scene, title) {
+  const c = document.createElement('div');
+  c.className = 'cell';
+  c.dataset.style = style.id;
+  const img = document.createElement('img');
+  img.alt = title;
+  img.src = await render(app, scene);
+  c.innerHTML = `<h3>${style.name}</h3><p>${style.summary}</p>`;
+  c.appendChild(img);
+  cols.appendChild(c);
+}
+
 async function main() {
   document.getElementById('version').textContent = `v${VERSION}`;
   const app = new Application();
   await app.init({ width: 16, height: 16, antialias: true, preference: 'webgl', backgroundAlpha: 0 });
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
-  for (const sc of SCENES) {
-    const row = document.createElement('section');
-    row.className = 'row';
-    row.id = sc.id;
-    row.innerHTML = `<h2>${sc.title}</h2><p class="small">${sc.text}</p>`;
-    const cols = document.createElement('div');
-    cols.className = 'cols';
-    for (const style of STYLES) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.style = style.id;
-      const img = document.createElement('img');
-      img.alt = `${sc.title}, ${style.name}`;
-      img.src = await render(app, sc.make(style));
-      cell.innerHTML = `<h3>${style.name}</h3><p>${style.summary}</p>`;
-      cell.appendChild(img);
-      cols.appendChild(cell);
-    }
-    row.appendChild(cols);
-    grid.appendChild(row);
+
+  const h1 = document.createElement('h2');
+  h1.className = 'part';
+  h1.textContent = 'Nytt förslag jämfört med variant 1';
+  grid.appendChild(h1);
+  for (const sc of COMPARE) {
+    const { sec, cols } = row(sc.title, sc.text, sc.id, 'two');
+    grid.appendChild(sec);
+    for (const style of [STYLES[0], PLUS_STYLE]) await cell(app, cols, style, sc.make(style), `${sc.title}, ${style.name}`);
   }
+  {
+    const { sec, cols } = row('Explosion', 'En bil som sprängs, i tre steg: blixten, eldklotet och röken. Ljuset från smällen lyser upp marken runt omkring.', 'jmf-explosion', 'one');
+    grid.appendChild(sec);
+    await cell(app, cols, PLUS_STYLE, blast(PLUS_STYLE), 'Explosion i tre steg');
+  }
+
+  const h2 = document.createElement('h2');
+  h2.className = 'part';
+  h2.textContent = 'De tre första varianterna';
+  grid.appendChild(h2);
+  for (const sc of SCENES) {
+    const { sec, cols } = row(sc.title, sc.text, sc.id, 'three');
+    grid.appendChild(sec);
+    for (const style of STYLES) await cell(app, cols, style, sc.make(style), `${sc.title}, ${style.name}`);
+  }
+
   const zoom = document.getElementById('zoom');
   grid.addEventListener('click', (e) => {
     if (e.target.tagName !== 'IMG') return;

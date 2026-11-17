@@ -64,6 +64,17 @@ Varje kvarter ska ha minst:
 | Mättnad | något dämpad | starkare | dämpad |
 | Känsla | ljus vårkväll | tecknad serie, tydligast på liten skärm | lugn, mer verklighetsnära |
 
+## Förslag Sommarkväll+ (D-038)
+
+Variant 1 med mer detalj, inspirerat av ägarens referensbilder. Ligger överst i galleriet bredvid variant 1 och väntar på ägarens val.
+
+- **Textur:** kornig asfalt med svaga hjulspår och oljefläckar, trottoarplattor som skiljer sig lite i ton, kantsten i meterlängder med fogar, gräs med strån och blommor, grusgångar.
+- **Grönska:** träd, häckar och buskar byggda av många lövklungor; klungor mot solen (nordväst) är ljusare, kronans kant är ojämn.
+- **Kontur:** lite kraftigare på folk och fordon än på hus.
+- **Kvällsljus:** scenen mörkas med blått, ljuskällor läggs på med additiv blandning: gatlyktor, upplysta fönster, strålkastare, bakljus, cykellampa, skylt.
+- **Explosion i tre steg:** blixt med tryckvåg, eldklot med mörk rökkant, gnistor och skräp, sedan brinnande vrak med rök som driver åt sydost och en sotfläck.
+- **I spelet:** marktexturer ritas en gång per kartbit och sparas som bild, så att de inte kostar något medan man spelar.
+
 ## Arbetssätt (från designdokumentet)
 
 1. Ny grafik görs först på en testsida i galleriet och godkänns av ägaren innan den används i världen.

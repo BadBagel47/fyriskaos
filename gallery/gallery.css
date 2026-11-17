@@ -9,6 +9,9 @@ main { padding: 8px 16px 40px; }
 .row { margin: 18px 0 8px; }
 .row h2 { font-size: 18px; margin: 0 0 8px; }
 .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cols.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols.one { grid-template-columns: minmax(0, 1fr); max-width: 1000px; }
+h2.part { font-size: 21px; margin: 26px 0 0; padding-top: 10px; border-top: 1px solid #ffffff22; }
 .cell { background: #1f2022; border-radius: 10px; padding: 8px; }
 .cell h3 { margin: 0 0 4px; font-size: 15px; }
 .cell p { margin: 0 0 8px; font-size: 13px; opacity: 0.8; line-height: 1.35; }

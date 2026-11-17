@@ -4,6 +4,7 @@
 // colours, outlines and shadows, so the variants differ only in numbers.
 
 import { shade, saturate, mix } from './color.js';
+import * as D from './detail.js';
 
 export const U = 16; // px per metre in local coordinates
 export const LEAN = 0.009; // lean per metre of height and metre from the camera
@@ -14,11 +15,14 @@ function col(style, c) {
   return saturate(c, style.saturation);
 }
 
+// Vehicles can have a stronger outline than buildings (style.vehicleOutline).
+let outlineScale = 1;
+
 // Fill the current path, then outline it if the style has outlines.
 function fin(g, style, color, { alpha = 1, outline = 1 } = {}) {
   g.fill({ color, alpha });
   if (style.outline.width && outline) {
-    g.stroke({ width: style.outline.width * outline, color: style.outline.color, alpha: style.outline.alpha, join: 'round', cap: 'round' });
+    g.stroke({ width: style.outline.width * outline * outlineScale, color: style.outline.color, alpha: style.outline.alpha, join: 'round', cap: 'round' });
   }
   return g;
 }
@@ -108,6 +112,15 @@ const CAR_SHAPES = {
 };
 
 export function drawCar(g, style, kind, color) {
+  outlineScale = style.vehicleOutline || 1;
+  try {
+    drawCarBody(g, style, kind, color);
+  } finally {
+    outlineScale = 1;
+  }
+}
+
+function drawCarBody(g, style, kind, color) {
   const s = CAR_SHAPES[kind];
   const L = s.L / 2;
   const W = s.W / 2;
@@ -161,6 +174,15 @@ export function drawCar(g, style, kind, color) {
 }
 
 export function drawBike(g, style, color) {
+  outlineScale = style.vehicleOutline || 1;
+  try {
+    drawBikeBody(g, style, color);
+  } finally {
+    outlineScale = 1;
+  }
+}
+
+function drawBikeBody(g, style, color) {
   shadowShape(g, style, (dx, dy, gr) => g.roundRect((-0.9 + dx * 0.4 - gr) * U, (-0.12 + dy * 0.4 - gr) * U, (1.8 + gr * 2) * U, (0.24 + gr * 2) * U, 0.12 * U), 0.4);
   const tyre = 0x1f2024;
   g.roundRect(-0.92 * U, -0.09 * U, 0.66 * U, 0.18 * U, 0.09 * U);
@@ -241,7 +263,7 @@ export function drawHouse(g, style, b, cam) {
         const q = [...lerp2(p1, p2, o, uc - hw, v0), ...lerp2(p1, p2, o, uc + hw, v0), ...lerp2(p1, p2, o, uc + hw, v1), ...lerp2(p1, p2, o, uc - hw, v1)];
         g.poly(P(q));
         if (isDoor) fin(g, style, col(style, shade(b.roofColor, -0.25)), { outline: 0.6 });
-        else fin(g, style, r() < 0.2 ? style.windowLit : style.window, { outline: 0.6 });
+        else fin(g, style, r() < (style.litChance ?? 0.2) ? style.windowLit : style.window, { outline: 0.6 });
       }
     }
   }
@@ -340,6 +362,11 @@ function drawGableRoof(g, style, b, cam, o, r) {
 
 export function drawSidewalk(g, style, x, y, w, h) {
   const gr = style.ground;
+  if (style.detail) {
+    g.rect(x * U, y * U, w * U, h * U).fill(gr.tileLine);
+    D.slabTexture(g, style, x, y, w, h, Math.floor(x * 31 + y * 17) + 1);
+    return;
+  }
   g.rect(x * U, y * U, w * U, h * U).fill(gr.sidewalk);
   // Paving slabs, 1 m apart, in a running pattern.
   for (let yy = y + 1; yy < y + h; yy += 1) line(g, style, [x, yy, x + w, yy], 0.04, gr.tileLine);
@@ -347,9 +374,10 @@ export function drawSidewalk(g, style, x, y, w, h) {
     for (let xx = x + (row % 2) * 0.5 + 1; xx < x + w; xx += 1) line(g, style, [xx, yy, xx, Math.min(y + h, yy + 1)], 0.04, gr.tileLine);
 }
 
-export function drawRoad(g, style, x, y, w, h, r, { patch = true } = {}) {
+export function drawRoad(g, style, x, y, w, h, r, { patch = true, lanes = [] } = {}) {
   const gr = style.ground;
   g.rect(x * U, y * U, w * U, h * U).fill(gr.asphalt);
+  if (style.detail) D.asphaltTexture(g, style, x, y, w, h, Math.floor(x * 13 + y * 7) + 3, lanes);
   if (patch) {
     // A repaired patch: a bit darker, with tar seams round the edge.
     const px = x + w * 0.62;
@@ -375,6 +403,7 @@ export function drawRoad(g, style, x, y, w, h, r, { patch = true } = {}) {
 }
 
 export function drawCurb(g, style, x, y, w) {
+  if (style.detail) return D.curbStones(g, style, x, y, w, Math.floor(x * 5 + y * 11) + 2);
   g.rect(x * U, (y - 0.15) * U, w * U, 0.3 * U);
   fin(g, style, style.ground.curb, { outline: 0.5 });
 }
@@ -491,6 +520,10 @@ export function drawSign(g, style, x, y, kind) {
 }
 
 export function drawTree(g, style, x, y, r, seed) {
+  if (style.detail) {
+    g.rect((x - 0.7) * U, (y - 0.7) * U, 1.4 * U, 1.4 * U).fill({ color: style.metal, alpha: 0.85 });
+    return D.detailedTree(g, style, x, y, r, seed);
+  }
   const rr = rng(seed);
   const [dark, light] = style.tree.map((c) => col(style, c));
   // Grate around the trunk.

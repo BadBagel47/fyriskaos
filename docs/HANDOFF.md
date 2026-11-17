@@ -52,5 +52,6 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - `docs/design.md` – designdokumentet (D-001).
 - `docs/style-bible.md` – stilbibeln (D-003).
 - `docs/legal.md` – lagar och licenser (D-009).
+- `docs/names.md` – namn på parodier, nationer och ordningsmakt (D-036).
 - Issue #1 – ägarens startinstruktioner (stängd när innehållet flyttats hit).
 - network-kit issue #1 – Fyriskaos behov av network-kit (i repot `BadBagel47/network-kit`).

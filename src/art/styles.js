@@ -95,3 +95,16 @@ export const STYLES = [
     tree: [0x7d9470, 0x91a684],
   },
 ];
+
+// Proposal D-038: variant 1 with more texture and detail, slightly stronger
+// outlines on people and vehicles, and lights for evening scenes.
+export const PLUS_STYLE = {
+  ...STYLES[0],
+  id: 'pastell-plus',
+  name: 'Förslag – Sommarkväll+',
+  summary: 'Variant 1 med mer detaljer: kornig asfalt, stenkanter, täta buskar och träd av många lövklungor, lite kraftigare kontur på folk och fordon, och ljus som lyser upp marken på kvällen.',
+  detail: true,
+  personOutline: 1.25,
+  vehicleOutline: 1.3,
+  outline: { width: 1.4, color: 0x3b3430, alpha: 0.8 },
+};
