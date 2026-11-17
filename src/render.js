@@ -36,7 +36,8 @@ export function createRenderer(app, game) {
 
   function targetPpm() {
     const p = game.player;
-    const short = Math.min(app.screen.width, app.screen.height);
+    // Large screens show more of the town instead of a giant close-up.
+    const short = Math.min(app.screen.width, app.screen.height, 420);
     let metres = 17; // visible metres across the short side of the screen, on foot
     if (p.vehicle) {
       const s = speedOf(p.vehicle);
@@ -215,7 +216,7 @@ function dist2(b, cam) {
 function carView(color) {
   const c = new Container();
   const g = new Graphics();
-  g.roundRect(-2.2 * U + 3, -0.95 * U + 4, 4.4 * U, 1.9 * U, 0.45 * U).fill({ color: COLORS.shadow, alpha: 0.25 });
+  g.roundRect(-2.2 * U - 3, -0.95 * U - 3, 4.4 * U + 6, 1.9 * U + 6, 0.6 * U).fill({ color: COLORS.shadow, alpha: 0.18 });
   g.roundRect(-2.2 * U, -0.95 * U, 4.4 * U, 1.9 * U, 0.45 * U).fill(color);
   g.roundRect(0.35 * U, -0.78 * U, 0.75 * U, 1.56 * U, 0.2 * U).fill(0x2c3440); // windscreen
   g.roundRect(-1.55 * U, -0.72 * U, 0.5 * U, 1.44 * U, 0.15 * U).fill(0x2c3440); // rear window
@@ -231,7 +232,7 @@ function carView(color) {
 function bikeView(color) {
   const c = new Container();
   const g = new Graphics();
-  g.roundRect(-0.85 * U + 2, -0.1 * U + 3, 1.7 * U, 0.2 * U, 0.1 * U).fill({ color: COLORS.shadow, alpha: 0.2 });
+  g.roundRect(-0.95 * U, -0.16 * U, 1.9 * U, 0.32 * U, 0.15 * U).fill({ color: COLORS.shadow, alpha: 0.15 });
   g.roundRect(-0.9 * U, -0.1 * U, 0.62 * U, 0.2 * U, 0.1 * U).fill(0x222326);
   g.roundRect(0.28 * U, -0.1 * U, 0.62 * U, 0.2 * U, 0.1 * U).fill(0x222326);
   g.roundRect(-0.55 * U, -0.09 * U, 1.1 * U, 0.18 * U, 0.06 * U).fill(color);
@@ -246,7 +247,7 @@ function personView(body, head) {
   const g = new Graphics();
   // A soft ring so you always find yourself on a small screen.
   g.circle(0, 0, 0.75 * U).fill({ color: 0xffffff, alpha: 0.12 }).stroke({ width: 2, color: 0xffffff, alpha: 0.55 });
-  g.ellipse(2, 3, 0.24 * U, 0.36 * U).fill({ color: COLORS.shadow, alpha: 0.25 });
+  g.ellipse(0, 0, 0.28 * U, 0.42 * U).fill({ color: COLORS.shadow, alpha: 0.2 });
   g.ellipse(0, 0, 0.22 * U, 0.36 * U).fill(body);
   g.circle(0.04 * U, 0, 0.16 * U).fill(head);
   g.rect(0.14 * U, -0.05 * U, 0.08 * U, 0.1 * U).fill(0x6b4a2a); // nose, shows the facing
