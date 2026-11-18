@@ -28,7 +28,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
-| D-041 | Hög | Pågår 2026-11-18 (session ccr-319e3a0a-gey2ih) | Detaljerna når inte upp till inspirationsbilderna (ägaren 2026-11-18: "Detaljerna kändes inte riktigt som i inspirationsbilderna"). Orsak: bilderna får sin detalj från målade eller fotografiska texturer och 3D-ljus, spelet ritar med enkla former (cirklar och rektanglar). Testa på en gatubit i galleriet, sida vid sida med nuvarande stil: (a) målade texturer och sprites, (b) brus och ljus i grafikkortet (shader med skuggor och ytstruktur), (c) en 3D-variant med riktigt ljus. Ägaren väljer innan något byggs om i spelet. |
+| D-041 | Hög | Väntar på ägaren (val av väg) | Detaljerna når inte upp till inspirationsbilderna (ägaren 2026-11-18: "Detaljerna kändes inte riktigt som i inspirationsbilderna"). Orsak: bilderna får sin detalj från målade eller fotografiska texturer och 3D-ljus, spelet ritar med enkla former (cirklar och rektanglar). Testa på en gatubit i galleriet, sida vid sida med nuvarande stil: (a) målade texturer och sprites, (b) brus och ljus i grafikkortet (shader med skuggor och ytstruktur), (c) en 3D-variant med riktigt ljus. Ägaren väljer innan något byggs om i spelet. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
 | D-008 | Låg | Öppen | Öppna frågor i designen: slutligt namn, spara en runda till en annan kväll, vilka stadsdelar i första versionen. (Dag och kväll: besvarat 2026-11-18, se Beslut.) |
@@ -47,9 +47,11 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Detalj som i inspirationsbilderna
-  - D-041 – Samma gatubit gjord på tre sätt (genererade bilder för träd, bilar och ytor; grafikkortsljus med ytstruktur och långa skuggor; 3D) bredvid nuvarande stil i galleriet, så att ägaren kan välja väg. Träd och bilar som bild 1, miljö och detaljtyper som bild 3.
-- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på att kartdata går att hämta
+- **A** – starkaste modellen, hög nivå – Den nya detaljnivån i spelet – bygger på ägarens val i D-041
+  - F-042 – Spelet ritas med den väg ägaren väljer: genererade bilder för ytor, tak, träd, bilar och prylar, med ljus och skuggor ovanpå.
+  - Fråga: Vilken väg? Rekommendation (också granskarens): A + B, genererade bilder med ljus och skuggor i 2D; 3D blir för tungt för telefoner och kräver en modell för varje sak.
+  - Fråga: Får bildgeneratorn användas för hela uppsättningen (ungefär 40 bilder, cirka 4 000 krediter)? Rekommendation: ja, med en uppskattning av kostnaden innan körningen startar.
+- **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.

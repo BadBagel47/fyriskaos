@@ -129,7 +129,7 @@ function vignette(w, h) {
     const ctx = c.getContext('2d');
     const gr = ctx.createRadialGradient(128, 128, 60, 128, 128, 182);
     gr.addColorStop(0, 'rgba(0,0,0,0)');
-    gr.addColorStop(1, 'rgba(0,0,0,0.42)');
+    gr.addColorStop(1, 'rgba(0,0,0,0.22)');
     ctx.fillStyle = gr;
     ctx.fillRect(0, 0, 256, 256);
     vignetteTex = Texture.from(c);
@@ -153,7 +153,7 @@ export function streetTest(baseStyle, { evening = false, tex = false, fx = false
   if (T) {
     ground.addChild(tiled(T.sidewalk, 0, 0, 30, 9.5, 4));
     ground.addChild(tiled(T.asphalt, 0, 9.5, 30, 1.6, 6, 0xd99a88));
-    ground.addChild(tiled(T.asphalt, 0, 11.25, 30, 12, 7));
+    ground.addChild(tiled(T.asphalt, 0, 11.25, 30, 12, 11));
     ground.addChild(tiled(T.sidewalk, 0, 23.4, 30, 3.1, 4));
   } else {
     A.drawSidewalk(gv, style, 0, 0, 30, 9.5);
@@ -331,7 +331,7 @@ export function streetTest(baseStyle, { evening = false, tex = false, fx = false
     const cm = new ColorMatrixFilter();
     cm.contrast(0.18, true);
     cm.saturate(0.12, true);
-    const noise = new NoiseFilter({ noise: 0.07, seed: 0.42 });
+    const noise = new NoiseFilter({ noise: 0.03, seed: 0.42 });
     root.filters = [cm, noise];
     const outer = new Container();
     outer.addChild(root);

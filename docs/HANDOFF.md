@@ -35,6 +35,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Nuläge (2026-11-18)
 
+- **Detaljtest (D-041):** i galleriet finns samma gata på fem sätt, dag och kväll: nuvarande stil, A genererade bilder (`gallery/assets/`, gjorda med ElevenLabs bildgenerator, cirka 800 krediter), B ljus och skuggor i 2D (`gallery/detail-test.js`), C 3D med three.js (`gallery/three-scene.js`, `vendor/three`, bara i galleriet) och A + B. En oberoende granskare rankade A + B högst och avråder från 3D för telefoner. Väntar på ägarens val; nästa steg F-042.
 - **v0.4.0 (F-040, F-039):** bil och cykel styrs med upp = framåt, ned = broms och back, sidled = sväng (`drive` i `src/sim.js`); till fots som förut. Dag och kväll följer spelklockan (`src/daylight.js`, tio minuter per varv); på kvällen läggs en blå slöja över staden och ljus ovanpå (gatlyktor, strålkastare, bakljus, cykellampa), fönstren lyser varmt och marken ritas om utan solskuggor. Lägg `?kvall` i adressen för att börja på kvällen.
 - **v0.3.0 (F-037):** spelet ritas i Sommarkväll+. Marken (gator, plattor, gräs, vatten, skuggor, bänkar, papperskorgar) ritas en gång per 32 × 32 m och sparas som bild (`src/ground.js`); hus har lutande väggar med fönster och förbakade tak; gatlyktor och trädkronor lutar; fordon och folk använder galleriets ritkod. Lyktor, papperskorgar och bänkar är hinder. Kartan har fått husutseende, lyktor och möbler (`src/map.js`). Mätt i en simulerad långsam telefon: ritningen tar några millisekunder per bild, med en kort topp när en ny markbit ritas. Inte provat på ägarens telefon.
 - **Stilförslag Sommarkväll+ (D-038):** överst i galleriet bredvid variant 1: gata på dagen och på kvällen med ljus, park med grönska, explosion i tre steg och mynningsflamma. Koden i `src/art/detail.js`, `light.js` och `fx.js`. Granskat av en oberoende granskare; de viktigaste fynden rättade. Väntar på ägarens val.
@@ -47,7 +48,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **Testat:** `npm test` kör `tests/driving.mjs` (fart per biltyp, handbromssväng jämfört med vanlig sväng) och `tests/smoke.cjs` (sidan i en mobilvy: joystick, cykel, bil, sportbil, handbroms, broms, kliva ur, tipset om liggande läge). Skärmdumparna är granskade av agenten.
 - **Publicerat:** https://badbagel47.github.io/fyriskaos/ , kontrollerat av agenten i en mobilvy. **Inte verifierat:** ägaren har inte provat på sin telefon.
 - **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
-- **Senaste:** styrning upp = framåt och dag och kväll, v0.4.0 (2026-11-18) · Sommarkväll+ i spelet, v0.3.0 (2026-11-17) · stilförslag Sommarkväll+ och namn (2026-11-17) · stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
+- **Senaste:** detaljtest på fem sätt (2026-11-18) · styrning upp = framåt och dag och kväll, v0.4.0 (2026-11-18) · Sommarkväll+ i spelet, v0.3.0 (2026-11-17) · stilförslag Sommarkväll+ och namn (2026-11-17) · stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 

@@ -92,7 +92,7 @@ function cyl(r, h, mat, x, y, z, seg = 12) {
 // A flat picture standing in for something seen from above (tree crown, car),
 // lifted to its height so it casts a matching shadow.
 function topSprite(tex, w, d, x, y, z, rot = 0) {
-  const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.7 });
+  const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.7, roughness: 0.7 });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat);
   m.rotation.x = -Math.PI / 2;
   m.rotation.z = -rot;
@@ -112,7 +112,7 @@ export async function render3D({ evening = false, assets = {}, px = 24 } = {}) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = evening ? 1.0 : 1.05;
+  renderer.toneMappingExposure = evening ? 1.5 : 1.05;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x2b2c2e);
@@ -299,7 +299,7 @@ export async function render3D({ evening = false, assets = {}, px = 24 } = {}) {
   sun.shadow.bias = -0.0005;
   sun.shadow.radius = 4;
   scene.add(sun, sun.target);
-  scene.add(new THREE.HemisphereLight(evening ? 0x3a4a80 : 0xcfe0ff, evening ? 0x1a1a22 : 0x8a7a68, evening ? 0.5 : 1.6));
+  scene.add(new THREE.HemisphereLight(evening ? 0x4a5a90 : 0xcfe0ff, evening ? 0x2a2a32 : 0x8a7a68, evening ? 0.9 : 1.6));
   if (evening) {
     for (const [x, z] of heads) {
       const pl = new THREE.PointLight(0xffc27a, 22, 13, 1.7);
