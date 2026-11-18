@@ -1,6 +1,6 @@
 # Stiltest (D-043) – skärmdumpar och mätningar
 
-Tagna 2026-11-18 i en molnwebbläsare (Chromium) i mobilstorlek, 2× upplösning, kvalitet Hög, stillastående kamera. Testsidan: https://badbagel47.github.io/fyriskaos/stiltest.html
+Tagna 2026-11-18 i en molnwebbläsare (Chromium) i mobilstorlek, 2× upplösning, kvalitet Hög, stillastående kamera, efter den oberoende granskningens rättningar. Granskaren rekommenderade variant A. Testsidan: https://badbagel47.github.io/fyriskaos/stiltest.html
 
 ## A – Klassisk tecknad
 

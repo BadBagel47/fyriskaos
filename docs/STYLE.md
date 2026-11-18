@@ -47,7 +47,7 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 
 | Sak | Mått |
 | --- | --- |
-| Person | 1,8 hög, ritas 1,3 gånger större (cirka 2,3) så att den syns på telefonen |
+| Person | 1,8 hög, ritas 1,8 gånger större (cirka 3,2) med axlar i tröjans färg, så att den syns på telefonen |
 | Cykel | 1,8 lång, hjul 0,66 |
 | Bil | 4,2 × 1,8, 1,5 hög |
 | Hus (Luthagen) | 4–5 våningar à 3,2 m plus 1 m sockel, tak 4–5 m, djup 12 m, bredd 13–16 m |
@@ -80,5 +80,5 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 
 1. Ny grafik görs först på stiltestsidan och godkänns av ägaren.
 2. Agenten tar skärmdumpar i mobilstorlek, stående och liggande, jämför med den här stilbibeln och rättar innan den säger att den är klar.
-3. En separat granskare bedömer skärmdumparna mot stilbibeln.
+3. En separat granskare bedömer skärmdumparna mot stilbibeln. Första granskningen (2026-11-18) rekommenderade variant A; dess fynd rättades: större personer, cyklisten på norra cykelbanan bort från träden, synligare lyktor, plåttak på burspråken, tydligt brott på mansardtaken, inget streck över övergångsstället, ljusare mörk bil, mindre knappar och en text som fälls ihop.
 4. Skärmdumparna läggs i `docs/screenshots/` så att ägaren kan se dem på GitHub i mobilen.

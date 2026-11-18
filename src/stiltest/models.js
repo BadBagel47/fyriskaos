@@ -6,7 +6,7 @@ import * as THREE from '../../vendor/three/three.module.js';
 import { Builder, m4, gableRoof, mansardRoof } from './geo.js';
 
 export const FLOOR = 3.2;
-export const PERSON_SCALE = 1.3; // people are drawn a little larger so they read on a phone
+export const PERSON_SCALE = 1.8; // people are drawn larger so they read on a phone
 
 // One stone house. Local frame: front facade towards +z, centred on x.
 // The caller passes a matrix that places and turns it.
@@ -58,7 +58,8 @@ export function addHouse(B, P, h, place) {
     const bx = -w / 2 + step * (bay + 1);
     const bh = (floors - 1) * FLOOR;
     box(step * 1.8, bh, 1.0, facade, bx, 1.0 + FLOOR + bh / 2, d / 2 + 0.5);
-    box(step * 1.8 + 0.2, 0.25, 1.2, P.trim, bx, 1.0 + FLOOR + bh + 0.12, d / 2 + 0.55);
+    // A sheet-metal cap on the bay window.
+    box(step * 1.8 + 0.2, 0.25, 1.2, P.roofs[1], bx, 1.0 + FLOOR + bh + 0.12, d / 2 + 0.55);
     for (let f = 1; f < floors; f++)
       for (const ox of [-step * 0.45, step * 0.45]) {
         const y = 1.0 + f * FLOOR + 1.55;
@@ -89,6 +90,10 @@ export function addHouse(B, P, h, place) {
   const seam = new THREE.Color(roofC).multiplyScalar(0.8).getHex();
   if (h.roofType === 'mansard') {
     for (const f of [0.25, 0.5]) for (const side of [1, -1]) box(w + 0.4, 0.08, 0.1, seam, 0, H + 0.4 + 4.2 * 0.7 * f, side * (d / 2 + 0.3 - (d / 2 - (d / 2 - 1.6)) * f - 0.02));
+    // The break between the steep and the flat part, clearly marked.
+    const kink = new THREE.Color(roofC).multiplyScalar(0.62).getHex();
+    for (const side of [1, -1]) box(w - 2.0, 0.2, 0.22, kink, 0, H + 0.4 + 4.2 * 0.7, side * (d / 2 - 1.6));
+    for (const side of [1, -1]) box(0.22, 0.2, d - 3.0, kink, side * (w / 2 - 1.2), H + 0.4 + 4.2 * 0.7, 0);
     box(w - 3.2, 0.12, 0.3, seam, 0, H + 0.4 + 4.2 + 0.02, 0);
   } else {
     box(w + 0.8, 0.22, 0.45, seam, 0, H + 0.4 + rh + 0.02, 0);
@@ -135,8 +140,10 @@ export function addPerson(B, P, shirt, place, phase = 0) {
   B.add(new THREE.BoxGeometry(0.26, 0.62, 0.46), shirt, at(0, 1.12, 0));
   B.add(new THREE.BoxGeometry(0.14, 0.56, 0.12), shirt, at(-swing, 1.1, 0.3));
   B.add(new THREE.BoxGeometry(0.14, 0.56, 0.12), shirt, at(swing, 1.1, -0.3));
-  B.add(new THREE.BoxGeometry(0.26, 0.26, 0.26), P.skin, at(0.02, 1.6, 0));
-  B.add(new THREE.BoxGeometry(0.28, 0.1, 0.28), 0x3a2a1e, at(-0.02, 1.76, 0));
+  // A slightly big head and shoulders in the shirt colour make people easy to spot from above.
+  B.add(new THREE.BoxGeometry(0.3, 0.12, 0.56), shirt, at(0, 1.46, 0));
+  B.add(new THREE.BoxGeometry(0.3, 0.3, 0.3), P.skin, at(0.02, 1.66, 0));
+  B.add(new THREE.BoxGeometry(0.32, 0.1, 0.32), 0x3a2a1e, at(-0.02, 1.84, 0));
 }
 
 // ---------- geometries for instancing (built once, drawn many times) ----------
@@ -151,10 +158,11 @@ export function treeGeometry(P) {
 
 export function lampGeometry(P) {
   const B = new Builder();
-  B.add(new THREE.CylinderGeometry(0.07, 0.1, 5.2, 6), P.metal, m4(0, 2.6, 0));
-  B.add(new THREE.BoxGeometry(0.08, 0.08, 1.3), P.metal, m4(0, 5.15, 0.6));
-  B.add(new THREE.BoxGeometry(0.42, 0.18, 0.62), P.metal, m4(0, 5.05, 1.2));
-  B.add(new THREE.BoxGeometry(0.3, 0.05, 0.46), 0xfff2c0, m4(0, 4.94, 1.2));
+  B.add(new THREE.CylinderGeometry(0.12, 0.16, 5.2, 6), P.metal, m4(0, 2.6, 0));
+  B.add(new THREE.BoxGeometry(0.16, 0.14, 1.4), P.metal, m4(0, 5.15, 0.65));
+  // A light top on the luminaire, so it reads from above.
+  B.add(new THREE.BoxGeometry(0.56, 0.24, 0.8), 0xd8d4c8, m4(0, 5.08, 1.3));
+  B.add(new THREE.BoxGeometry(0.4, 0.06, 0.6), 0xfff2c0, m4(0, 4.94, 1.3));
   return B.build();
 }
 

@@ -81,7 +81,7 @@ export function buildScene(v) {
   for (const z of [-7.25, -5.45, 3.25, 5.05]) G.box(120, 0.14, 0.22, P.curb, 30, 0.07, z);
   // Road paint: centre dashes, parking bays, zebra crossing and bike-lane edges.
   for (let x = -28; x < 88; x += 6) if (Math.abs(x + 1.5 - 30) > 4) G.box(3, 0.02, 0.14, P.lane, x + 1.5, 0.02, -1.1);
-  for (let x = -28; x < 88; x += 6.5) G.box(0.12, 0.02, 2.0, P.lane, x, 0.02, -4.35);
+  for (let x = -28; x < 88; x += 6.5) if (Math.abs(x - 30) > 3) G.box(0.12, 0.02, 2.0, P.lane, x, 0.02, -4.35);
   for (let z = -5.2; z < 3.1; z += 1.0) G.box(3.0, 0.025, 0.5, P.lane, 30, 0.02, z + 0.25);
   for (const z of [-6.35, 4.15]) for (let x = -28; x < 88; x += 12) G.box(0.9, 0.02, 0.08, P.lane, x, 0.03, z);
   // Tree pits on the south sidewalk.
@@ -121,7 +121,7 @@ export function buildScene(v) {
   // ---------- repeated things, instanced ----------
   const trees = [];
   for (let x = 4; x < 60; x += 10) if (Math.abs(x - 30) > 3) trees.push({ x, z: 6.6, rot: x, s: 0.95 + ((x * 7) % 5) / 20, tint: 0.9 + ((x * 13) % 7) / 35 });
-  for (const [x, z] of [[8, 10.8], [21, 12.5], [43, 9.6], [55, 12.2], [6, -27], [16, -25], [44, -27.5], [53, -25.5], [30, -28.5], [12, -35], [40, -36], [10, 31], [36, 32], [52, 30]]) trees.push({ x, z, rot: x + z, s: 1.05 + ((x * 3) % 4) / 10, tint: 0.88 + ((x * 11) % 7) / 30 });
+  for (const [x, z] of [[8, 10.8], [21, 12.5], [39.5, 12], [55, 12.2], [6, -27], [16, -25], [44, -27.5], [53, -25.5], [30, -28.5], [12, -35], [40, -36], [10, 31], [36, 32], [52, 30]]) trees.push({ x, z, rot: x + z, s: 1.05 + ((x * 3) % 4) / 10, tint: 0.88 + ((x * 11) % 7) / 30 });
   instanced(world, M.treeGeometry(P), mat, outline, trees, true);
   const lamps = [];
   for (const x of [6, 22, 38, 54]) lamps.push({ x, z: -9.9, rot: 0 });
@@ -151,7 +151,9 @@ export function buildScene(v) {
   const walker = actor((b) => M.addPerson(b, P, P.shirt, m4(0, 0, 0)));
   const update = (t) => {
     car.position.set(-12 + ((t * 9) % 84), 0, 1.6);
-    cyclist.position.set(-10 + ((t * 4.5) % 80), 0, 4.15);
+    // The cyclist rides west on the north bike lane, clear of the trees.
+    cyclist.position.set(70 - ((t * 4.5) % 80), 0, -6.35);
+    cyclist.rotation.y = Math.PI;
     const wx = 30 + Math.sin(t * 0.25) * 14;
     walker.position.set(wx, Math.abs(Math.sin(t * 6)) * 0.05, -8.9);
     walker.rotation.y = Math.cos(t * 0.25) > 0 ? 0 : Math.PI;

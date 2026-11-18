@@ -36,6 +36,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Nuläge (2026-11-18)
 
+- **Stiltest (D-043):** https://badbagel47.github.io/fyriskaos/stiltest.html – ett Luthagen-kvarter i Three.js, low-poly och tecknat, i tre varianter (knapp), med fps-mätare och automatiska kvalitetslägen. Allt byggt med kod (`src/stiltest/`), paketerat med esbuild till `stiltest/app.js` (kör `npm run build:stiltest` efter ändringar). Stilbibel `docs/STYLE.md`, credits `CREDITS.md`, skärmdumpar och mätningar `docs/screenshots/stiltest/`. Oberoende granskning gjord och rättad; granskaren rekommenderar variant A. Spelet är inte ändrat. Väntar på ägarens val och prov i mobilen.
 - **Detaljtest (D-041):** i galleriet finns samma gata på fem sätt, dag och kväll: nuvarande stil, A genererade bilder (`gallery/assets/`, gjorda med ElevenLabs bildgenerator, cirka 800 krediter), B ljus och skuggor i 2D (`gallery/detail-test.js`), C 3D med three.js (`gallery/three-scene.js`, `vendor/three`, bara i galleriet) och A + B. En oberoende granskare rankade A + B högst och avråder från 3D för telefoner. Väntar på ägarens val; nästa steg F-042.
 - **v0.4.0 (F-040, F-039):** bil och cykel styrs med upp = framåt, ned = broms och back, sidled = sväng (`drive` i `src/sim.js`); till fots som förut. Dag och kväll följer spelklockan (`src/daylight.js`, tio minuter per varv); på kvällen läggs en blå slöja över staden och ljus ovanpå (gatlyktor, strålkastare, bakljus, cykellampa), fönstren lyser varmt och marken ritas om utan solskuggor. Lägg `?kvall` i adressen för att börja på kvällen.
 - **v0.3.0 (F-037):** spelet ritas i Sommarkväll+. Marken (gator, plattor, gräs, vatten, skuggor, bänkar, papperskorgar) ritas en gång per 32 × 32 m och sparas som bild (`src/ground.js`); hus har lutande väggar med fönster och förbakade tak; gatlyktor och trädkronor lutar; fordon och folk använder galleriets ritkod. Lyktor, papperskorgar och bänkar är hinder. Kartan har fått husutseende, lyktor och möbler (`src/map.js`). Mätt i en simulerad långsam telefon: ritningen tar några millisekunder per bild, med en kort topp när en ny markbit ritas. Inte provat på ägarens telefon.
@@ -49,7 +50,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **Testat:** `npm test` kör `tests/driving.mjs` (fart per biltyp, handbromssväng jämfört med vanlig sväng) och `tests/smoke.cjs` (sidan i en mobilvy: joystick, cykel, bil, sportbil, handbroms, broms, kliva ur, tipset om liggande läge). Skärmdumparna är granskade av agenten.
 - **Publicerat:** https://badbagel47.github.io/fyriskaos/ , kontrollerat av agenten i en mobilvy. **Inte verifierat:** ägaren har inte provat på sin telefon.
 - **Nästa:** ägaren provar styrningen; sedan körförslaget i `docs/BACKLOG.md`.
-- **Senaste:** detaljtest på fem sätt (2026-11-18) · styrning upp = framåt och dag och kväll, v0.4.0 (2026-11-18) · Sommarkväll+ i spelet, v0.3.0 (2026-11-17) · stilförslag Sommarkväll+ och namn (2026-11-17) · stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
+- **Senaste:** stiltest i Three.js (2026-11-18) · detaljtest på fem sätt (2026-11-18) · styrning upp = framåt och dag och kväll, v0.4.0 (2026-11-18) · Sommarkväll+ i spelet, v0.3.0 (2026-11-17) · stilförslag Sommarkväll+ och namn (2026-11-17) · stilbibel, galleri och lagar och licenser (2026-11-17) · biltyper och handbroms, v0.2.0 (2026-11-17) · prototyp 1 och publicering (2026-11-17) · repot uppsatt enligt agentreglerna (2026-11-17) · designdokumentet (2026-11-17).
 
 ## Engångsåtgärder
 
@@ -60,7 +61,10 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 - `README.md` – kort om spelet och hur det körs lokalt.
 - `docs/design.md` – designdokumentet (D-001).
-- `docs/style-bible.md` – stilbibeln (D-003).
+- `docs/style-bible.md` – den tidigare 2D-stilbibeln (D-003), historik.
+- `docs/STYLE.md` – stilbibel för 3D-grafiken (D-043).
+- `CREDITS.md` – programvara och modeller med källa och licens.
+- `docs/screenshots/stiltest/` – stiltestets skärmdumpar och mätningar.
 - `docs/legal.md` – lagar och licenser (D-009).
 - `docs/names.md` – namn på parodier, nationer och ordningsmakt (D-036).
 - Issue #1 – ägarens startinstruktioner (stängd när innehållet flyttats hit).

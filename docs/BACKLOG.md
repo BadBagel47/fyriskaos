@@ -46,8 +46,9 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Grafiken i spelet – bygger på D-043 (ägarens val av variant)
-  - F-042 – Spelet ritas i den valda stilen från stiltestet.
+- **A** – starkaste modellen, hög nivå – Grafiken i spelet – bygger på D-043
+  - F-042 – Spelet ritas i den valda stilen från stiltestet, med samma mobilkrav.
+  - Fråga: Vilken variant i stiltestet? Rekommendation (också granskarens): A – Klassisk tecknad.
 - **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011, F-023, F-028 – Vårdcentral, pil till målet, credits.

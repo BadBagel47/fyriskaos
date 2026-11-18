@@ -147,7 +147,7 @@ function frame(now) {
   if (!still) t += dt;
   built.update(still ? 3 : t);
   const tx = panning ? 30 + Math.sin(t * 0.15) * 9 : 30;
-  const tz = 1;
+  const tz = -4;
   camera.position.set(tx, CAM_HEIGHT, tz);
   camera.lookAt(tx, 0, tz);
   // Keep the sun's shadow box around the camera, snapped to whole metres so shadows do not shimmer.
