@@ -47,10 +47,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Detalj som i inspirationsbilderna – väntar på svar
-  - D-041 – Samma gatubit gjord på tre sätt (målade texturer, grafikkortsljus, 3D) bredvid nuvarande stil i galleriet, så att ägaren kan välja väg.
-  - Fråga: Vilken av de tre bilderna ligger närmast det ägaren vill ha, och vad saknas mest (textur, grönska, ljus, skuggor)? Ingen rekommendation; det avgör vilken väg som provas mest noggrant.
-  - Fråga: Får ElevenLabs-kopplingens bildgenerator användas för målade texturer (kostar krediter; bilderna granskas och licensvillkoren kontrolleras)? Rekommendation: ja, för ett litet test.
+- **A** – starkaste modellen, hög nivå – Detalj som i inspirationsbilderna
+  - D-041 – Samma gatubit gjord på tre sätt (genererade bilder för träd, bilar och ytor; grafikkortsljus med ytstruktur och långa skuggor; 3D) bredvid nuvarande stil i galleriet, så att ägaren kan välja väg. Träd och bilar som bild 1, miljö och detaljtyper som bild 3.
 - **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
