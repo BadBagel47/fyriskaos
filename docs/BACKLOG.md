@@ -28,7 +28,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
-| D-041 | Hög | Väntar på ägaren (val av väg) | Detaljerna når inte upp till inspirationsbilderna (ägaren 2026-11-18: "Detaljerna kändes inte riktigt som i inspirationsbilderna"). Orsak: bilderna får sin detalj från målade eller fotografiska texturer och 3D-ljus, spelet ritar med enkla former (cirklar och rektanglar). Testa på en gatubit i galleriet, sida vid sida med nuvarande stil: (a) målade texturer och sprites, (b) brus och ljus i grafikkortet (shader med skuggor och ytstruktur), (c) en 3D-variant med riktigt ljus. Ägaren väljer innan något byggs om i spelet. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
 | D-008 | Låg | Öppen | Öppna frågor i designen: slutligt namn, spara en runda till en annan kväll, vilka stadsdelar i första versionen. (Dag och kväll: besvarat 2026-11-18, se Beslut.) |
@@ -47,21 +46,14 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Den nya detaljnivån i spelet – bygger på ägarens val i D-041
-  - F-042 – Spelet ritas med den väg ägaren väljer: genererade bilder för ytor, tak, träd, bilar och prylar, med ljus och skuggor ovanpå.
-  - Fråga: Vilken väg? Rekommendation (också granskarens): A + B, genererade bilder med ljus och skuggor i 2D; 3D blir för tungt för telefoner och kräver en modell för varje sak.
-  - Fråga: Får bildgeneratorn användas för hela uppsättningen (ungefär 40 bilder, cirka 4 000 krediter)? Rekommendation: ja, med en uppskattning av kostnaden innan körningen startar.
+- **A** – starkaste modellen, hög nivå – Grafiken i spelet – bygger på D-043 (ägarens val av variant)
+  - F-042 – Spelet ritas i den valda stilen från stiltestet.
 - **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
-  - F-011 – Vårdcentralen och att återuppstå där.
-  - F-023 – Pilen som visar vägen till uppdraget.
-  - F-028 – Credits och licenser.
+  - F-011, F-023, F-028 – Vårdcentral, pil till målet, credits.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
 - **C** – starkaste modellen, hög nivå – Två spelare – bygger på B
-  - F-006 – Koppla in network-kit för co-op.
-  - F-026 – Gemensam start av uppdrag med teleport.
-  - F-027 – Återanslutning mitt i rundan.
-  - F-035 – Integritetstext innan man går med i ett rum.
+  - F-006, F-026, F-027, F-035 – co-op via network-kit, gemensam uppdragsstart, återanslutning, integritetstext.
 
 ## Klart
 
@@ -71,6 +63,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-033 | 2026-11-17 | Tre biltyper: småbil (cirka 70 km/h, svängig), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, snabb från start, sällsynt). Namn och fart visas i hörnet (v0.2.0). |
 | F-034 | 2026-11-17 | Handbromssväng: håll bromsen och dra åt sidan i fart, så sladdar bilen runt med däckspår och behåller farten (v0.2.0). |
 | F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
+| D-041 | 2026-11-18 | Detaljtest på fem sätt i galleriet; ägaren valde därefter en ny väg: low-poly 3D med Three.js i tecknad stil (D-043). |
 | F-040 | 2026-11-18 | Styrning för bil och cykel: upp gasar framåt, ned bromsar och backar, åt sidan svänger; handbroms = broms plus sväng i fart (v0.4.0). |
 | F-039 | 2026-11-18 | Dag och kväll: var tionde minut blir det kväll i fyra minuter, med gatlyktor, upplysta fönster, strålkastare, bakljus och cykellampa; solens skuggor bleknar (v0.4.0). `?kvall` i adressen startar på kvällen. |
 | F-037 | 2026-11-17 | Spelet ritas i Sommarkväll+: texturerad mark i förbakade bitar, hus med fönster och tak, gatlyktor, bänkar och papperskorgar, träd av lövklungor, fordon och folk från galleriet (v0.3.0). |
