@@ -200,8 +200,18 @@ function fail(msg) {
     const pics = await page.$$eval('.cell img', (l) => l.filter((i) => i.naturalWidth > 100).length);
     if (pics !== 26) fail(`gallery drew ${pics} of 26 pictures`);
 
+    // The 3D style test (D-043): starts, shows the fps meter, the style button works.
+    await page.goto(`http://127.0.0.1:${port}/stiltest.html?q=low`);
+    await page.waitForFunction(() => window.__stiltest && window.__stiltest.firstFrameMs, null, { timeout: 120000 });
+    const v0 = await page.evaluate(() => window.__stiltest.variant);
+    await page.click('#btn-variant');
+    await page.waitForTimeout(500);
+    const v1 = await page.evaluate(() => window.__stiltest.variant);
+    if (v0 === v1) fail('style button did not change the variant');
+    await page.waitForFunction(() => /fps/.test(document.getElementById('fps').textContent) && !/…/.test(document.getElementById('fps').textContent), null, { timeout: 30000 });
+
     if (errors.length) fail('errors on the page:\n' + errors.join('\n'));
-    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery');
+    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test');
   } finally {
     await browser.close();
     server.kill();

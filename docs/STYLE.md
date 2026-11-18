@@ -1,0 +1,84 @@
+# Fyriskaos – stilbibel för 3D-grafiken (D-043)
+
+Gäller från 2026-11-18 (ägarens beslut). Ersätter den tidigare 2D-stilbibeln (`docs/style-bible.md`, kvar som historik). Testsida: https://badbagel47.github.io/fyriskaos/stiltest.html
+
+## Beslut
+
+- **Stil:** top-down, tecknad, hus som lutar lite utåt från kameran.
+- **Teknik:** Three.js (WebGL) med enkel low-poly 3D. Perspektivkamera rakt ovanifrån, så att höga saker lutar utåt från skärmens mitt.
+- **Tecknat:** toon-skuggning (två eller tre ljussteg), konturlinjer, begränsad palett.
+- **Modeller:** byggs med kod eller är CC0 (t.ex. Kenney, Quaternius). Källa och licens för varje modell står i `CREDITS.md`. Stiltestet är byggt helt med kod (Kenney och Quaternius gick inte att nå från arbetsmiljön 2026-11-18).
+
+## Kamera
+
+| Värde | Testsidan | Spelet (förslag) |
+| --- | --- | --- |
+| Höjd över gatan | 70 m | 70 m |
+| Synligt på skärmens kortsida | 36 m | 26 m till fots, upp till 36 m i bil |
+| Riktning | rakt ner, norr uppåt | samma |
+
+Hur mycket ett hus lutar: förskjutningen av taket är husets höjd delat med kamerans höjd, gånger avståndet från skärmens mitt. Ett 17 m högt hus 15 m från mitten lutar alltså ungefär 3,6 m. Fasaderna syns på den sida som vetter mot mitten.
+
+## Ljus och skuggor
+
+- **Sol** från sydväst, som i Uppsala, ungefär 55° över horisonten. Skuggor faller mot nordost, alltså bort från gatans södra fasader och in mot gårdarna.
+- **Himmelsljus** (blått ovanifrån, varmt från marken) bestämmer hur ljusa skuggorna är. Skuggor ska vara tydliga men aldrig svarta; färgerna ska gå att se i skugga.
+- **Toon-steg:** variant A tre steg, B två mjuka, C två hårda (se `src/stiltest/variants.js`).
+- **Skuggor bara från solen** och bara nära kameran: skuggområdet är det som syns plus 10 m och följer kameran i hela meter, så att skuggorna inte darrar.
+- **Dimma vid kanten:** längst ut i bilden (främst i stående läge) bleknar marken mot bakgrundsfärgen.
+
+## Konturer
+
+Inverterat skal: varje sak ritas en gång till, lite större och inifrån, i konturfärgen. Det ger en jämn kontur runt varje form (även fönster och möbler) för ett extra anrop per mesh.
+
+| Variant | Tjocklek | Färg |
+| --- | --- | --- |
+| A – Klassisk tecknad | 0,075 m (ungefär 1,5 px på en telefon) | mörkbrun |
+| B – Mjuk pastell | 0,05 m | gråbrun |
+| C – Kraftig serie | 0,12 m | nästan svart |
+
+Marken har ingen kontur.
+
+## Palett
+
+Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall och trä, sex bilfärger, fyra cykelfärger. Fasaderna följer Uppsala: ockra, gult, laxrött, vitputs, sandsten och blekgrönt. Taken är tegelröda eller i grå plåt. Varje variant har sin egen version av samma palett (`src/stiltest/variants.js`).
+
+## Storlekar (meter)
+
+| Sak | Mått |
+| --- | --- |
+| Person | 1,8 hög, ritas 1,3 gånger större (cirka 2,3) så att den syns på telefonen |
+| Cykel | 1,8 lång, hjul 0,66 |
+| Bil | 4,2 × 1,8, 1,5 hög |
+| Hus (Luthagen) | 4–5 våningar à 3,2 m plus 1 m sockel, tak 4–5 m, djup 12 m, bredd 13–16 m |
+| Gata | två körfält à 3,25, parkering 2,2, cykelbanor 1,8, trottoarer 3 |
+| Träd | 6–7 högt, krona 4–5 bred |
+| Gatlykta | 5,2 hög, armen 1,3 ut över cykelbanan |
+
+## Detaljnivå per stadsdel
+
+| Stadsdel | Hus | Gatan | Grönt och detaljer |
+| --- | --- | --- | --- |
+| Luthagen (stiltestet) | Putsade stenhus 4–5 våningar, sadel- och mansardtak, takkupor, skorstenar, burspråk, portar med trappsteg, balkonger mot gården | Parkering längs ena sidan, cykelbanor, övergångsställe, pollare | Lindar i gatan, park­remsa med bänkar, gårdar med gräs och grus |
+| Studentkvarter med nationer | Stora nationshus, gult och vitt, gavlar | Breda trottoarer, många cykelställ | Gårdar med långbord, affischer |
+| Gamla stan kring domkyrkan | Äldre låga hus i tegel och puts, branta tak | Smala gator, kullersten | Kyrkogårdsmurar, stora träd |
+| Slottsbacken | Slottet (rosa puts), få hus | Grusgångar | Gräsbacke, kanoner, klocka |
+| Sjukhusområde | Stora platta tak, helikopterplatta | Parkeringar, ambulansintag | Vårdcentral, buskar |
+| Industri | Plåthallar, lastkajer | Grus, staket | Containrar, pallar, lådor |
+| Jordbruk och slätt | Röda lador | Grusvägar | Åkrar i rader, hagar, traktorer |
+
+## Prestanda (mobil från start)
+
+- **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.
+- **Få anrop:** allt som står still i ett kvarter slås ihop till en enda mesh med färg per hörn. Upprepade saker (träd, lyktor, bänkar, papperskorgar, cykelställ, pollare) ritas med instancing. Stiltestet: 21–31 anrop och 41 000–61 000 trianglar.
+- **Upplösning:** pixel ratio högst 2.
+- **Kvalitetslägen:** Låg (pixel ratio 1, inga skuggor), Medel (1,5, skuggor 1024), Hög (2, skuggor 2048). Auto går ner ett steg om det blir under 50 bilder per sekund i en sekund, och upp igen efter 8 sekunder på 59 eller mer om det inte gått ner de senaste 20 sekunderna.
+- **Snabb start:** inga modellfiler att ladda; hela stiltestet (Three.js och egen kod) är ett komprimerat paket på cirka 145 kB.
+- **Mätt i molnet** 2026-11-18, se `docs/screenshots/stiltest/README.md`.
+
+## Arbetssätt
+
+1. Ny grafik görs först på stiltestsidan och godkänns av ägaren.
+2. Agenten tar skärmdumpar i mobilstorlek, stående och liggande, jämför med den här stilbibeln och rättar innan den säger att den är klar.
+3. En separat granskare bedömer skärmdumparna mot stilbibeln.
+4. Skärmdumparna läggs i `docs/screenshots/` så att ägaren kan se dem på GitHub i mobilen.
