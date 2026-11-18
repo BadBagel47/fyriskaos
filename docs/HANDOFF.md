@@ -22,6 +22,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **Nätverk (2026-11-17):** två spelare bygger på `BadBagel47/network-kit` (se dess `docs/INTEGRATION.md`), men först när solo fungerar. En spelare är värd och kör simuleringen. Spelets behov är rapporterade i network-kit issue #1. Behov och frågor om network-kit tas till network-kit-agenten.
 - **Grafik (2026-11-17):** arbetssättet för grafik i designdokumentet gäller från start; agenten tittar på sitt resultat med skärmdumpar innan den säger att den är klar. Skrivet som projektregel i `AGENTS.md`.
 - **Biltyper och handbroms (2026-11-17, fråga A1 och A2):** tre biltyper: småbil (svängig, långsam), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, sällsynt). Handbromssväng utan ny knapp: håll bromsen och dra åt sidan i fart.
+- **Grafik steg 3 (2026-11-18, D-045):** stort lyft i steg 2, särskilt bilar, träd, ytor och kvällsljus. Ny förvald kamera: lätt lutad med fast vinkel cirka 30–40° från lodrätt; rakt ovanifrån finns kvar bakom en knapp. Staden står still, styrningen ändras inte. Målbilder ska vara i stil med ett påkostat mobilspel, inte fotorealism. Start under 6 s i det långsamma testet. Fasta granskningskriterier.
 - **Grafik steg 2 (2026-11-18, D-044):** stiltestet är en bra grund men ser ut som en tidig prototyp. Målet är detaljnivån i D-041: träd och bilar som referensbild 1 (täta lövverk, bilar med glans), miljön som bild 3 (lådor, staket, lampor som lyser upp marken, långa skuggor, kontrast). Ljuset ska vara Sommarkväll+, inte middagssol. Three.js och mobilbudgeten gäller; tecknad low-poly är inget krav längre.
 - **Grafikteknik (2026-11-18, D-043):** top-down, tecknad, hus som lutar lite utåt från kameran. Three.js (WebGL) med enkel low-poly 3D, perspektivkamera rakt ovanifrån, toon-skuggning, konturlinjer, begränsad palett. All grafik byggs med kod eller CC0-modeller (t.ex. Kenney, Quaternius) med källa och licens i credits. Mobilkrav från start: mål 60 fps på mellanklass-Android, aldrig under 30. Ersätter vägvalet i D-041.
 - **Detaljnivå (2026-11-18, D-041, Q7–Q8):** träd och bilar som i referensbild 1 (fotolika, täta lövverk, bilar med glans), miljöns känsla och typer av detaljer som i bild 3 (lådor, staket, lampor som lyser upp marken, långa skuggor, kontrast). Bild 2 är för detaljrik att efterlikna fullt ut. Ytorna, grönskan, ljuset och skuggorna ska alla förbättras. Bildgeneratorn i ElevenLabs-kopplingen får användas för test.
@@ -57,7 +58,19 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 ## Engångsåtgärder
 
 - Klart (2026-11-17): GitHub Pages påslaget med källan GitHub Actions.
-- Väntar: tillåt overpass-api.de i molnmiljöns nätverk, så att agenten kan hämta Uppsalas karta från OpenStreetMap (behövs för F-005).
+- **Väntar: öppna nätverket för fria bibliotek och kartdata (D-045, behövs för F-005 och bättre grafik).** Molnmiljön (som heter *Default*) har begränsat nätverk, och de här adresserna blockeras i dag. Gör så här en gång:
+  1. Öppna sessionen i Claude-appen eller på https://claude.ai/code och tryck på miljöns namn *Default* i sessionens titelrad, sedan **Edit** (redigera).
+  2. Under **Network access**, låt nivån vara **Limited** och låt rutan för pakethanterare (*Allow package managers*) vara ikryssad.
+  3. Lägg till var och en av adresserna nedan under **Allowed domains** (en per rad):
+     - Kartdata: `overpass-api.de`, `download.geofabrik.de`
+     - ambientCG (fria texturer): `ambientcg.com`, `acg-download.struffelproductions.com`
+     - Poly Haven (fria texturer och modeller): `polyhaven.com`, `api.polyhaven.com`, `dl.polyhaven.org`, `cdn.polyhaven.com`
+     - Kenney (fria modeller): `kenney.nl`
+     - Quaternius (fria modeller): `quaternius.com`, `poly.pizza`, `static.poly.pizza`
+  4. Spara. Ändringen gäller alla framtida sessioner i miljön *Default*.
+  - Steg med bilder: https://code.claude.com/docs/en/cloud-environments#network-access
+  - Säkerhet: det är läsåtkomst till öppna webbplatser; inga nycklar behövs. Quaternius delar ibland ut paket via andra värdar (t.ex. Google Drive); de läggs till först om de behövs.
+  - Alternativ: agenten kan föreslå samma ändring själv, då får ägaren ett godkännandekort i appen i stället.
 
 ## Dokumentkarta
 
