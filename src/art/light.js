@@ -8,7 +8,7 @@ let glowTex = null;
 let coneTex = null;
 
 // A soft round gradient, white in the middle and transparent at the edge.
-function glowTexture() {
+export function glowTexture() {
   if (glowTex) return glowTex;
   const c = document.createElement('canvas');
   c.width = c.height = 256;
@@ -25,7 +25,7 @@ function glowTexture() {
 }
 
 // A headlight beam: a wedge that fades with distance. Points along +x.
-function coneTexture() {
+export function coneTexture() {
   if (coneTex) return coneTex;
   const c = document.createElement('canvas');
   c.width = 256;

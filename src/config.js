@@ -1,6 +1,6 @@
 // Shared constants for the prototype. Units are metres, seconds and radians.
 
-export const VERSION = '0.3.0';
+export const VERSION = '0.4.0';
 
 // Fixed simulation step, so the game behaves the same on every device
 // (and later on the host and the guest in co-op).

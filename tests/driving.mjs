@@ -32,17 +32,19 @@ function run(ctx, seconds, stick, brake = false) {
   for (let t = 0; t < seconds; t += STEP) step(ctx.game, ctx.input, STEP);
 }
 const speed = (v) => Math.hypot(v.vx, v.vy);
-const east = { x: 1, y: 0, m: 1 };
-const south = { x: 0, y: 1, m: 1 };
+// Up is forward (F-040): y = -1 is full throttle, x steers.
+const ahead = { x: 0, y: -1, m: 1 };
+const aheadRight = { x: 1, y: -1, m: 1.4 };
+const back = { x: 0, y: 1, m: 1 };
 
 // Top speed and acceleration per type.
 const results = {};
 for (const type of ['small', 'car', 'sport']) {
   const ctx = field(type);
   check(ctx.car && ctx.car.type === type, `got into the ${type}`);
-  run(ctx, 1.5, east);
+  run(ctx, 1.5, ahead);
   const at3 = speed(ctx.car);
-  run(ctx, 14, east);
+  run(ctx, 14, ahead);
   results[type] = { at3, top: speed(ctx.car) };
   console.log(`     ${type}: ${(at3 * 3.6).toFixed(0)} km/h after 1.5 s, top ${(results[type].top * 3.6).toFixed(0)} km/h`);
 }
@@ -54,13 +56,13 @@ check(results.sport.at3 > results.car.at3 * 1.2, 'sports car pulls away faster')
 // A 90-degree corner from 70 km/h: with and without the handbrake.
 function corner(handbrake) {
   const ctx = field('car');
-  run(ctx, 10, east);
+  run(ctx, 10, ahead);
   ctx.car.vx = 19.5; // 70 km/h, straight east
   ctx.car.vy = 0;
   ctx.car.heading = 0;
   const x0 = ctx.car.x;
   let t = 0;
-  ctx.input.stick = south;
+  ctx.input.stick = aheadRight;
   ctx.input.brake = handbrake;
   let slid = false;
   // Like a player: hold the brake through the turn, let go when lined up,
@@ -88,9 +90,29 @@ check(hb.speed > 8, 'handbrake keeps some speed (not a full stop)');
 // Braking straight is still a normal stop.
 {
   const ctx = field('car');
-  run(ctx, 4, east);
-  run(ctx, 2, east, true);
+  run(ctx, 4, ahead);
+  run(ctx, 2, ahead, true);
   check(speed(ctx.car) < 0.5, 'brake while going straight stops the car');
+}
+
+// Pulling down brakes, then reverses; steering right turns clockwise.
+{
+  const ctx = field('car');
+  run(ctx, 3, ahead);
+  const before = speed(ctx.car);
+  run(ctx, 0.8, back);
+  check(speed(ctx.car) < before - 5, 'pulling down brakes');
+  run(ctx, 3, back);
+  const fx = Math.cos(ctx.car.heading);
+  const vF = ctx.car.vx * fx + ctx.car.vy * Math.sin(ctx.car.heading);
+  check(vF < -2, 'keeping it down reverses');
+  const ctx2 = field('car');
+  run(ctx2, 1, ahead);
+  run(ctx2, 1, { x: 1, y: -1, m: 1.4 });
+  check(ctx2.car.heading > 0.3, 'stick right turns the car to the right');
+  const ctx3 = field('car');
+  run(ctx3, 1, { x: 1, y: 0, m: 1 });
+  check(speed(ctx3.car) < 0.1, 'only sideways does not move a standing car');
 }
 
 if (failed) {

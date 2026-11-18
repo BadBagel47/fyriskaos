@@ -7,6 +7,7 @@ import { createGame, step, actionLabel } from './sim.js';
 import { createInput } from './input.js';
 import { createRenderer } from './render.js';
 import { createHud } from './hud.js';
+import { CYCLE } from './daylight.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,6 +35,8 @@ async function start() {
 
   const map = buildTestMap(1);
   const game = createGame(map);
+  // ?kvall in the address starts the round in the evening (for testing).
+  if (new URLSearchParams(location.search).has('kvall')) game.clockOffset = 0.6 * CYCLE;
   const input = createInput(els);
   const hud = createHud(els);
   const renderer = createRenderer(app, game);

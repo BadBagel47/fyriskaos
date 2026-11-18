@@ -206,7 +206,8 @@ export function buildTestMap(seed = 1) {
   // Start: on the sidewalk with a bike and a car right next to the player.
   const start = { x: 200, y: 260 - ROAD_HALF - 1.5, heading: 0 };
   const clear = (x, y, d) => (o) => Math.hypot(o.x - x, o.y - y) > d;
-  const keptCars = cars.filter(clear(start.x + 8, 260, 16));
+  // Room around the start, and a free lane west from the start car.
+  const keptCars = cars.filter((c) => clear(start.x + 8, 260, 16)(c) && !(Math.abs(c.y - (260 - 4.3)) < 1 && c.x > 168 && c.x < 236));
   const keptBikes = bikes.filter(clear(start.x, start.y, 6));
   keptBikes.push({ x: start.x + 1.9, y: start.y - 0.2, heading: 0, color: BIKE_COLORS[0] });
   keptCars.push({ x: start.x + 11, y: 260 - 4.3, heading: Math.PI, type: 'car', color: CAR_COLORS[0] });

@@ -10,10 +10,16 @@ import * as A from './art/draw.js';
 import * as D from './art/detail.js';
 import { PLUS_STYLE } from './art/styles.js';
 import { createGround } from './ground.js';
+import { eveningLevel } from './daylight.js';
+import { glowTexture, coneTexture } from './art/light.js';
 
 const U = A.U;
 const LEAN = A.LEAN;
 const STYLE = PLUS_STYLE;
+// In the evening the sun's shadows fade and more windows are lit, warmly.
+const EVENING_STYLE = { ...PLUS_STYLE, shadow: { ...PLUS_STYLE.shadow, alpha: PLUS_STYLE.shadow.alpha * 0.3 }, windowLit: 0xffcf7a, litChance: 0.5 };
+const DARK = 0.58;
+const DARK_TINT = 0x1b2442;
 const BAKE_PX = 40; // picture pixels per metre for roofs and tree crowns
 
 D.setDetailDensity(0.35);
@@ -39,7 +45,7 @@ export function createRenderer(app, game) {
   const world = new Container();
   app.stage.addChild(world);
 
-  const ground = createGround(app, map, STYLE, COLORS.outside);
+  const ground = createGround(app, map, { day: STYLE, evening: EVENING_STYLE }, COLORS.outside);
   world.addChild(ground.layer);
 
   const skids = new Graphics();
@@ -60,6 +66,39 @@ export function createRenderer(app, game) {
   world.addChild(tops);
   const crownLayer = new Container();
   world.addChild(crownLayer);
+
+  // Evening: a blue veil over the town, then lights added on top in the
+  // same place as the world, so they brighten what is under them.
+  const veil = new Graphics();
+  app.stage.addChild(veil);
+  const lightWorld = new Container();
+  app.stage.addChild(lightWorld);
+  const lightPool = [];
+  let lightsUsed = 0;
+  const light = (tex, x, y, w, h, color, alpha, rot = 0, anchorX = 0.5) => {
+    let sp = lightPool[lightsUsed];
+    if (!sp) {
+      sp = new Sprite(tex);
+      sp.blendMode = 'add';
+      lightWorld.addChild(sp);
+      lightPool.push(sp);
+    }
+    lightsUsed++;
+    sp.texture = tex;
+    sp.anchor.set(anchorX, 0.5);
+    sp.position.set(x * U, y * U);
+    sp.width = w * U;
+    sp.height = h * U;
+    sp.rotation = rot;
+    sp.tint = color;
+    sp.alpha = alpha;
+    sp.visible = true;
+  };
+  const glow = (x, y, r, color, alpha) => light(glowTexture(), x, y, r * 2, r * 2, color, alpha);
+  const cone = (x, y, angle, len, color, alpha) => light(coneTexture(), x, y, len, len * 0.5, color, alpha, angle, 0);
+  // The player's ring stays bright in the dark.
+  const ring = new Graphics().circle(0, 0, 0.75 * U).stroke({ width: 2.5, color: 0xffffff, alpha: 0.9 });
+  lightWorld.addChild(ring);
 
   const views = new Map();
   for (const v of game.vehicles) {
@@ -147,8 +186,11 @@ export function createRenderer(app, game) {
     const halfH = app.screen.height / 2 / cam.ppm + 12;
     const vis = (x, y, r = 0) => Math.abs(x - cam.x) < halfW + r && Math.abs(y - cam.y) < halfH + r;
 
+    const night = eveningLevel(game.time + (game.clockOffset || 0));
+    const mode = night > 0.5 ? 'evening' : 'day';
+    const style = night > 0.3 ? EVENING_STYLE : STYLE;
     // At the start, make the whole screen at once; then a little per frame.
-    ground.update(cam.x, cam.y, halfW + 10, halfH + 10, first ? 99 : 1);
+    ground.update(cam.x, cam.y, halfW + 10, halfH + 10, first ? 99 : 1, mode);
 
     skidMarks.update(game.vehicles);
     const sun = STYLE.shadow;
@@ -161,6 +203,7 @@ export function createRenderer(app, game) {
       view.body.rotation = v.heading;
       view.shadow.position.set((v.x + sun.dx * view.lift) * U, (v.y + sun.dy * view.lift) * U);
       view.shadow.rotation = v.heading;
+      view.shadow.alpha = 1 - night * 0.7;
     }
 
     const inCar = p.vehicle && p.vehicle.spec.class === 'car';
@@ -188,7 +231,7 @@ export function createRenderer(app, game) {
     list.sort((a, b) => dist2(b, cam) - dist2(a, cam));
     for (const b of list) {
       const look2 = { ...b, facade: STYLE.facades[b.facadeIndex], roofColor: STYLE.roofs[b.roofIndex] };
-      A.drawHouseWalls(walls, STYLE, look2, cam);
+      A.drawHouseWalls(walls, style, look2, cam);
       const sp = roofOf(b);
       const ox = (b.x + b.w / 2 - cam.x) * LEAN * b.height;
       const oy = (b.y + b.h / 2 - cam.y) * LEAN * b.height;
@@ -200,7 +243,8 @@ export function createRenderer(app, game) {
 
     // Lamps (they lean too) and tree crowns.
     tops.clear();
-    for (const l of map.lamps) if (vis(l.x, l.y, 3)) A.drawLamp(tops, STYLE, l.x, l.y, l.ay || 1, cam, l.ax);
+    const heads = [];
+    for (const l of map.lamps) if (vis(l.x, l.y, 3)) heads.push(A.drawLamp(tops, STYLE, l.x, l.y, l.ay || 1, cam, l.ax));
     map.trees.forEach((t, i) => {
       const sp = crowns[i];
       const on = vis(t.x, t.y, t.canopy + 2);
@@ -209,6 +253,38 @@ export function createRenderer(app, game) {
       const h = 7;
       sp.position.set((t.x + (t.x - cam.x) * LEAN * h) * U, (t.y + (t.y - cam.y) * LEAN * h) * U);
     });
+
+    // Evening light.
+    lightWorld.position.copyFrom(world.position);
+    lightWorld.scale.copyFrom(world.scale);
+    veil.clear();
+    lightsUsed = 0;
+    if (night > 0.01) {
+      veil.rect(0, 0, app.screen.width, app.screen.height).fill({ color: DARK_TINT, alpha: DARK * night });
+      for (const [hx, hy] of heads) {
+        glow(hx, hy, 8, 0xffb35a, 0.6 * night);
+        glow(hx, hy, 3, 0xffd89a, 0.45 * night);
+      }
+      const v = p.vehicle;
+      if (v) {
+        const fx = Math.cos(v.heading);
+        const fy = Math.sin(v.heading);
+        const L = v.spec.length / 2;
+        if (v.spec.class === 'car') {
+          // Headlights and tail lights; the tail lights glow harder when braking.
+          for (const side of [-0.55, 0.55]) {
+            cone(v.x + fx * L - fy * side, v.y + fy * L + fx * side, v.heading + side * 0.07, 11, 0xffe2a8, 0.32 * night);
+            glow(v.x - fx * L - fy * side, v.y - fy * L + fx * side, 0.8, 0xff3020, (game.braking ? 0.9 : 0.55) * night);
+          }
+        } else {
+          cone(v.x + fx * 0.9, v.y + fy * 0.9, v.heading, 5, 0xfff6d8, 0.4 * night);
+        }
+      }
+    }
+    for (let i = lightsUsed; i < lightPool.length; i++) lightPool[i].visible = false;
+    ring.visible = night > 0.2 && !inCar;
+    ring.position.set(p.x * U, p.y * U);
+    ring.alpha = night;
   }
 
   return { frame, cam, ground };

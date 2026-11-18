@@ -28,11 +28,9 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
-| F-040 | Hög | Pågår 2026-11-18 (session ccr-319e3a0a-gey2ih) | Styrning där upp är framåt (ägaren 2026-11-17: "Inte gå efter vilket håll de pekar åt, utan att upp blir framåt"): joysticken upp = gasa framåt, ned = bromsa och backa, åt sidan = svänga, i stället för att fordonet svänger mot joystickens riktning på skärmen. |
-| F-039 | Medel | Pågår 2026-11-18 (session ccr-319e3a0a-gey2ih) | Dag och kväll i spelet: ljuset från galleriets kvällsscen (gatlyktor, fönster, strålkastare, bakljus) när det blir kväll under rundan. Hänger ihop med den öppna frågan i D-008. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
-| D-008 | Låg | Öppen | Öppna frågor i designen: slutligt namn, spara en runda till en annan kväll, dag och natt från start, vilka stadsdelar i första versionen. |
+| D-008 | Låg | Öppen | Öppna frågor i designen: slutligt namn, spara en runda till en annan kväll, vilka stadsdelar i första versionen. (Dag och kväll: besvarat 2026-11-18, se Beslut.) |
 
 ## Parkerat
 
@@ -47,21 +45,14 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
-- Prioriterat för: ägarens önskemål först, sedan designdokumentets plan (styrning, grafik, första riktiga området, två spelare).
-- **A** – starkaste modellen, hög nivå – Styrning där upp är framåt
-  - F-040 – Joysticken upp gasar framåt, ned bromsar och backar, åt sidan svänger; tangenterna likadant.
-  - Fråga: Gäller det bara fordon eller även till fots? Rekommendation: bil och cykel; till fots går man åt det håll man drar, så att det är lätt att sikta och gå runt hörn.
-  - Fråga: Ska kameran vrida sig så att framåt alltid är uppåt på skärmen? Rekommendation: nej, staden står still (lättare att hitta, kartan och pilen stämmer), bara styrningen ändras.
-- **B** – starkaste modellen, hög nivå – Första riktiga området – väntar på att kartdata går att hämta
+- Prioriterat för: designdokumentets plan – styrning, grafik, första riktiga området, sedan två spelare.
+- **A** – starkaste modellen, hög nivå – Första riktiga området – väntar på att kartdata går att hämta
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011 – Vårdcentralen och att återuppstå där.
   - F-023 – Pilen som visar vägen till uppdraget.
   - F-028 – Credits och licenser.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **C** – starkaste modellen, medelnivå – Dag och kväll
-  - F-039 – Det blir kväll under rundan, med gatlyktor, upplysta fönster och strålkastare.
-  - Fråga: Dag och natt från start (D-008)? Rekommendation: dag och kväll nu, eftersom ljuset redan finns; mörk natt senare.
-- **D** – starkaste modellen, hög nivå – Två spelare – bygger på B
+- **B** – starkaste modellen, hög nivå – Två spelare – bygger på A
   - F-006 – Koppla in network-kit för co-op.
   - F-026 – Gemensam start av uppdrag med teleport.
   - F-027 – Återanslutning mitt i rundan.
@@ -75,6 +66,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-033 | 2026-11-17 | Tre biltyper: småbil (cirka 70 km/h, svängig), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, snabb från start, sällsynt). Namn och fart visas i hörnet (v0.2.0). |
 | F-034 | 2026-11-17 | Handbromssväng: håll bromsen och dra åt sidan i fart, så sladdar bilen runt med däckspår och behåller farten (v0.2.0). |
 | F-002 | 2026-11-17 | Prototyp 1: gå, cykla och köra bil i en grå teststad, med joystick, smart knapp och broms (v0.1.0). |
+| F-040 | 2026-11-18 | Styrning för bil och cykel: upp gasar framåt, ned bromsar och backar, åt sidan svänger; handbroms = broms plus sväng i fart (v0.4.0). |
+| F-039 | 2026-11-18 | Dag och kväll: var tionde minut blir det kväll i fyra minuter, med gatlyktor, upplysta fönster, strålkastare, bakljus och cykellampa; solens skuggor bleknar (v0.4.0). `?kvall` i adressen startar på kvällen. |
 | F-037 | 2026-11-17 | Spelet ritas i Sommarkväll+: texturerad mark i förbakade bitar, hus med fönster och tak, gatlyktor, bänkar och papperskorgar, träd av lövklungor, fordon och folk från galleriet (v0.3.0). |
 | D-038 | 2026-11-17 | Stilförslaget Sommarkväll+ (detalj, kvällsljus, explosion, mynningsflamma); valt av ägaren. |
 | F-004 | 2026-11-17 | Grafikgalleri med varianter, kvarstår som testsida: https://badbagel47.github.io/fyriskaos/gallery/ |

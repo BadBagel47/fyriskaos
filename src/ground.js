@@ -151,14 +151,17 @@ export function drawGroundRegion(g, map, style, outside, x, y, w, h, seed) {
   }
 }
 
-export function createGround(app, map, style, outside) {
+export function createGround(app, map, styles, outside) {
   const layer = new Container();
   const pieces = new Map();
   let tick = 0;
 
-  function bake(i, j) {
+  // Day and evening have their own pictures (the sun's shadows fade in the
+  // evening). When the light changes, old pieces stay until their new
+  // version is ready, so there are never holes in the ground.
+  function bake(i, j, mode) {
     const g = new Graphics();
-    drawGroundRegion(g, map, style, outside, i * CH, j * CH, CH, CH, (i * 73856093) ^ (j * 19349663));
+    drawGroundRegion(g, map, styles[mode], outside, i * CH, j * CH, CH, CH, (i * 73856093) ^ (j * 19349663));
     const holder = new Container();
     holder.addChild(g);
     g.position.set(-i * CH * U, -j * CH * U);
@@ -170,11 +173,11 @@ export function createGround(app, map, style, outside) {
     sp.position.set(i * CH * U, j * CH * U);
     sp.scale.set(U / PX);
     layer.addChild(sp);
-    return { sp, rt, used: tick };
+    return { sp, rt, used: tick, mode };
   }
 
   // Make sure the pieces around the camera exist; bake at most `budget` new ones.
-  function update(cx, cy, halfW, halfH, budget = 2) {
+  function update(cx, cy, halfW, halfH, budget = 2, mode = 'day') {
     tick++;
     const i0 = Math.floor((cx - halfW) / CH);
     const i1 = Math.floor((cx + halfW) / CH);
@@ -187,13 +190,19 @@ export function createGround(app, map, style, outside) {
     for (const [i, j] of want) {
       const key = `${i},${j}`;
       let p = pieces.get(key);
-      if (!p) {
-        if (budget <= 0) continue;
-        budget--;
-        p = bake(i, j);
-        pieces.set(key, p);
+      if (!p || p.mode !== mode) {
+        if (budget > 0) {
+          budget--;
+          const fresh = bake(i, j, mode);
+          if (p) {
+            p.sp.destroy();
+            p.rt.destroy(true);
+          }
+          p = fresh;
+          pieces.set(key, p);
+        }
       }
-      p.used = tick;
+      if (p) p.used = tick;
     }
     for (const p of pieces.values()) p.sp.visible = p.used === tick;
     if (pieces.size > KEEP) {
