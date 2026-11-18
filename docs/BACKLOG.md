@@ -28,8 +28,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-025 | Låg | Öppen | Satirlistan: aktuella snackisar i en egen lista som är lätt att uppdatera; kontrollera deras status innan de byggs in. |
 | F-026 | Låg | Öppen | Co-op-start av uppdrag: en begär, båda godkänner, kompisen teleporteras ("hämtad av färdtjänst"), inte mitt i en polisjakt. |
 | F-027 | Låg | Öppen | Återanslutning: den som tappar nätet kommer tillbaka mitt i rundan. |
-| F-040 | Hög | Öppen | Styrning där upp är framåt (ägaren 2026-11-17: "Inte gå efter vilket håll de pekar åt, utan att upp blir framåt"): joysticken upp = gasa framåt, ned = bromsa och backa, åt sidan = svänga, i stället för att fordonet svänger mot joystickens riktning på skärmen. |
-| F-039 | Medel | Öppen | Dag och kväll i spelet: ljuset från galleriets kvällsscen (gatlyktor, fönster, strålkastare, bakljus) när det blir kväll under rundan. Hänger ihop med den öppna frågan i D-008. |
+| F-040 | Hög | Pågår 2026-11-18 (session ccr-319e3a0a-gey2ih) | Styrning där upp är framåt (ägaren 2026-11-17: "Inte gå efter vilket håll de pekar åt, utan att upp blir framåt"): joysticken upp = gasa framåt, ned = bromsa och backa, åt sidan = svänga, i stället för att fordonet svänger mot joystickens riktning på skärmen. |
+| F-039 | Medel | Pågår 2026-11-18 (session ccr-319e3a0a-gey2ih) | Dag och kväll i spelet: ljuset från galleriets kvällsscen (gatlyktor, fönster, strålkastare, bakljus) när det blir kväll under rundan. Hänger ihop med den öppna frågan i D-008. |
 | F-035 | Låg | Öppen | Integritetstext innan man skapar eller går med i ett rum: vad som sparas, var och hur länge; nämn lagring av sparade rundor (`docs/legal.md` punkt 6–7). |
 | F-006 | Låg | Öppen | Två spelare via network-kit, när solo fungerar. |
 | D-008 | Låg | Öppen | Öppna frågor i designen: slutligt namn, spara en runda till en annan kväll, dag och natt från start, vilka stadsdelar i första versionen. |
