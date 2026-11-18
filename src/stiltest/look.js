@@ -71,8 +71,8 @@ function canvasTex(size, draw) {
 // Soft dark blob for shade under trees and cars and at the foot of walls.
 export const shadeTex = () => canvasTex(128, (g, s) => {
   const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-  gr.addColorStop(0, 'rgba(0,0,0,0.55)');
-  gr.addColorStop(0.55, 'rgba(0,0,0,0.3)');
+  gr.addColorStop(0, 'rgba(0,0,0,0.7)');
+  gr.addColorStop(0.55, 'rgba(0,0,0,0.38)');
   gr.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = gr;
   g.fillRect(0, 0, s, s);
@@ -111,6 +111,52 @@ export const stainTex = () => canvasTex(128, (g, s) => {
     g.fillStyle = gr;
     g.fillRect(0, 0, s, s);
   }
+});
+
+// Zebra paint: mostly whole, a little worn at the edges.
+export const zebraTex = () => canvasTex(128, (g, s) => {
+  g.fillStyle = 'rgba(244,241,232,0.96)';
+  g.fillRect(0, 0, s, s);
+  let q = 5;
+  const r = () => ((q = (q * 16807) % 2147483647) / 2147483647);
+  g.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < 18; i++) {
+    g.fillStyle = `rgba(0,0,0,${0.2 + r() * 0.4})`;
+    g.beginPath();
+    g.arc(r() * s, r() < 0.5 ? r() * 14 : s - r() * 14, 2 + r() * 6, 0, Math.PI * 2);
+    g.fill();
+  }
+});
+
+// A darker repaired patch of asphalt with a seam.
+export const patchTex = () => canvasTex(128, (g, s) => {
+  g.fillStyle = 'rgba(25,25,28,0.45)';
+  g.fillRect(8, 8, s - 16, s - 16);
+  g.strokeStyle = 'rgba(15,15,18,0.6)';
+  g.lineWidth = 3;
+  g.strokeRect(8, 8, s - 16, s - 16);
+});
+
+// Tyre tracks: two soft dark bands.
+export const trackTex = () => canvasTex(64, (g, s) => {
+  for (const y of [s * 0.25, s * 0.75]) {
+    const gr = g.createLinearGradient(0, y - 10, 0, y + 10);
+    gr.addColorStop(0, 'rgba(0,0,0,0)');
+    gr.addColorStop(0.5, 'rgba(0,0,0,0.35)');
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr;
+    g.fillRect(0, y - 10, s, 20);
+  }
+});
+
+// A soft white streak: the shine of sky on car paint and glass.
+export const shineTex = () => canvasTex(64, (g, s) => {
+  const gr = g.createLinearGradient(0, 0, s, 0);
+  gr.addColorStop(0, 'rgba(255,255,255,0)');
+  gr.addColorStop(0.5, 'rgba(255,250,240,0.85)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, s, s);
 });
 
 // Worn road paint: white with gaps where tyres have rubbed it away.
@@ -157,14 +203,14 @@ export const grateTex = () => canvasTex(64, (g, s) => {
 
 // White ring under the player, so the figure is found at once.
 export const ringTex = () => canvasTex(128, (g, s) => {
-  g.strokeStyle = 'rgba(255,255,255,0.95)';
-  g.lineWidth = 7;
+  g.strokeStyle = 'rgba(255,255,255,1)';
+  g.lineWidth = 12;
   g.beginPath();
   g.arc(s / 2, s / 2, s * 0.42, 0, Math.PI * 2);
   g.stroke();
-  g.fillStyle = 'rgba(255,255,255,0.18)';
+  g.fillStyle = 'rgba(255,200,120,0.28)';
   g.beginPath();
-  g.arc(s / 2, s / 2, s * 0.4, 0, Math.PI * 2);
+  g.arc(s / 2, s / 2, s * 0.38, 0, Math.PI * 2);
   g.fill();
 });
 

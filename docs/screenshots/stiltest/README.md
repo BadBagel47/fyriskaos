@@ -33,3 +33,42 @@ Molnwebbläsaren har inget grafikkort och ritar 3D i processorn, så bilder per 
 - Hela sidan är ett paket på cirka 145 kB komprimerat; inga modellfiler laddas.
 - 60 bilder per sekund ger 16,7 ms per bild. Processortiden ligger under det även med 6× strypning; hur grafikkortet i en riktig telefon klarar det får ägarens test visa (fps-mätaren på testsidan).
 - Auto-läget gick ner till Låg i molnet, som det ska när bilderna per sekund är låga.
+
+# Grafik steg 2 (D-044) – mot målbilden
+
+Målbilder (genererade med ElevenLabs bildgenerator, samma kvarter i spelets vinkel, kvällsljus):
+
+![Målbild 1](malbild-1.jpg)
+![Målbild 2](malbild-2.jpg)
+
+Stiltestet i läget Sommarkväll+ (skärmdumpar 2026-11-18, mobilstorlek, kvalitet Hög):
+
+![Jämförelse liggande](jamforelse-liggande.jpg)
+![Jämförelse stående](jamforelse-staende.jpg)
+![Liggande](sommarkvall-liggande.jpg)
+![Stående](sommarkvall-staende.jpg)
+
+## Oberoende granskares poäng (1–10 mot målbilden)
+
+| Omgång | 2 Kamera och skala | 3 Ytor | 4 Ljus | 5 Träd och bilar | 6 Småsaker |
+| --- | --- | --- | --- | --- | --- |
+| 1 (första versionen) | 5 | 4 | 3 | 3 | 4 |
+| 2 | 7 | 5 | 5 | 4 | 6 |
+| 3 | 8 | 6 | 6 | 4 | 6 |
+| 4 (genererade bilar och trädkronor) | 7 | 6 | 6,5 | 7 | 5 |
+| 5 (sista) | 7 | 6 | 6 | 6 | 5 |
+
+Varje omgång bedömdes av en ny granskare, så poängen varierar något mellan omgångarna. Inget delmål nådde stabilt 8; se `docs/HANDOFF.md` för vad som hindrar.
+
+## Prestanda (samma test som D-043)
+
+| Strypning | Kvalitet | Start | Processortid per bild (median / 9 av 10 under) | Anrop | Trianglar |
+| --- | --- | --- | --- | --- | --- |
+| ingen | Låg | 3,3 s | 1,5 / 8,3 ms | 35 | 67 000 |
+| ingen | Medel | 4,9 s | 2,6 / 7,5 ms | 55 | 132 000 |
+| 4× + långsamt nät | Medel | 14,3 s | 6,3 / 23 ms | 55 | 132 000 |
+| 6× + långsamt nät | Låg | 13,2 s | 9,6 / 20 ms | 35 | 67 000 |
+| 6× + långsamt nät | Auto (valde Medel) | 14,9 s | 11,7 / 28 ms | 55 | 132 000 |
+
+- Nedladdning: koden cirka 165 kB komprimerad plus bilder cirka 690 kB, alltså ungefär fyra gånger D-043. Starten på långsamt mobilnät tog 13–15 s mot 4–6 s förut.
+- Läget Hög har långa toppar i molnet (skuggor med mjuka kanter räknas i processorn där); på en telefon med grafikkort får fps-mätaren visa.

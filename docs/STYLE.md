@@ -67,6 +67,16 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 | Industri | Plåthallar, lastkajer | Grus, staket | Containrar, pallar, lådor |
 | Jordbruk och slätt | Röda lador | Grusvägar | Åkrar i rader, hagar, traktorer |
 
+## Steg 2: Sommarkväll+ (D-044)
+
+Ägaren 2026-11-18: tecknad low-poly är inget krav längre; målet är detaljnivån i referensbilderna och Sommarkväll+-ljus. Läget Sommarkväll+ i stiltestet:
+
+- **Kamera:** 72 m upp, 30 m på kortsidan, rakt ner; i stående läge vrids bilden så att gatan går uppåt.
+- **Ljus:** sol från västsydväst cirka 20° över horisonten, varm (orange-gul), blått himmelsljus som fyller skuggorna, tonmappning (ACES), varm färgkorrigering och mörka kanter som ett lager ovanpå.
+- **Ytor:** genererade bilder som läggs efter världens koordinater (inga egna uv-koordinater), mörkning nertill på väggar, fläckar, lagningar, däckspår, slitna markeringar, brunnslock och gallerbrunnar som bilder på marken.
+- **Träd och bilar:** genererade bilder sedda rakt ovanifrån, utklippta, lagda i sin höjd så att de kastar rätt skugga; två lager per trädkrona; bilarna tonas i olika färger.
+- **Gatan:** sex sorters parkerade bilar, häckar, staket, blomlådor, cykelställ, lådor, pall, tunna, bänkar, papperskorgar, pollare och skyltar.
+
 ## Prestanda (mobil från start)
 
 - **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.
