@@ -8,6 +8,9 @@
     <style>
       html, body { margin: 0; height: 100%; overflow: hidden; background: #2b2c2e; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #f2f1ee; }
       #view, #view canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+      /* Colour grading for the evening look: warm light from the south-west, cool shade, darker edges. */
+      #grade { position: fixed; inset: 0; pointer-events: none; display: none; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 55%, rgba(10,8,20,0.38) 100%), linear-gradient(35deg, rgba(255,150,60,0.16), rgba(40,70,140,0.14)); mix-blend-mode: soft-light; }
+      body[data-mode="sommarkvall"] #grade { display: block; }
       #bar { position: fixed; right: max(6px, env(safe-area-inset-right)); top: max(6px, env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; align-items: flex-end; pointer-events: none; }
       #bar > * { pointer-events: auto; }
       button { font: inherit; font-size: 12px; font-weight: 600; border: 0; border-radius: 999px; padding: 6px 11px; background: #f2f1eecc; color: #1d1e20; box-shadow: 0 1px 4px #0005; }
@@ -22,6 +25,7 @@
   </head>
   <body>
     <div id="view"></div>
+    <div id="grade"></div>
     <div id="bar">
       <button id="btn-variant">Byt stil</button>
       <button id="btn-quality">Kvalitet: auto</button>

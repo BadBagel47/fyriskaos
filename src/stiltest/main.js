@@ -4,6 +4,7 @@
 import * as THREE from '../../vendor/three/three.module.js';
 import { VARIANTS } from './variants.js';
 import { buildScene, CAM_HEIGHT, VIEW_SHORT } from './scene.js';
+import { buildRich } from './rich.js';
 
 const params = new URLSearchParams(location.search);
 const still = params.has('still'); // fixed camera and time, for screenshots
@@ -18,13 +19,15 @@ const ORDER = ['low', 'medium', 'high'];
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 $('view').appendChild(renderer.domElement);
 
-const camera = new THREE.PerspectiveCamera(20, 1, CAM_HEIGHT * 0.6, CAM_HEIGHT * 1.4);
-camera.up.set(0, 0, -1); // north is up on the screen
+const camera = new THREE.PerspectiveCamera(20, 1, 10, 200);
 
-let variantIndex = Math.max(0, VARIANTS.findIndex((v) => v.id === params.get('variant')));
+// Mode 0 is the richer evening look (D-044); 1-3 are the cartoon variants from D-043.
+const MODES = [{ id: 'sommarkvall', name: 'Sommarkväll+ (D-044)', note: 'Texturer, rundade bilar med glans, täta träd, låg kvällssol med långa skuggor och lampor som lyser upp marken.' }, ...VARIANTS];
+let variantIndex = Math.max(0, MODES.findIndex((v) => v.id === params.get('variant')));
+let cam = { height: CAM_HEIGHT, viewShort: VIEW_SHORT, center: new THREE.Vector3(30, 0, -4), rotatePortrait: false };
 let built = null;
 let qualityMode = params.get('q') || 'auto'; // auto or a fixed level
 let level = ORDER.includes(qualityMode) ? qualityMode : matchMedia('(pointer: coarse)').matches ? 'medium' : 'high';
@@ -45,29 +48,45 @@ function applyQuality() {
   resize();
 }
 
-function setVariant(i) {
-  variantIndex = (i + VARIANTS.length) % VARIANTS.length;
+let building = false;
+async function setVariant(i) {
+  if (building) return;
+  building = true;
+  variantIndex = (i + MODES.length) % MODES.length;
+  const mode = MODES[variantIndex];
   if (built) built.scene.traverse((o) => o.geometry && o.geometry.dispose());
-  built = buildScene(VARIANTS[variantIndex]);
-  fitShadowBox();
+  if (mode.id === 'sommarkvall') {
+    built = await buildRich(renderer);
+    cam = { height: built.camera.height, viewShort: built.camera.viewShort, center: built.camera.center, rotatePortrait: true };
+    renderer.toneMapping = built.toneMapping;
+    renderer.toneMappingExposure = built.exposure;
+  } else {
+    built = buildScene(mode);
+    cam = { height: CAM_HEIGHT, viewShort: VIEW_SHORT, center: new THREE.Vector3(30, 0, -4), rotatePortrait: false };
+    renderer.toneMapping = THREE.NoToneMapping;
+  }
+  camera.near = cam.height * 0.3;
+  camera.far = cam.height * 2.2;
   renderer.shadowMap.enabled = !renderer.shadowMap.enabled; // force applyQuality to refresh materials
   applyQuality();
-  $('variant').textContent = VARIANTS[variantIndex].name;
-  $('note').textContent = VARIANTS[variantIndex].note;
+  $('variant').textContent = mode.name;
+  $('note').textContent = mode.note;
+  document.body.dataset.mode = mode.id;
+  building = false;
 }
 
 // Sun shadows only near the camera: a box just larger than what is on screen.
 function fitShadowBox() {
   if (!built) return;
-  const long = VIEW_SHORT * Math.max(camera.aspect, 1 / camera.aspect);
+  const long = cam.viewShort * Math.max(camera.aspect, 1 / camera.aspect);
   const half = long / 2 + 10;
   const sc = built.sun.shadow.camera;
   sc.left = -half;
   sc.right = half;
   sc.top = half;
   sc.bottom = -half;
-  sc.near = 10;
-  sc.far = 220;
+  sc.near = 1;
+  sc.far = 260;
   sc.updateProjectionMatrix();
 }
 
@@ -76,8 +95,8 @@ function resize() {
   const h = window.innerHeight;
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
-  // The short side of the screen always shows VIEW_SHORT metres of street.
-  const half = Math.atan(VIEW_SHORT / 2 / CAM_HEIGHT);
+  // The short side of the screen always shows the same metres of street.
+  const half = Math.atan(cam.viewShort / 2 / cam.height);
   camera.fov = THREE.MathUtils.radToDeg(w >= h ? 2 * half : 2 * Math.atan(Math.tan(half) / camera.aspect));
   camera.updateProjectionMatrix();
   fitShadowBox();
@@ -146,9 +165,14 @@ function frame(now) {
   clock += dt;
   if (!still) t += dt;
   built.update(still ? 3 : t);
-  const tx = panning ? 30 + Math.sin(t * 0.15) * 9 : 30;
-  const tz = -4;
-  camera.position.set(tx, CAM_HEIGHT, tz);
+  const c = cam.center;
+  const portrait = camera.aspect < 1;
+  const tx = panning ? c.x + Math.sin(t * 0.15) * 9 : c.x;
+  const tz = c.z;
+  camera.position.set(tx, cam.height, tz);
+  // North up; in portrait the richer scene turns so the street runs up the screen.
+  if (portrait && cam.rotatePortrait) camera.up.set(1, 0, 0);
+  else camera.up.set(0, 0, -1);
   camera.lookAt(tx, 0, tz);
   // Keep the sun's shadow box around the camera, snapped to whole metres so shadows do not shimmer.
   const sx = Math.round(tx);
@@ -164,6 +188,7 @@ function frame(now) {
 }
 
 $('btn-variant').addEventListener('click', () => setVariant(variantIndex + 1));
+window.addEventListener('resize', () => fitShadowBox());
 $('btn-quality').addEventListener('click', () => {
   const modes = ['auto', ...ORDER];
   qualityMode = modes[(modes.indexOf(qualityMode) + 1) % modes.length];
@@ -177,12 +202,13 @@ $('btn-pan').addEventListener('click', () => {
 });
 $('btn-pan').textContent = panning ? 'Kamera: rör sig' : 'Kamera: still';
 
-setVariant(variantIndex);
 const t0 = performance.now();
-requestAnimationFrame((now) => {
-  last = now;
-  frame(now);
-  window.__stiltest.firstFrameMs = performance.now() - t0;
+setVariant(variantIndex).then(() => {
+  requestAnimationFrame((now) => {
+    last = now;
+    frame(now);
+    window.__stiltest.firstFrameMs = performance.now() - t0;
+  });
 });
 
 // Read-only handle for the automatic tests and measurements.
@@ -198,6 +224,6 @@ window.__stiltest = {
   cpu,
   setVariant,
   get variant() {
-    return VARIANTS[variantIndex].id;
+    return MODES[variantIndex].id;
   },
 };
