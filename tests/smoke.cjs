@@ -196,9 +196,9 @@ function fail(msg) {
     // The graphics gallery draws all variants without errors (F-004).
     await page.setViewportSize({ width: 1200, height: 800 });
     await page.goto(`http://127.0.0.1:${port}/gallery/`);
-    await page.waitForFunction(() => document.body.dataset.ready || document.getElementById('grid').textContent.includes('kunde inte'), null, { timeout: 30000 });
+    await page.waitForFunction(() => document.body.dataset.ready || document.getElementById('grid').textContent.includes('kunde inte'), null, { timeout: 180000 });
     const pics = await page.$$eval('.cell img', (l) => l.filter((i) => i.naturalWidth > 100).length);
-    if (pics !== 16) fail(`gallery drew ${pics} of 16 pictures`);
+    if (pics !== 26) fail(`gallery drew ${pics} of 26 pictures`);
 
     if (errors.length) fail('errors on the page:\n' + errors.join('\n'));
     if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery');

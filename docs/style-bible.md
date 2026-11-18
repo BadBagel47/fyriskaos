@@ -75,6 +75,10 @@ Variant 1 med mer detalj, inspirerat av ägarens referensbilder. Vald av ägaren
 - **Explosion i tre steg:** blixt med tryckvåg, eldklot med mörk rökkant, gnistor och skräp, sedan brinnande vrak med rök som driver åt sydost och en sotfläck.
 - **I spelet:** marktexturer ritas en gång per kartbit och sparas som bild, så att de inte kostar något medan man spelar.
 
+## Detaljtest (D-041)
+
+Ägaren tyckte att detaljerna inte nådde upp till referensbilderna: träd och bilar som i bild 1, miljöns känsla och detaljtyper som i bild 3, och bättre ytor, grönska, ljus och skuggor. Samma gata finns i galleriet på fem sätt: nuvarande stil, A genererade bilder (ytor, tak, träd, bil), B ljus och skuggor (långa mjuka skuggor, skugga vid husväggarna, korn, kontrast, mörka kanter), C 3D med riktigt ljus, och A + B. Bilderna och hur de gjordes: `gallery/assets/`, `gallery/detail-test.js`, `gallery/three-scene.js`. Väntar på ägarens val.
+
 ## Arbetssätt (från designdokumentet)
 
 1. Ny grafik görs först på en testsida i galleriet och godkänns av ägaren innan den används i världen.

@@ -6,6 +6,8 @@ import { STYLES, PLUS_STYLE } from '../src/art/styles.js';
 import * as Dt from '../src/art/detail.js';
 import { createLightLayer } from '../src/art/light.js';
 import { explosion, scorch, muzzleFlash } from '../src/art/fx.js';
+import { streetTest, loadDetailAssets, assetUrls } from './detail-test.js';
+import { render3D } from './three-scene.js';
 import * as A from '../src/art/draw.js';
 import { VERSION } from '../src/config.js';
 
@@ -314,6 +316,34 @@ async function main() {
   await app.init({ width: 16, height: 16, antialias: true, preference: 'webgl', backgroundAlpha: 0 });
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
+
+  // D-041: detail test, the same street four ways (plus the current style).
+  await loadDetailAssets();
+  const h0 = document.createElement('h2');
+  h0.className = 'part';
+  h0.textContent = 'Detaljtest (D-041): samma gata på fyra sätt';
+  grid.appendChild(h0);
+  const ways = [
+    { name: 'Nuvarande (Sommarkväll+)', summary: 'Det som finns i spelet nu: allt ritat med enkla former.', make: (ev) => streetTest(PLUS_STYLE, { evening: ev }) },
+    { name: 'A – Genererade bilder', summary: 'Asfalt, plattor, tak, träd och bilar från bildgeneratorn; resten ritat som nu.', make: (ev) => streetTest(PLUS_STYLE, { evening: ev, tex: true }) },
+    { name: 'B – Ljus och skuggor', summary: 'Ritat som nu, men med långa mjuka skuggor, mörkare vid husväggarna, mer kontrast, korn och mörka kanter.', make: (ev) => streetTest(PLUS_STYLE, { evening: ev, fx: true }) },
+    { name: 'C – 3D', summary: 'Byggt i 3D: solen och lamporna räknas fram, med riktiga skuggor. Använder de genererade ytorna, trädet och bilen.', three: true },
+    { name: 'A + B – Kombination', summary: 'Genererade bilder och ljus och skuggor tillsammans.', make: (ev) => streetTest(PLUS_STYLE, { evening: ev, tex: true, fx: true }) },
+  ];
+  for (const ev of [false, true]) {
+    const { sec, cols } = row(ev ? 'Gata på kvällen' : 'Gata på dagen', ev ? 'Samma gata när det blivit kväll, med gatlyktor, fönster och strålkastare.' : 'Trädet och bilen som i bild 1; lådor, staket och tunnor som i bild 3.', ev ? 'd041-kvall' : 'd041-dag', 'two');
+    grid.appendChild(sec);
+    for (const w of ways) {
+      const c = document.createElement('div');
+      c.className = 'cell';
+      const img = document.createElement('img');
+      img.alt = `${w.name}, ${ev ? 'kväll' : 'dag'}`;
+      img.src = w.three ? await render3D({ evening: ev, assets: assetUrls() }) : await render(app, w.make(ev));
+      c.innerHTML = `<h3>${w.name}</h3><p>${w.summary}</p>`;
+      c.appendChild(img);
+      cols.appendChild(c);
+    }
+  }
 
   const h1 = document.createElement('h2');
   h1.className = 'part';
