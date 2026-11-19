@@ -1069,3 +1069,7 @@ You may still be able to access the file from the browser:
 
 but Gdown can't. Please check connections and permissions.
   52 downloaded
+Fetched 2026-11-19
+Quaternius backgroundposedhumans: https://drive.google.com/drive/folders/18dWyZlA53euzsc1WobITqFYLcT5sFULz
+  114 files listed, 57 picked
+  57 downloaded
