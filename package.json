@@ -1,7 +1,7 @@
 {
   "name": "fyriskaos",
   "private": true,
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Satirical top-down action game in a generated Uppsala, for 1–2 players on mobile.",
   "scripts": {
     "start": "python3 -m http.server 8080",

@@ -142,7 +142,6 @@ function addHouse(chunk, b, index, env) {
       const lit = R() < 0.1;
       ch.trim.add(...p(du, 0, 0.04), rot, ww + 0.22, gh + 0.24, 0.1, frameC);
       ch.glass.add(...p(du, 0, 0.05), rot, ww, gh, 0.12, lit ? 0xffc98a : [0x8fa6bf, 0x6f879f, 0xa9bccc, 0x5d7186][Math.floor(R() * 4)]);
-      if (ww > 0.7) ch.trim.add(...p(du, 0, 0.06), rot, 0.06, gh, 0.15, frameC);
       if (!lit && R() < 0.25) ch.trim.add(...p(du - ww * 0.24, 0.05, 0.065), rot, ww * 0.4, gh * 0.85, 0.13, [0xf3eee0, 0xd9c7a0, 0xc7d4e0][Math.floor(R() * 3)]);
     };
     let ww = narrow || 1.05;
@@ -403,12 +402,25 @@ function along(B, ax, az, bx, bz, y, width, height, color) {
 
 const BIKE_COLORS = [0xc0504a, 0x4a76c0, 0x3f9a6a, 0xd6b13c, 0x2f2f33];
 
+// A unit box with only the faces the tilted camera can see on a facade
+// detail: the front and the top (a third of a full box's triangles).
+function frontTopBox() {
+  const g = new THREE.BufferGeometry();
+  const p = [-0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5];
+  const n = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(n, 3));
+  g.setIndex([0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7]);
+  g.computeBoundingSphere();
+  return g;
+}
+
 export function createCity(map, mats) {
   const G = map.G;
   const at = (x, z) => map.cellAt(x, z);
   const isStreet = (t) => t === G.road || t === G.sidewalk || t === G.bike;
   const group = new THREE.Group();
-  const unit = new THREE.BoxGeometry(1, 1, 1);
+  const unit = frontTopBox();
 
   // What goes in each piece: house parts, lamps, props, trees, road paint, railings.
   const plan = new Map();
@@ -649,7 +661,7 @@ export function createCity(map, mats) {
     add(built(ch.hedge), mats.hedge);
     add(built(ch.wall), mats.wall);
     add(built(ch.roof), mats.roof);
-    add(mergeBuilders(ch.trimB, ch.props), mats.plain);
+    add(mergeBuilders(ch.trimB, ch.props), mats.plain, false);
     add(ch.trim.mesh(mats.trimI, unit), null, false);
     add(ch.glass.mesh(mats.glassI, unit), null, false);
     if (ch.signs.length) {

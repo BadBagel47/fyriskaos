@@ -123,9 +123,11 @@ function fail(msg) {
     // Put the player next to the start car and drive it.
     await page.evaluate(() => {
       const g = window.__fyriskaos.game;
-      const car = g.vehicles.find((v) => v.type === 'car' && Math.abs(v.x - 211) < 1 && Math.abs(v.y - 255.7) < 1);
-      g.player.x = car.x;
-      g.player.y = car.y - 1.6;
+      // The ordinary car parked next to the start (from the map).
+      const c0 = g.map.start.car;
+      const car = g.vehicles.find((v) => Math.abs(v.x - c0.x) < 0.5 && Math.abs(v.y - c0.y) < 0.5);
+      g.player.x = car.x - Math.sin(car.heading) * 1.6;
+      g.player.y = car.y + Math.cos(car.heading) * 1.6;
       g.player.vx = g.player.vy = 0;
       g.player.stun = 0;
     });
@@ -139,7 +141,8 @@ function fail(msg) {
     await holdUntilSpeed('ArrowUp', 14, 30000);
     let s8 = await state();
     if (!(s8.speed > 14)) fail(`car did not reach 50 km/h: ${s8.speed}`);
-    if (!(s8.x < s7.x - 6)) fail('car did not drive left (west)');
+    const moved = await page.evaluate(() => { const v = window.__fyriskaos.game.player.vehicle; return v; }).then(() => page.evaluate((s) => { const v = window.__fyriskaos.game.player.vehicle; return (v.x - s.x) * Math.cos(v.heading) + (v.y - s.y) * Math.sin(v.heading); }, s7));
+    if (!(moved > 6)) fail(`car did not drive forward (${moved})`);
     if (shots) await page.screenshot({ path: path.join(shots, '4-car.png') });
     // Turn by pointing the stick down: the car should turn towards it.
     // Stick up and to the right: the car turns right while driving on.
@@ -172,7 +175,13 @@ function fail(msg) {
     await page.evaluate(() => {
       const g = window.__fyriskaos.game;
       const car = g.vehicles.find((v) => v.type === 'sport');
-      Object.assign(g.player, { x: car.x - 3, y: car.y + 1.7, vx: 0, vy: 0, stun: 0 });
+      // Room to slide: the handbrake test is about the car, not the street.
+      for (const c of g.grid.cells) {
+        c.rects.length = 0;
+        c.circles.length = 0;
+      }
+      for (const o of g.vehicles) if (o !== car) Object.assign(o, { x: -500 - Math.random() * 100, y: -500 });
+      Object.assign(g.player, { x: car.x - Math.sin(car.heading) * 1.7, y: car.y + Math.cos(car.heading) * 1.7, vx: 0, vy: 0, stun: 0 });
     });
     await frames();
     await page.keyboard.press('KeyE');
@@ -192,7 +201,8 @@ function fail(msg) {
     if (shots) await page.screenshot({ path: path.join(shots, '6-handbrake.png') });
     await page.keyboard.up('Space');
     await page.keyboard.up('ArrowLeft');
-    if (!(before - slide.heading > 0.6)) fail(`handbrake did not swing the car round (${before} -> ${slide.heading})`);
+    const swung = -Math.atan2(Math.sin(slide.heading - before), Math.cos(slide.heading - before));
+    if (!(swung > 0.6)) fail(`handbrake did not swing the car round (${before} -> ${slide.heading})`);
     if (!(slide.speed > 5)) fail(`handbrake stopped the car dead (${slide.speed})`);
 
     // B-054: touch steering by screen direction (the default). Real touch
@@ -282,6 +292,42 @@ function fail(msg) {
     if (!(r1.speed > 7)) fail(`touch: letting go stopped the car too hard (${r1.speed.toFixed(1)} m/s)`);
     if (shots) await page.screenshot({ path: path.join(shots, '7-touch.png') });
 
+    // F-005, F-011: the first mission, police and the health centre.
+    {
+      await page.evaluate(() => {
+        const g = window.__fyriskaos.game;
+        if (g.player.vehicle) {
+          g.player.vehicle.driver = null;
+          g.player.vehicle = null;
+        }
+      });
+      const P = await page.evaluate(() => window.__fyriskaos.game.map.places);
+      const tp = (x, y) => page.evaluate(([x, y]) => Object.assign(window.__fyriskaos.game.player, { x, y, vx: 0, vy: 0, stun: 0 }), [x, y]);
+      const st = () => page.evaluate(() => { const s = window.__fyriskaos.play.state; return { step: s.mission && s.mission.step, label: s.mission && s.mission.label, money: s.money, stars: s.stars, police: s.police.filter((v) => v.ai).length, ticket: !document.getElementById('ticket').hidden, mission: !document.getElementById('mission').hidden }; });
+      await page.waitForFunction(() => window.__fyriskaos.play.state.mission && window.__fyriskaos.play.state.mission.step === 'pickup', null, { timeout: 60000 });
+      if (!(await st()).mission) fail('mission panel not shown');
+      const m0 = (await st()).money;
+      await tp(...P.kiosk);
+      await gameWait(0.3);
+      if ((await st()).step !== 'deliver') fail('could not pick up the sandwiches');
+      await tp(...P.nation);
+      await gameWait(0.3);
+      if ((await st()).label !== 'Slottet') fail('no twist at the nation');
+      await tp(...P.slottsgard);
+      await gameWait(0.3);
+      const done = await st();
+      if (done.step !== 'done' || !(done.money > m0)) fail(`mission not paid (${JSON.stringify(done)})`);
+      await page.evaluate(() => (window.__fyriskaos.play.state.stars = 1));
+      await gameWait(1);
+      if (!((await st()).police >= 1)) fail('no police car after being wanted');
+      await page.evaluate(() => (window.__fyriskaos.play.state.health = -1));
+      await gameWait(0.3);
+      const dead = await st();
+      if (!dead.ticket || dead.stars !== 0) fail(`no health centre queue ticket after dying (${JSON.stringify(dead)})`);
+      const near = await page.evaluate(() => { const g = window.__fyriskaos.game; return Math.min(...g.map.places.vardcentraler.map((c) => Math.hypot(c[0] - g.player.x, c[1] - g.player.y))); });
+      if (!(near < 3)) fail('not respawned at a health centre');
+    }
+
     // Portrait phone: ask to turn the phone.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(200);
@@ -353,7 +399,7 @@ function fail(msg) {
       if (!msg || !/kunde inte starta/.test(msg)) fail(`${url}: no message when WebGL cannot start (${msg})`);
     }
     await noGl.close();
-    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test, lost 3D context, no WebGL, touch steering by screen direction');
+    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test, lost 3D context, no WebGL, touch steering by screen direction, mission, police, health centre');
   } finally {
     await browser.close();
     server.kill();

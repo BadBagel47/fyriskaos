@@ -7,7 +7,7 @@
 import * as THREE from '../../vendor/three/three.module.js';
 import * as L from '../stiltest/look.js';
 import { createCity } from './city.js';
-import { buildLandmarks } from './landmarks.js';
+import { buildLandmarks, buildPlaceSigns } from './landmarks.js';
 import { createEntities } from './entities.js';
 import { cut, withCut } from './cut.js';
 import { eveningLevel } from '../daylight.js';
@@ -94,6 +94,7 @@ export async function createRenderer3d(container, game) {
   const city = createCity(map, mats);
   scene.add(city.group);
   scene.add(buildLandmarks(map, mats));
+  scene.add(buildPlaceSigns(map));
   // Build the pieces around the start at once; the rest follow as you move.
   city.update(game.player.x, game.player.y, Infinity);
 
@@ -220,7 +221,10 @@ export async function createRenderer3d(container, game) {
     camera.position.set(cam.x + sx, Math.cos(TILT) * dist, cam.z + Math.sin(TILT) * dist + sz);
     camera.lookAt(cam.x + sx, 0, cam.z + sz);
     // Pieces of the city near what is on screen (the view reaches further up the screen).
-    city.update(cam.x, cam.z - cam.metres * 0.3, 3);
+    const tb = performance.now();
+    if (api.debugTop) city.update(api.debugTop.x, api.debugTop.y, 1000);
+    else city.update(cam.x, cam.z - cam.metres * 0.3, Math.min(30, Math.max(2, dt * 250)));
+    api.buildMs = performance.now() - tb;
     camera.far = dist * 2.4 + 40;
     camera.updateProjectionMatrix();
     scene.fog.near = dist * 1.25;

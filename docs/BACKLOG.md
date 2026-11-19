@@ -8,14 +8,9 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 8 s med 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
-| D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fotgängare och fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`), buskar och häckar. |
-| B-055 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Sikten i fart: när kameran zoomar ut täcker hustak nedanför spelaren halva skärmen. Klipp bort eller gör genomskinligt allt på kamerasidan som skymmer, också i fart, och låt kameran se längre framåt i färdriktningen. Det får aldrig vara svårt att se vart man kör. |
-| F-005 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, förenklat och spelbart, med vårdcentral, polis och ett första uppdrag. Landmärken som egna modeller: Domkyrkan, Slottet och Slottsbacken, Gunillaklockan och Fyrisån med broarna. |
-| D-057 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Stiltestets detaljnivå direkt i den nya generatorn: röda cykelbanor, häckar, staket, blomlådor, markiser och butiker, cykelställ med cyklar, parkerade bilar, skyltar och människor på trottoarerna. Stiltestets bilar (rundade, glans, lampor) för alla bilar. En enda trädstil i hela staden. |
-| B-056 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Spelarens figur ska synas tydligt (lite större, tydlig markering), och en liggande cykel ska se ut som en cykel. |
+| F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 9 s med centrum och 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
+| D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`) och buskar. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
-| F-011 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
 | F-012 | Medel | Öppen | Strid och pengar: siktet låser på närmaste fiende, skjutknapp; pengar går bara till vård och vapen. |
 | F-013 | Medel | Öppen | Stadens generering: fast skelett från OpenStreetMap (ån, slottet, domkyrkan, centralen, stora vägar, stadsdelar) och genererade kvarter, vägarbeten, gängområden, NPC:er, fordon och uppdrag. |
 | F-014 | Medel | Öppen | Levande stad nära spelarna: fotgängare, trafik i filer, trafikljus; resten av staden sover. |
@@ -24,8 +19,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-017 | Medel | Öppen | Uppdragsgenerator: 1–4 steg, hinder och twist, co-op-roller; kommer via SMS, Swish-parodi och Blocket-parodi; klättrar uppåt i gängen till bossen. |
 | F-020 | Medel | Öppen | Fordonen enligt designen (elsparkcykel, EPA-traktor, buss, traktor, helikoptrar, pansarvagn, halvfärdig spårvagn, sopbil, snöplog). Specialfordon bara via efterlysning, logiska platser eller uppdrag. Cykel och bil kommer i F-002. |
 | F-022 | Medel | Öppen | Valborgsfinalen: forsränningen och sedan kung på täppan på Slottsbacken mot alla grupper; den som håller backen kröns till Slottsbackens kungar. |
-| F-023 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Vägvisning: en stor pil mot nästa mål. |
-| F-028 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Credits och licenser i spelet: "© OpenStreetMap contributors" med länk, PixiJS (MIT), senare röster. Bearbetade kartfiler läggs i en egen mapp med ODbL-licens (se `docs/legal.md`). |
 | F-018 | Låg | Öppen | Uppsala-uppdrag: forsränning med sabotage, punschreceptet, nattmackor före sittningens slut, cykeljakter, traktorkaos, stjäla spårvagnen. |
 | F-019 | Låg | Öppen | Platser med egna uppdrag: Slottsbacken (pulkajakt, kungakronan, klockan), Evolutionsmuseet (Benkuppen, Skelettfrakten), Botaniska trädgården (Näckroskuppen, Lagerträdsrånet). |
 | F-021 | Låg | Öppen | Zonhändelser: snöoväder, översvämning, spontan studentfest, grävkaos, dinosaurieutbrott, tropisk afton. |
@@ -51,20 +44,26 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Första riktiga området – bygger på F-042 och F-049 (kartdatan finns nu)
-  - F-005 – Bygg centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag.
-  - F-011, F-023, F-028 – Vårdcentral, pil till målet, credits.
-  - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **B** – starkaste modellen, medel nivå – Snabbare start och fler modeller
-  - F-051 – Starten under 6 s på långsamt mobilnät.
-  - D-052 – Fotgängare, fler bilar och buskar från CC0-paketen.
-- **C** – starkaste modellen, hög nivå – Två spelare – bygger på A
+- **A** – starkaste modellen, medel nivå – Snabbare start och fler modeller
+  - F-051 – Starten under 6 s på långsamt mobilnät (i dag cirka 9 s med centrum).
+  - D-052 – Fler bilar och buskar från CC0-paketen.
+- **B** – starkaste modellen, hög nivå – Levande stad och fler uppdrag
+  - F-014 – Trafik i filer och trafikljus.
+  - F-017 – Uppdragsgenerator med 1–4 steg och twist, med riktiga platser.
+- **C** – starkaste modellen, hög nivå – Två spelare
   - F-006, F-026, F-027, F-035 – co-op via network-kit, gemensam uppdragsstart, återanslutning, integritetstext.
 
 ## Klart
 
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
+| F-005 | 2026-11-19 | Första riktiga området (v0.6.0): centrala Uppsala kring Fyrisån och Slottsbacken från OpenStreetMap (`tools/build_map.mjs` → `data/map/centrum.json`), förenklat och spelbart, gatunätet vridet så att gatorna går rakt i bild. Landmärken som egna modeller: Domkyrkan, Slottet, Gunillaklockan; Fyrisån med broar och räcken. Polis (tre polisbilar som jagar längs gatorna när man är efterlyst, griper den som stannar) och ett första uppdrag (Nattmackorna, med twist). |
+| B-055 | 2026-11-19 | Sikten: hus på kamerasidan om spelaren klipps ner till bottenvåningen, också i fart; träd och lyktor i vägen blir genomskinliga; kameran ser längre framåt i färdriktningen. |
+| D-057 | 2026-11-19 | Stiltestets detaljnivå i den nya generatorn: röda cykelbanor, häckar och räcken, blomlådor och markiser vid butiker, cykelställ med cyklar, cirka 580 parkerade bilar, skyltar, fotgängare (CC0-personer med olika tröjor), stiltestets bilar för alla bilar, en trädstil. |
+| B-056 | 2026-11-19 | Spelaren är större och har en pulserande ring och en markering över huvudet; cyklarna är stiltestets tydliga stadscykel i stället för de tunna CC0-cyklarna. |
+| F-011 | 2026-11-19 | Vårdcentraler: hälsa som sjunker vid påkörning och krockar; vid döden vaknar man på närmaste vårdcentral mot 100 kr, stjärnorna nollställs, kölapp "Beräknad väntetid: 4 sek". |
+| F-023 | 2026-11-19 | Vägvisning: en stor pil vid spelaren pekar mot målet, en ljuspelare vid målet och avståndet i uppdragsrutan. |
+| F-028 | 2026-11-19 | Credits i spelet (Inställningar, Credits): "© OpenStreetMap contributors" med länk, modeller, Three.js, texturer. |
 | B-054 | 2026-11-19 | Touchstyrning efter skärmriktning (ersätter F-040 för touch, v0.5.1): bil och cykel åker åt det håll man drar, svänger dit med naturlig radie, mer gas ju längre man drar; drar man bakåt bromsar man först, sedan backar bilen (rakt bakåt) eller vänder (snett bakåt; cykeln vänder alltid); släpper man rullar fordonet ut. Bromsknapp och handbromssväng som förut, tangentbordet oförändrat. Val under Inställningar: "Styrning: åt hållet du drar" (förval) eller "Klassisk" (`?styrning=klassisk` i adressen). Testat med simulerad touch: fyra riktningar, U-sväng, inbromsning och backning. |
 | B-053 | 2026-11-19 | När 3D-grafiken förloras (webglcontextlost) eller inte går att starta slutar spelet och stiltestet rita och visar på svenska att man kan prova en annan webbläsare, t.ex. Chrome. Testat med WEBGL_lose_context. |
 | F-042 | 2026-11-19 | Spelet ritas i 3D i Sommarkväll+ med den lutade kameran (v0.5.0): staden från kartan i bitar, bortklippning av det som skymmer spelaren, kväll, inställningar för grafik och fps-mätare. Med 4× strypning medan bilen kör: cirka 11 ms per bild i median. |

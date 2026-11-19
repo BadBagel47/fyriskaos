@@ -160,9 +160,14 @@ export function createEntities(game, mats) {
 
   let walk = 0;
   function update(dt, night) {
+    // Only vehicles that move need a new place (most stand parked).
     for (const [v, root] of views) {
+      if (root.userData.x === v.x && root.userData.y === v.y && root.userData.h === v.heading) continue;
       root.position.set(v.x, 0.14, v.y);
       root.rotation.y = -v.heading;
+      root.userData.x = v.x;
+      root.userData.y = v.y;
+      root.userData.h = v.heading;
     }
     const p = game.player;
     const veh = p.vehicle;

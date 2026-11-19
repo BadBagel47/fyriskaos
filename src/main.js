@@ -122,7 +122,7 @@ async function start() {
   // ---------- main loop ----------
   // cpu: milliseconds of game work (simulation and drawing) per frame, for
   // the performance tests (F-042).
-  const perf = { cpu: [], frames: 0 };
+  const perf = { cpu: [], build: [], frames: 0 };
   let acc = 0;
   let last = performance.now();
   let fpsFrames = 0;
@@ -149,7 +149,11 @@ async function start() {
     renderer.frame(dt);
     hud.update(game, input.enabled ? actionLabel(game) : null, dt);
     perf.cpu.push(performance.now() - t0);
-    if (perf.cpu.length > 1200) perf.cpu.shift();
+    perf.build.push(renderer.buildMs || 0);
+    if (perf.cpu.length > 1200) {
+      perf.cpu.shift();
+      perf.build.shift();
+    }
     perf.frames++;
 
     // Fps meter, and automatic quality: down a step below 50 fps for a

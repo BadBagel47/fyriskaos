@@ -152,7 +152,7 @@ export function createPlay(game) {
         if (!m.twisted) {
           // The twist: the customer lied about the place.
           m.twisted = true;
-          m.goal = P.slottet;
+          m.goal = P.slottsgard || P.slottet;
           m.label = 'Slottet';
           m.time += 50;
           state.phone = { from: 'Punschbergs nation', text: 'Haha, fel ställe! Sittningen flyttade till Slottet. Skynda!', until: game.time + 7 };

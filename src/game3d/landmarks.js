@@ -6,11 +6,11 @@
 import * as THREE from '../../vendor/three/three.module.js';
 import { Builder, m4, gableRoof } from '../stiltest/geo.js';
 
-const BRICK = 0xb5553f;
+const BRICK = 0xa44a36;
 const BRICK_DARK = 0x8e3f30;
-const COPPER = 0x5f9e8a;
+const COPPER = 0x3c7564;
 const STONE = 0xc9c0b2;
-const CASTLE = 0xd98a70;
+const CASTLE = 0xc06a52;
 const WHITE = 0xf2ece2;
 
 // Centre, length direction and size of an outline (principal axes).
@@ -158,4 +158,55 @@ function bellTower(wall, roof, trim, at) {
   roof.add(new THREE.ConeGeometry(0.5, 2.4, 8), COPPER, at(0, 15, 0));
   trim.add(new THREE.SphereGeometry(0.3, 6, 4), 0xd4aa48, at(0, 16.3, 0));
   trim.add(new THREE.BoxGeometry(6.4, 0.6, 6.4), STONE, at(0, 0.3, 0));
+}
+
+// Signs at the places the game uses (F-011, F-005): health centres, the
+// police station, the sandwich kiosk and the nation. Own invented designs.
+export function buildPlaceSigns(map) {
+  const group = new THREE.Group();
+  const P = map.places;
+  const make = (text, bg, fg, icon) => {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 128;
+    const g = c.getContext('2d');
+    g.fillStyle = bg;
+    g.fillRect(0, 0, 512, 128);
+    g.strokeStyle = fg;
+    g.lineWidth = 8;
+    g.strokeRect(6, 6, 500, 116);
+    g.fillStyle = fg;
+    g.font = 'bold 54px system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, icon ? 290 : 256, 66);
+    if (icon) icon(g);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  // A green heart, not a red cross (the red cross emblem is protected).
+  const heart = (g) => {
+    g.fillStyle = '#ffffff';
+    g.beginPath();
+    g.moveTo(64, 96);
+    g.bezierCurveTo(20, 66, 26, 26, 64, 44);
+    g.bezierCurveTo(102, 26, 108, 66, 64, 96);
+    g.fill();
+  };
+  const board = (x, z, tex, w = 6) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.25 }));
+    m.position.set(x, 4.2, z);
+    group.add(m);
+    for (const s of [-1, 1]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 4.2, 6), new THREE.MeshStandardMaterial({ color: 0x3a3e44 }));
+      post.position.set(x + s * (w / 2 - 0.3), 2.1, z - 0.05);
+      group.add(post);
+    }
+  };
+  for (const v of P.vardcentraler) board(v[0], v[1], make('VÅRDCENTRAL', '#2f8a5a', '#ffffff', heart));
+  board(P.polis[0], P.polis[1], make('POLIS', '#1f4fae', '#ffffff'));
+  board(P.kiosk[0], P.kiosk[1], make('MACKBAREN', '#f0a43a', '#2a1a10'));
+  board(P.nation[0], P.nation[1], make('PUNSCHBERGS NATION', '#d96aa0', '#ffffff'), 8);
+  return group;
 }

@@ -239,6 +239,8 @@ for (let y = 0; y < HEIGHT; y++)
     }
     parts.push({ b: id, x, y, w, h });
   }
+// Landmarks are drawn as their own models; the ground under their outlines is paving.
+for (let i = 0; i < owner.length; i++) if (owner[i] >= 0 && buildings[owner[i]].landmark) grid[i] = G.slab;
 // Heights: from the levels, otherwise four to six floors in the centre.
 let seed = 7;
 const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -363,7 +365,8 @@ function snap([x, y]) {
     }
   return [x, y];
 }
-for (const k of ['kiosk', 'nation', 'polis', 'gunillaklockan']) places[k] = snap(places[k]);
+places.slottsgard = P(59.8536, 17.6372); // in front of the castle, on Slottsbacken
+for (const k of ['kiosk', 'nation', 'polis', 'gunillaklockan', 'slottsgard']) places[k] = snap(places[k]);
 places.vardcentraler = places.vardcentraler.map(snap);
 // The start: on the sidewalk of a road near the cathedral, a bike beside the
 // player, an ordinary car in the lane and a sports car across the street.

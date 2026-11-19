@@ -101,6 +101,15 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Modeller:** träd, cyklar och spelaren är CC0-modeller från Quaternius (se `CREDITS.md`). Lövens färg är något mörkare och grönare än i originalbilderna, så att de inte blir gula i kvällssolen. Spelaren har orange tröja.
 - **Kväll (F-039):** solen blir svagare och rödare, himlen blå, lyktornas sken och de tända fönstren starkare, och spelarens fordon får strålkastare och bakljus.
 
+## Centrum (F-005, D-057)
+
+- **Karta:** OpenStreetMap, förenklad. Gatunätet vrids så att gatorna går rakt i bild; kameran pekar därför inte mot norr. Marken i rutor om 1 m; vägar, trottoarer, cykelbanor och gångar ritas som släta band längs mittlinjerna.
+- **Hus:** hus i en del får sadeltak eller mansardtak; stora delar av sammansatta kvarter får sadeltak, små delar platta tak (mörk papp eller plåt) med ventiler och takfönster. Södra väggen får alltid fönster (den syns när ett hus framför klipps bort). Butiker där kartan har affärer, kaféer eller restauranger: skyltfönster, markiser och blomlådor.
+- **Sikt:** hus på kamerasidan om spelaren klipps ner till bottenvåningen; under husen syns ett mörkt golv.
+- **Gata:** röda cykelbanor vid gatukanten på större gator, kantsten, mittlinjer och övergångsställen vid korsningar, gatuskyltar, P-skyltar vid parkering, häckar och räcken där gräs möter trottoar.
+- **Landmärken:** Domkyrkan i rött tegel med två västtorn och kopparspiror, Slottet i laxrött med runda torn och kupoler på en stenterrass, Gunillaklockan som ett rosa klocktorn med kopparhuv. Egna skyltar: Vårdcentral (vit hjärtsymbol på grönt, inget rött kors), Polis, Mackbaren, Punschbergs nation.
+- **Folk och markering:** fotgängare är CC0-figurer med olika tröjfärger; spelaren är 25 % större, har en pulserande orange ring och en orange markering över huvudet; pilen mot målet är orange.
+
 ## Prestanda (mobil från start)
 
 - **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.
