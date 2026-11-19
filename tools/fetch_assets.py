@@ -80,7 +80,10 @@ def fetch_quaternius():
     except ImportError:
         log("gdown missing")
         return
+    only = [w.split(":", 1)[1] for w in sys.argv[1:] if w.startswith("quaternius:")]
     for pack, (folder, include) in QUATERNIUS.items():
+        if only and pack not in only:
+            continue
         url = f"https://drive.google.com/drive/folders/{folder}"
         dest = os.path.join(OUT, "quaternius", pack)
         log(f"Quaternius {pack}: {url}")
@@ -107,6 +110,10 @@ def fetch_quaternius():
         log(f"  {len(files)} files listed, {len(picked)} picked")
         ok = 0
         for it in picked:
+            if os.path.exists(it.local_path):  # already in the repo
+                ok += 1
+                continue
+            time.sleep(1.5)  # gentle: Google Drive stops many quick downloads
             try:
                 os.makedirs(os.path.dirname(it.local_path), exist_ok=True)
                 if gdown.download(id=it.id, output=it.local_path, quiet=True):
@@ -202,10 +209,10 @@ if __name__ == "__main__":
     what = sys.argv[1:] or ["quaternius", "kenney", "osm"]
     os.makedirs(OUT, exist_ok=True)
     for name, fn in (("quaternius", fetch_quaternius), ("kenney", fetch_kenney), ("osm", fetch_osm)):
-        if name in what:
+        if any(w == name or w.startswith(name + ":") for w in what):
             try:
                 fn()
             except Exception as e:  # noqa: BLE001 - keep going with the other sources
                 log(f"{name} failed: {e!r}")
-    with open(os.path.join(OUT, "FETCH-REPORT.txt"), "w") as f:
+    with open(os.path.join(OUT, "FETCH-REPORT.txt"), "a") as f:
         f.write(f"Fetched {date.today().isoformat()}\n" + "\n".join(report) + "\n")

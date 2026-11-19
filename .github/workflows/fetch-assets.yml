@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       what:
-        description: "Which sources (quaternius kenney osm)"
+        description: "Which sources (quaternius kenney osm; one Quaternius pack: quaternius:<pack>)"
         required: false
         default: "quaternius kenney osm"
 
