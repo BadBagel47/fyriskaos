@@ -4,7 +4,9 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Agentregler och inventering
 
-- **Agentregler:** v1.12 (2026-11-17), https://raw.githubusercontent.com/BadBagel47/agent-rules/main/AGENTS.md . Repot har följt reglerna sedan 2026-11-17 (v1.11). v1.12: körförslaget börjar med vad ordningen bygger på, visar beroenden ("bygger på A") och sparar frågor utan etiketter; Pågår-märken anger gren eller session.
+- **Agentregler:** v1.14 (2026-11-18), https://raw.githubusercontent.com/BadBagel47/agent-rules/main/AGENTS.md . Repot har följt reglerna sedan 2026-11-17 (v1.11). v1.13–v1.14: oavslutad kod går till en arbetsgren, aldrig main; trasig sajt återställs med en revert-commit; webbprojekt läser också WEB.md (webbgrunder, kräver ägarens klartecken); gamla helt sammanslagna arbetsgrenar tas bort vid sessionsstart; installation och anpassning flyttade till SETUP.md.
+- **Väntande anpassning (Pending adaptation):**
+  - Punkt 1.1 – Webbgrunder enligt WEB.md: ingen blå markering vid tryck på mobilen, fokusram bara för tangentbord, egen tryckt-stil på knappar (spelet har inga rullgardinsmenyer). Rekommendation: ja. Väntar på ägarens svar.
 - Inventory: 2026-11-17
   - Repot innehöll bara designdokumentet (`docs/design.md`, D-001) på `main`. Inga andra grenar, pull requests, issues eller äldre dokumentation.
   - Repot är publikt.
@@ -22,6 +24,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 - **Nätverk (2026-11-17):** två spelare bygger på `BadBagel47/network-kit` (se dess `docs/INTEGRATION.md`), men först när solo fungerar. En spelare är värd och kör simuleringen. Spelets behov är rapporterade i network-kit issue #1. Behov och frågor om network-kit tas till network-kit-agenten.
 - **Grafik (2026-11-17):** arbetssättet för grafik i designdokumentet gäller från start; agenten tittar på sitt resultat med skärmdumpar innan den säger att den är klar. Skrivet som projektregel i `AGENTS.md`.
 - **Biltyper och handbroms (2026-11-17, fråga A1 och A2):** tre biltyper: småbil (svängig, långsam), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, sällsynt). Handbromssväng utan ny knapp: håll bromsen och dra åt sidan i fart.
+- **Grafiken i spelet (2026-11-19, F-042, D-048, F-049, B-050):** stilen från stiltestet förs in i spelet nu (Sommarkväll+ och lutad kamera), och modellerna byts längs vägen. Fria modeller och kartdata hämtas via ett GitHub Actions-arbetsflöde i stället för molnmiljöns nätverk. Fps-mätaren finns kvar bakom en inställning. Prestanda mäts också under bilkörning.
 - **Grafik steg 4 (2026-11-19, D-047):** lutade kameran är ett klart lyft och kvar som förval. Prestanda först: under 17 ms per bild med 4× strypning. Träd får byggas om själv om CC0-modeller inte duger.
 - **Grafik steg 3 (2026-11-18, D-045):** stort lyft i steg 2, särskilt bilar, träd, ytor och kvällsljus. Ny förvald kamera: lätt lutad med fast vinkel cirka 30–40° från lodrätt; rakt ovanifrån finns kvar bakom en knapp. Staden står still, styrningen ändras inte. Målbilder ska vara i stil med ett påkostat mobilspel, inte fotorealism. Start under 6 s i det långsamma testet. Fasta granskningskriterier.
 - **Grafik steg 2 (2026-11-18, D-044):** stiltestet är en bra grund men ser ut som en tidig prototyp. Målet är detaljnivån i D-041: träd och bilar som referensbild 1 (täta lövverk, bilar med glans), miljön som bild 3 (lådor, staket, lampor som lyser upp marken, långa skuggor, kontrast). Ljuset ska vara Sommarkväll+, inte middagssol. Three.js och mobilbudgeten gäller; tecknad low-poly är inget krav längre.

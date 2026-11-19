@@ -8,8 +8,10 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-042 | Hög | Öppen | Spelet ritas i stilen från stiltestet (Sommarkväll+ med lutad kamera, D-047), med samma mobilkrav. |
-| D-048 | Medel | Öppen | Riktiga CC0-modeller för träd, personer och cyklar (Quaternius), för att nå 8 på träd och jämn detaljnivå. Kräver att Google Drive öppnas i nätverket (`drive.google.com`, `drive.usercontent.google.com`). |
+| F-042 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Spelet ritas i stilen från stiltestet (Sommarkväll+ med lutad kamera, D-047), med samma mobilkrav. Fps-mätaren finns kvar bakom en inställning. Prestanda mäts också medan man kör bil genom staden. |
+| F-049 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Hämta fria modeller och kartdata via GitHub Actions i stället för molnmiljöns nätverk: ett arbetsflöde (startas för hand) som laddar ner Quaternius-paket (CC0, Google Drive), Kenney-paket (CC0) och Uppsalas kartdata från OpenStreetMap och committar dem. Källa och licens i CREDITS.md, "© OpenStreetMap contributors" i spelets credits. |
+| B-050 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Burspråken på de gula och orangea husen till vänster i stiltestet ser sneda och trasiga ut. |
+| D-048 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Byt träd, personer och cyklar mot CC0-modeller (Quaternius, Kenney) när de finns. Varierade träd, inte samma form överallt. Mobilbudgeten gäller. Hämtas via F-049. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
 | F-011 | Medel | Öppen | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
@@ -48,17 +50,11 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Grafiken i spelet – bygger på D-047
-  - F-042 – Spelet ritas i stilen från stiltestet: Sommarkväll+ med lutad kamera, samma mobilkrav.
-  - Fråga: Räcker grafiken i stiltestet nu (granskarna gav 5–7 mot målet 8), eller först riktiga modeller (D-048)? Rekommendation: för in stilen i spelet nu och byt modeller senare.
-- **B** – starkaste modellen, hög nivå – Riktiga modeller – kan köras före eller efter A
-  - D-048 – Träd, personer och cyklar från Quaternius (CC0), med licens i credits.
-  - Fråga: Får nätverket öppnas för Google Drive? Rekommendation: ja, bara de två adresserna.
-- **C** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – kartdata går ännu inte att hämta (servrarna bryter anslutningen från molnet)
+- **A** – starkaste modellen, hög nivå – Första riktiga området – bygger på F-042 och F-049 (kartdata)
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011, F-023, F-028 – Vårdcentral, pil till målet, credits.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **D** – starkaste modellen, hög nivå – Två spelare – bygger på C
+- **B** – starkaste modellen, hög nivå – Två spelare – bygger på A
   - F-006, F-026, F-027, F-035 – co-op via network-kit, gemensam uppdragsstart, återanslutning, integritetstext.
 
 ## Klart

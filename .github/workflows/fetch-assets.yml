@@ -1,0 +1,35 @@
+name: Fetch free models and map data
+
+# Started by hand (Actions tab, or by the agent). Downloads CC0 models from
+# Quaternius and Kenney and OpenStreetMap data for Uppsala, then commits them
+# to the branch it was started on. See tools/fetch_assets.py.
+on:
+  workflow_dispatch:
+    inputs:
+      what:
+        description: "Which sources (quaternius kenney osm)"
+        required: false
+        default: "quaternius kenney osm"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install gdown==5.2.0
+      - run: python tools/fetch_assets.py ${{ github.event.inputs.what }}
+      - name: Commit what was fetched
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/cc0 data/osm || true
+          if git diff --cached --quiet; then echo "Nothing new"; exit 0; fi
+          git commit -m "Fetch CC0 models and OpenStreetMap data (D-048, F-049)"
+          git push
