@@ -1,0 +1,36 @@
+Fetched 2026-11-19
+Quaternius stylizedtree: https://drive.google.com/drive/folders/1GlrFUFcNj6KIuc4-QpVEiRcXVUzSClP2
+  160 files listed, 1 picked
+  1 downloaded
+Quaternius ultimatenature: https://drive.google.com/drive/folders/1-Kl0L_Jg8awbh0S5T-z3zxh4mVlnxTpa
+  152 files listed, 1 picked
+  1 downloaded
+Quaternius simplenature: https://drive.google.com/drive/folders/18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts
+  53 files listed, 0 picked
+  0 downloaded
+Quaternius backgroundposedhumans: https://drive.google.com/drive/folders/18dWyZlA53euzsc1WobITqFYLcT5sFULz
+  114 files listed, 1 picked
+  1 downloaded
+Quaternius animatedmen: https://drive.google.com/drive/folders/17LibivOaUidsQhSkcxP3YYvDr0n7wIwu
+  36 files listed, 1 picked
+  1 downloaded
+Quaternius animatedwomen: https://drive.google.com/drive/folders/1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ
+  34 files listed, 1 picked
+  1 downloaded
+Quaternius cars: https://drive.google.com/drive/folders/1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA
+  30 files listed, 1 picked
+  1 downloaded
+Kenney nature-kit: https://kenney.nl/assets/nature-kit
+  no zip link on the page
+Kenney car-kit: https://kenney.nl/assets/car-kit
+  no zip link on the page
+Kenney mini-characters: https://kenney.nl/assets/mini-characters
+  no zip link on the page
+Kenney city-kit-suburban: https://kenney.nl/assets/city-kit-suburban
+  no zip link on the page
+OSM: https://overpass-api.de/api/interpreter
+  try 1 failed for https://overpass-api.de/api/interpreter: HTTP Error 406: Not Acceptable
+  try 2 failed for https://overpass-api.de/api/interpreter: HTTP Error 406: Not Acceptable
+  try 3 failed for https://overpass-api.de/api/interpreter: HTTP Error 406: Not Acceptable
+OSM: https://overpass.kumi.systems/api/interpreter
+  15682 elements, 10042 kB
