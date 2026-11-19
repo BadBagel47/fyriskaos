@@ -1073,3 +1073,94 @@ Fetched 2026-11-19
 Quaternius backgroundposedhumans: https://drive.google.com/drive/folders/18dWyZlA53euzsc1WobITqFYLcT5sFULz
   114 files listed, 57 picked
   57 downloaded
+Fetched 2026-11-19
+Quaternius animatedmen: https://drive.google.com/drive/folders/17LibivOaUidsQhSkcxP3YYvDr0n7wIwu
+  36 files listed, 12 picked
+  download failed FBX/Male_Casual.fbx: Failed to retrieve file url:
+
+	Too many users have viewed or downloaded this file recently. Please
+	try accessing the file again later. If the file you are trying to
+	access is particularly large or is shared with many people, it may
+	take up to 24 hours to be able to view or download the file. If you
+	still can't access a file after 24 hours, contact your domain
+	administrator.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1nZiaTmwgBm9Aa-kikftzMW-2x3E7tPYm
+
+but Gdown can't. Please check connections and permissions.
+  download failed FBX/Male_LongSleeve.fbx: Failed to retrieve file url:
+
+	Too many users have viewed or downloaded this file recently. Please
+	try accessing the file again later. If the file you are trying to
+	access is particularly large or is shared with many people, it may
+	take up to 24 hours to be able to view or download the file. If you
+	still can't access a file after 24 hours, contact your domain
+	administrator.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=18Rozxw_36TGCzUSbMcTTUZfns3ECetGU
+
+but Gdown can't. Please check connections and permissions.
+  download failed FBX/Male_Shirt.fbx: Failed to retrieve file url:
+
+	Too many users have viewed or downloaded this file recently. Please
+	try accessing the file again later. If the file you are trying to
+	access is particularly large or is shared with many people, it may
+	take up to 24 hours to be able to view or download the file. If you
+	still can't access a file after 24 hours, contact your domain
+	administrator.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=19ngmZDTZpNnmlkQ1HkSg2bXGAcY0WmSk
+
+but Gdown can't. Please check connections and permissions.
+  9 downloaded
+Quaternius animatedwomen: https://drive.google.com/drive/folders/1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ
+  34 files listed, 12 picked
+  download failed FBX/Female_Casual.fbx: Failed to retrieve file url:
+
+	Too many users have viewed or downloaded this file recently. Please
+	try accessing the file again later. If the file you are trying to
+	access is particularly large or is shared with many people, it may
+	take up to 24 hours to be able to view or download the file. If you
+	still can't access a file after 24 hours, contact your domain
+	administrator.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1ud1WgZZTLwfbGS9SxzbGKGaC7FJHKeC6
+
+but Gdown can't. Please check connections and permissions.
+  download failed FBX/Female_Dress.fbx: Failed to retrieve file url:
+
+	Too many users have viewed or downloaded this file recently. Please
+	try accessing the file again later. If the file you are trying to
+	access is particularly large or is shared with many people, it may
+	take up to 24 hours to be able to view or download the file. If you
+	still can't access a file after 24 hours, contact your domain
+	administrator.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1gRJ6-3Jcm1aQdWlwaz-hhjrfcycdQsBu
+
+but Gdown can't. Please check connections and permissions.
+  download failed FBX/Female_TankTop.fbx: Failed to retrieve file url:
+
+	Too many users have viewed or downloaded this file recently. Please
+	try accessing the file again later. If the file you are trying to
+	access is particularly large or is shared with many people, it may
+	take up to 24 hours to be able to view or download the file. If you
+	still can't access a file after 24 hours, contact your domain
+	administrator.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=16Fu9JHM-d5KiU4nucjuWxuiGzwiOskdp
+
+but Gdown can't. Please check connections and permissions.
+  9 downloaded
