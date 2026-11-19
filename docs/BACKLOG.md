@@ -8,10 +8,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-042 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Spelet ritas i stilen från stiltestet (Sommarkväll+ med lutad kamera, D-047), med samma mobilkrav. Fps-mätaren finns kvar bakom en inställning. Prestanda mäts också medan man kör bil genom staden. |
-| F-049 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Hämta fria modeller och kartdata via GitHub Actions i stället för molnmiljöns nätverk: ett arbetsflöde (startas för hand) som laddar ner Quaternius-paket (CC0, Google Drive), Kenney-paket (CC0) och Uppsalas kartdata från OpenStreetMap och committar dem. Källa och licens i CREDITS.md, "© OpenStreetMap contributors" i spelets credits. |
-| B-050 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Burspråken på de gula och orangea husen till vänster i stiltestet ser sneda och trasiga ut. |
-| D-048 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Byt träd, personer och cyklar mot CC0-modeller (Quaternius, Kenney) när de finns. Varierade träd, inte samma form överallt. Mobilbudgeten gäller. Hämtas via F-049. |
+| F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 8 s med 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
+| D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fotgängare och fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`), buskar och häckar. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
 | F-011 | Medel | Öppen | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
@@ -50,17 +48,24 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Första riktiga området – bygger på F-042 och F-049 (kartdata)
-  - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
+- **A** – starkaste modellen, hög nivå – Första riktiga området – bygger på F-042 och F-049 (kartdatan finns nu)
+  - F-005 – Bygg centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag.
   - F-011, F-023, F-028 – Vårdcentral, pil till målet, credits.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **B** – starkaste modellen, hög nivå – Två spelare – bygger på A
+- **B** – starkaste modellen, medel nivå – Snabbare start och fler modeller
+  - F-051 – Starten under 6 s på långsamt mobilnät.
+  - D-052 – Fotgängare, fler bilar och buskar från CC0-paketen.
+- **C** – starkaste modellen, hög nivå – Två spelare – bygger på A
   - F-006, F-026, F-027, F-035 – co-op via network-kit, gemensam uppdragsstart, återanslutning, integritetstext.
 
 ## Klart
 
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
+| F-042 | 2026-11-19 | Spelet ritas i 3D i Sommarkväll+ med den lutade kameran (v0.5.0): staden från kartan i bitar, bortklippning av det som skymmer spelaren, kväll, inställningar för grafik och fps-mätare. Med 4× strypning medan bilen kör: cirka 11 ms per bild i median. |
+| D-048 | 2026-11-19 | CC0-modeller från Quaternius i spelet: nio olika träd (två sorters lövträd med lövbilder, björkar, lågpolyträd), två cyklar och spelaren i fyra poser. |
+| F-049 | 2026-11-19 | Arbetsflöde som hämtar Quaternius (Google Drive), Kenney och OpenStreetMap-data för Uppsala via GitHub Actions; källor och licenser i CREDITS.md, OSM-krediten i spelets inställningar. |
+| B-050 | 2026-11-19 | Raka burspråk i stiltestet: längre kameraavstånd med smalare bildvinkel och smalare sidofönster. |
 | D-047 | 2026-11-19 | Grafik steg 4 i stiltestet: processortiden under 17 ms med 4× strypning (median 4–7 ms), träd med stam och grenar, hus med kantiga burspråk, fönstertyper per hus, klassiska lyktor, gröna häckar och mer gyllene kvällsljus. Granskarna gav till sist 7, 5, 5, 6 och 6 poäng; målet 8 nåddes inte. |
 | D-046 | 2026-11-19 | Prestanda i stiltestet: ingår i D-047. |
 | D-045 | 2026-11-19 | Grafik steg 3: lutad kamera som förval, detaljerade prylar, 3D-bilar och 3D-träd, fasta granskningskriterier. |

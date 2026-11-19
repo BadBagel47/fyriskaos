@@ -33,7 +33,7 @@ export function withCut(material, width = 1e4) {
       ${width > 1000
         ? 'if (cutD > 1.2 && vCutP.y > uCut.w + cutD * uCut.z) discard;'
         : // Trees and lamps in the way turn see-through (a fine screen-door pattern) instead of being cut.
-          `if (cutD > 0.5 && abs(vCutP.x - uCut.x) < ${width.toFixed(1)} && vCutP.y > uCut.w + cutD * uCut.z - 1.5 && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) < 0.72) discard;`}`,
+          `if (cutD > 0.5 && abs(vCutP.x - uCut.x) < ${width.toFixed(1)} && vCutP.y > uCut.w + cutD * uCut.z && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) < 0.72) discard;`}`,
     );
   };
   material.customProgramCacheKey = () => 'cut' + width + key();

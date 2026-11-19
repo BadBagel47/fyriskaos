@@ -93,6 +93,14 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Ljus:** sol 0xffa848, styrka 8,2, från sydväst och lågt; himmelsljus 0xb4b0c0 och mark 0x7a5434, styrka 0,85; skuggor med mjukare kant.
 - **Budget:** cirka 240 000 trianglar och 88 anrop på Hög.
 
+## Spelet i 3D (F-042, D-048)
+
+- **Kamera:** samma lutning som stiltestet (33° från lodrätt) men lång brännvidd (24°), så husen lutar lite vid kanterna (B-050). Visar 24 m på höjden till fots, 26 m plus fart på cykel och 28 m plus fart i bil.
+- **Skymning:** allt på kamerasidan om spelaren klipps bort ovanför siktlinjen från spelaren till kameran. Snittet ses rakt från kanten, så husen ser hela ut. Träd och lyktor i vägen blir glest genomskinliga i stället. Skuggorna ritas utan snitt.
+- **Hus:** byggs från kartans tomter. Fasader mot söder, öster och väster får fönster (norrsidan syns aldrig från kameran), utom väggar närmare än 3 m från grannhuset. Fönster och fasaddetaljer är instansade lådor med färg per låda.
+- **Modeller:** träd, cyklar och spelaren är CC0-modeller från Quaternius (se `CREDITS.md`). Lövens färg är något mörkare och grönare än i originalbilderna, så att de inte blir gula i kvällssolen. Spelaren har orange tröja.
+- **Kväll (F-039):** solen blir svagare och rödare, himlen blå, lyktornas sken och de tända fönstren starkare, och spelarens fordon får strålkastare och bakljus.
+
 ## Prestanda (mobil från start)
 
 - **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.

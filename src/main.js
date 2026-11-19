@@ -7,9 +7,11 @@ import { createInput } from './input.js';
 import { createHud } from './hud.js';
 import { CYCLE } from './daylight.js';
 import { createRenderer3d, QUALITY } from './game3d/view.js';
-import { loadModels } from './game3d/load.js';
 
 const $ = (id) => document.getElementById(id);
+// Start-up times for the performance test (ms since the page began).
+const mark = (n) => (globalThis.__marks ||= []).push([n, Math.round(performance.now())]);
+mark('module');
 
 async function start() {
   const els = {
@@ -30,8 +32,9 @@ async function start() {
   if (params.has('kvall')) game.clockOffset = 0.6 * CYCLE;
   const input = createInput(els);
   const hud = createHud(els);
-  await loadModels();
+  mark('game');
   const renderer = await createRenderer3d($('game'), game);
+  mark('city');
 
   // ---------- settings: graphics quality and the fps meter ----------
   const settings = { quality: params.get('q') || 'auto', fps: params.has('fps') };
@@ -119,9 +122,15 @@ async function start() {
   }
   requestAnimationFrame((now) => {
     last = now;
+    const tf = performance.now();
     loop(now);
-    // Full-size pictures after the first frame.
-    setTimeout(() => renderer.upgradeTextures(), 300);
+    (globalThis.__times ||= []).push(['firstFrame', Math.round(performance.now() - tf)]);
+    mark('firstFrame');
+    // CC0 models and full-size pictures after the first frame.
+    setTimeout(() => {
+      renderer.upgradeModels().then(() => (window.__fyriskaos.modelsReady = true));
+      renderer.upgradeTextures();
+    }, 200);
   });
 
   $('btn-start').addEventListener('click', () => {

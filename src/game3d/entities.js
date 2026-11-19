@@ -60,8 +60,7 @@ export function createEntities(game, mats) {
   };
 
   const views = new Map();
-  for (const v of game.vehicles) {
-    const root = new THREE.Group();
+  const bodyOf = (v) => {
     if (v.spec.class === 'car') {
       const list = CAR_MODEL[v.type] || CAR_MODEL.car;
       const name = list[Math.abs(hash(v.id)) % list.length];
@@ -71,20 +70,23 @@ export function createEntities(game, mats) {
       m.scale.set(v.spec.length / MODELS[name].L, 1, (v.spec.width / 1.8) * 0.98);
       m.castShadow = true;
       m.receiveShadow = true;
-      root.add(m);
-    } else {
-      const models = getLoaded('bikes');
-      let geo;
-      if (models) {
-        // CC0 bike (D-048): the frame takes the bike's colour.
-        const names = Object.keys(models);
-        const name = names[Math.abs(hash(v.id)) % names.length];
-        geo = cached(`bike:${name}:${v.color}`, () => merged(models[name].map((pp) => [pp.geo, pp.mat === 'paint' ? v.color : null])));
-      } else geo = bikeOf(v.color);
-      const m = new THREE.Mesh(geo, models ? carMat : mats.solid);
-      m.castShadow = true;
-      root.add(m);
+      return m;
     }
+    const models = getLoaded('bikes');
+    let geo;
+    if (models) {
+      // CC0 bike (D-048): the frame takes the bike's colour.
+      const names = Object.keys(models);
+      const name = names[Math.abs(hash(v.id)) % names.length];
+      geo = cached(`bike:${name}:${v.color}`, () => merged(models[name].map((pp) => [pp.geo, pp.mat === 'paint' ? v.color : null])));
+    } else geo = bikeOf(v.color);
+    const m = new THREE.Mesh(geo, models ? carMat : mats.solid);
+    m.castShadow = true;
+    return m;
+  };
+  for (const v of game.vehicles) {
+    const root = new THREE.Group();
+    root.add(bodyOf(v));
     group.add(root);
     views.set(v, root);
   }
@@ -92,12 +94,17 @@ export function createEntities(game, mats) {
   // The player: a CC0 figure when the models are there, otherwise the
   // code-built person. Walking swaps between a few poses.
   const player = new THREE.Group();
-  const poses = people.player(mats);
-  for (const p of poses) {
-    p.visible = false;
-    p.castShadow = true;
-    player.add(p);
-  }
+  let poses = [];
+  const setPoses = () => {
+    for (const p of poses) player.remove(p);
+    poses = people.player(mats);
+    for (const p of poses) {
+      p.visible = false;
+      p.castShadow = true;
+      player.add(p);
+    }
+  };
+  setPoses();
   group.add(player);
   const ring = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: L.ringTex(), transparent: true, depthWrite: false, opacity: 0.9 }));
   ring.renderOrder = 2;
@@ -166,7 +173,16 @@ export function createEntities(game, mats) {
       });
     }
   }
-  return { group, update, views };
+  // The CC0 bikes and figure arrive after the start (D-048).
+  function upgrade() {
+    setPoses();
+    for (const [v, root] of views)
+      if (v.spec.class === 'bike') {
+        root.clear();
+        root.add(bodyOf(v));
+      }
+  }
+  return { group, update, views, upgrade };
 }
 
 function hash(s) {

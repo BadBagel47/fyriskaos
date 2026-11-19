@@ -10,7 +10,7 @@ import { buildCity } from './city.js';
 import { createEntities } from './entities.js';
 import { cut, withCut } from './cut.js';
 import { eveningLevel } from '../daylight.js';
-import { treeTextures } from './load.js';
+import { treeTextures, loadModels } from './load.js';
 
 const TILT = THREE.MathUtils.degToRad(33);
 const FOV = 24; // a long lens: less leaning at the screen edges (B-050)
@@ -52,13 +52,18 @@ export async function createRenderer3d(container, game) {
 
   // Small pictures first, so the city shows at once; full ones afterwards.
   const names = ['asphalt', 'slabs', 'grass', 'plaster', 'roof', 'foliage'];
+  const TT = (n, t) => (globalThis.__times ||= []).push([n, Math.round(performance.now() - t)]);
+  let tq = performance.now();
   const tex = Object.fromEntries(await Promise.all(names.map(async (n) => [n, await L.loadTexture(SMALL(n))])));
 
   const haze = new THREE.Color(0xd9b48a);
   const scene = new THREE.Scene();
   scene.background = haze;
   scene.fog = new THREE.Fog(haze, 70, 150);
+  TT('textures', tq);
+  tq = performance.now();
   scene.environment = L.eveningEnvironment(renderer);
+  TT('env', tq);
 
   const mats = {
     asphalt: L.worldMapped(tex.asphalt, 6, { vertexColors: true, roughness: 0.92, vary: 0.7 }),
@@ -78,10 +83,10 @@ export async function createRenderer3d(container, game) {
   };
 
   // CC0 trees (D-048): leaf clusters with see-through gaps, bark pictures.
-  const tt = await treeTextures(L.loadTexture);
+  // Until the models arrive the code-built trees use the plain leaf material.
   const leafOf = (t) => (t ? withCut(new THREE.MeshStandardMaterial({ map: t, alphaTest: 0.45, side: THREE.DoubleSide, vertexColors: true, roughness: 0.85, envMapIntensity: 0.5 }), 4.5) : mats.leaf);
   const barkOf = (t) => (t ? withCut(new THREE.MeshStandardMaterial({ map: t, vertexColors: true, roughness: 0.95 }), 4.5) : mats.wood);
-  Object.assign(mats, { leafA: leafOf(tt.leafA), leafB: leafOf(tt.leafB), barkA: barkOf(tt.barkA), barkB: barkOf(tt.barkB), leafV: withCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }), 4.5), vc: mats.solid });
+  Object.assign(mats, { leafV: withCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }), 4.5), vc: mats.solid });
 
   const map = game.map;
   const city = buildCity(map, mats);
@@ -165,9 +170,9 @@ export async function createRenderer3d(container, game) {
 
   function targetMetres() {
     const v = game.player.vehicle;
-    if (!v) return 26;
+    if (!v) return 24;
     const s = Math.hypot(v.vx, v.vy);
-    return v.spec.class === 'car' ? 34 + s * 0.85 : 29 + s * 0.6;
+    return v.spec.class === 'car' ? 28 + s * 0.6 : 26 + s * 0.5;
   }
 
   const day = { sun: new THREE.Color(0xffa848), sky: new THREE.Color(0xb4b0c0), ground: new THREE.Color(0x7a5434), haze: new THREE.Color(0xd9b48a) };
@@ -205,7 +210,7 @@ export async function createRenderer3d(container, game) {
     scene.fog.far = dist * 2.6;
 
     // The cut-away plane runs from just above the player towards the camera.
-    cut.value.set(focus.x, focus.y, 1 / Math.tan(TILT), 2.6);
+    cut.value.set(focus.x, focus.y, 1 / Math.tan(TILT), 0.9);
 
     // Sun and its shadow box follow the camera, snapped so shadows do not shimmer.
     // Just big enough for what is on screen (the screen is about twice as wide as high).
@@ -245,6 +250,9 @@ export async function createRenderer3d(container, game) {
     renderer.render(scene, camera);
   }
 
+  // Prepare the shaders before the first frame (in parallel where the browser can).
+  if (renderer.compileAsync) await renderer.compileAsync(scene, camera).catch(() => {});
+
   return {
     frame,
     renderer,
@@ -255,6 +263,13 @@ export async function createRenderer3d(container, game) {
       return quality;
     },
     city,
+    // Load the CC0 models after the start and swap them in (D-048).
+    async upgradeModels() {
+      const [, tt] = await Promise.all([loadModels(), treeTextures(L.loadTexture)]);
+      Object.assign(mats, { leafA: leafOf(tt.leafA), leafB: leafOf(tt.leafB), barkA: barkOf(tt.barkA), barkB: barkOf(tt.barkB) });
+      city.rebuildTrees();
+      ents.upgrade();
+    },
     // Swap in the full-size pictures after the first frames.
     async upgradeTextures() {
       await Promise.all(

@@ -113,7 +113,7 @@ Målet minst 8 på allt nåddes inte. Se `docs/HANDOFF.md` för vad som återst�
 
 # Grafik steg 4 (D-047) – prestanda, träd, hus och ljus
 
-Samma målbilder som steg 3. Skärmdumpar 2026-11-19, mobilstorlek, kvalitet Hög, lutad kamera som förval:
+Samma målbilder som steg 3. Skärmdumpar 2026-11-19, mobilstorlek, kvalitet Hög, lutad kamera som förval. Bilderna är tagna om efter B-050 (kameran längre bort med smalare bildvinkel, så husen lutar mindre vid kanterna):
 
 ![Jämförelse liggande](jamforelse4-liggande.jpg)
 ![Jämförelse stående](jamforelse4-staende.jpg)

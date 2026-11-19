@@ -251,19 +251,58 @@ if (fs.existsSync(posed)) {
     return out;
   };
   // The player: a man in an orange jacket, standing, walking, running, sitting on the bike.
+  const hairFile = (sex) => find(new RegExp(`^${sex}_Hairstyle_1\\.obj$`))[0];
   const pose = (file, recolour) => {
     const parts = collect(loadOBJ(file), () => 'vc', (m) => recolour(m) || m.color);
+    // Hair is a separate model in the same pose space; dark brown.
+    const hf = hairFile(path.basename(file).split('_')[0]);
+    if (hf) {
+      const hair = collect(loadOBJ(hf), () => 'vc', () => new THREE.Color(0x3a2618));
+      // Put the hair on the head: the head is the top few percent of the figure.
+      const P = parts.vc.position;
+      const H = hair.vc.position;
+      let maxY = -1e9, minY = 1e9;
+      for (let i = 1; i < P.length; i += 3) {
+        maxY = Math.max(maxY, P[i]);
+        minY = Math.min(minY, P[i]);
+      }
+      const top = maxY - (maxY - minY) * 0.06;
+      let hx = 0, hz = 0, n = 0;
+      for (let i = 0; i < P.length; i += 3)
+        if (P[i + 1] > top) {
+          hx += P[i];
+          hz += P[i + 2];
+          n++;
+        }
+      hx /= n;
+      hz /= n;
+      const hb = new THREE.Box3();
+      const v = new THREE.Vector3();
+      for (let i = 0; i < H.length; i += 3) hb.expandByPoint(v.set(H[i], H[i + 1], H[i + 2]));
+      const dx = hx - (hb.min.x + hb.max.x) / 2;
+      const dz = hz - (hb.min.z + hb.max.z) / 2;
+      const dy = maxY + (maxY - minY) * 0.015 - hb.max.y;
+      for (let i = 0; i < H.length; i += 3) {
+        H[i] += dx;
+        H[i + 1] += dy;
+        H[i + 2] += dz;
+      }
+      for (const k of ['position', 'normal', 'color', 'uv']) parts.vc[k].push(...hair.vc[k]);
+    }
     normalise(parts, { height: 1.85, turn: -Math.PI / 2 });
     return parts;
   };
   const playerCol = (m) => (/shirt|jacket|top|body|cloth/i.test(m.name) ? new THREE.Color(0xf0a43a) : null);
-  const files = find(/^Male_(Standing|Walking|Running|Sitting)\.obj$/);
+  const files = find(/^(Male|Female)_(Standing|Walking|Running|Sitting)\.obj$/);
   const byName = Object.fromEntries(files.map((f) => [path.basename(f, '.obj'), f]));
-  if (byName.Male_Standing && byName.Male_Walking && byName.Male_Running) {
-    people.player_stand = pose(byName.Male_Standing, playerCol);
-    people.player_walk1 = pose(byName.Male_Walking, playerCol);
-    people.player_walk2 = pose(byName.Male_Running, playerCol);
-    people.player_ride = pose(byName.Male_Sitting || byName.Male_Standing, playerCol);
+  // Prefer the man; use the woman if one of his poses is missing.
+  const sex = ['Male', 'Female'].find((x) => ['Standing', 'Walking', 'Running'].every((p) => byName[`${x}_${p}`]));
+  if (sex) {
+    people.player_stand = pose(byName[`${sex}_Standing`], playerCol);
+    people.player_walk1 = pose(byName[`${sex}_Walking`], playerCol);
+    people.player_walk2 = pose(byName[`${sex}_Running`], playerCol);
+    people.player_ride = pose(byName[`${sex}_Sitting`] || byName[`${sex}_Standing`], playerCol);
+    report.push(`player: ${sex} poses`);
   }
 }
 if (Object.keys(people).length) report.push(`people.bin ${writeModels('people.bin', people)} bytes`);

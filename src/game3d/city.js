@@ -77,7 +77,7 @@ function newChunk() {
 
 // ---------- ground: classify the map in half-metre cells, then merge into rectangles ----------
 
-const RES = 0.5;
+const RES = 1;
 const C = { slab: 1, grass: 2, path: 3, road: 4, water: 5, edge: 6, deck: 7 };
 
 function classify(map) {
@@ -126,7 +126,12 @@ function rects(cells, cls, x0, z0, x1, z1) {
 function mergeBuilders(a, b) {
   if (!a.pos.length && !b.pos.length) return null;
   const g = new THREE.BufferGeometry();
-  const cat = (k) => new Float32Array(a[k].length + b[k].length).fill(0).map((_, i) => (i < a[k].length ? a[k][i] : b[k][i - a[k].length]));
+  const cat = (k) => {
+    const out = new Float32Array(a[k].length + b[k].length);
+    out.set(a[k], 0);
+    out.set(b[k], a[k].length);
+    return out;
+  };
   g.setAttribute('position', new THREE.BufferAttribute(cat('pos'), 3));
   g.setAttribute('normal', new THREE.BufferAttribute(cat('nor'), 3));
   g.setAttribute('color', new THREE.BufferAttribute(cat('col'), 3));
@@ -421,47 +426,81 @@ function bayCap(bw, fw, D) {
 
 // ---------- street furniture and trees ----------
 
+// Copy a finished geometry into a builder at a place (much faster than
+// building the same lamp or bench again from its parts).
+function stamp(B, geo, mm) {
+  const p = geo.attributes.position.array;
+  const n = geo.attributes.normal.array;
+  const c = geo.attributes.color.array;
+  const e = mm.elements;
+  for (let i = 0; i < p.length; i += 3) {
+    const x = p[i], y = p[i + 1], z = p[i + 2];
+    B.pos.push(e[0] * x + e[4] * y + e[8] * z + e[12], e[1] * x + e[5] * y + e[9] * z + e[13], e[2] * x + e[6] * y + e[10] * z + e[14]);
+    const nx = n[i], ny = n[i + 1], nz = n[i + 2];
+    const tx = e[0] * nx + e[4] * ny + e[8] * nz, ty = e[1] * nx + e[5] * ny + e[9] * nz, tz = e[2] * nx + e[6] * ny + e[10] * nz;
+    const l = Math.hypot(tx, ty, tz) || 1;
+    B.nor.push(tx / l, ty / l, tz / l);
+    B.col.push(c[i], c[i + 1], c[i + 2]);
+  }
+}
+const proto = {};
+function protoOf(name, make) {
+  if (!proto[name]) {
+    const B = new Builder();
+    make(B);
+    proto[name] = B.build({ outline: false });
+  }
+  return proto[name];
+}
+
 const lanterns = [];
 function addFurniture(map, chunks) {
   for (const l of map.lamps) {
     const ch = getChunk(chunks, chunkOf(map, l.x, l.y));
     const rot = Math.atan2(l.ax || 0, l.ay || 1);
     const place = m4(l.x, 0.12, l.y, rot);
-    P3.addLamp(ch.props, place, 1);
+    stamp(ch.props, protoOf('lamp', (B) => P3.addLamp(B, m4(0, 0, 0), 1)), place);
     lanterns.push(place.clone().multiply(m4(0, 4.64, 1.12)));
   }
   for (const p of map.props) {
     const ch = getChunk(chunks, chunkOf(map, p.x, p.y));
-    if (p.kind === 'bench') P3.addBench(ch.props, m4(p.x, 0.12, p.y, -(p.rot || 0)));
-    else if (p.kind === 'bin') P3.addBin(ch.props, m4(p.x, 0.12, p.y));
+    if (p.kind === 'bench') stamp(ch.props, protoOf('bench', (B) => P3.addBench(B, m4(0, 0, 0))), m4(p.x, 0.12, p.y, -(p.rot || 0)));
+    else if (p.kind === 'bin') stamp(ch.props, protoOf('bin', (B) => P3.addBin(B, m4(0, 0, 0))), m4(p.x, 0.12, p.y));
     else if (p.kind === 'planter') P3.addFlowerBox(ch.props, m4(p.x, 0.1, p.y, 0, (p.w || 3) / 1.8, 1, (p.h || 1.4) / 0.8), 7);
   }
   const R = rng(91);
   map.trees.forEach((t) => {
     const ch = getChunk(chunks, chunkOf(map, t.x, t.y));
-    const kinds = treeKinds();
-    const shape = Math.floor(R() * kinds.length);
+    // Keep a random number per tree, so the shape can be chosen again when
+    // the CC0 models arrive (there may be another number of shapes).
+    const pick = R();
     const s = (t.canopy / 2.7) * (0.9 + R() * 0.2);
-    const list = ch.trees.get(shape) || [];
-    list.push(m4(t.x, 0.1, t.y, R() * Math.PI * 2, s, s * (0.92 + R() * 0.16), s));
-    ch.trees.set(shape, list);
+    ch.trees.set(ch.trees.size, { pick, m: m4(t.x, 0.1, t.y, R() * Math.PI * 2, s, s * (0.92 + R() * 0.16), s) });
   });
 }
 
 // ---------- build everything ----------
 
+const T = (name, t0) => (globalThis.__times ||= []).push([name, Math.round(performance.now() - t0)]);
+
 export function buildCity(map, mats, onProgress) {
+  let t0 = performance.now();
   const chunks = new Map();
   buildGround(map, chunks);
+  T('ground', t0);
+  t0 = performance.now();
   cells.clear();
   lanterns.length = 0;
   // A side wall closer than 3 m to another house is not seen: no windows there.
   const neighbours = (b, side) =>
     map.buildings.some((o) => o !== b && o.y < b.y + b.h - 1 && o.y + o.h > b.y + 1 && (side > 0 ? o.x >= b.x + b.w - 0.1 && o.x - (b.x + b.w) < 3 : o.x + o.w <= b.x + 0.1 && b.x - (o.x + o.w) < 3));
   map.buildings.forEach((b, i) => addHouse(getChunk(chunks, chunkOf(map, b.x + b.w / 2, b.y + b.h / 2)), b, i, neighbours));
+  T('houses', t0);
+  t0 = performance.now();
   addFurniture(map, chunks);
+  T('furniture', t0);
+  t0 = performance.now();
   const unit = new THREE.BoxGeometry(1, 1, 1);
-  const kinds = treeKinds();
   const group = new THREE.Group();
   const meshes = [];
   const add = (geo, mat, { cast = true, receive = true } = {}) => {
@@ -484,21 +523,40 @@ export function buildCity(map, mats, onProgress) {
     add(built(ch.roof), mats.roof);
     // Trim and street furniture share one material: one mesh.
     add(mergeBuilders(ch.trimB, ch.props), mats.plain);
-    for (const [shape, list] of ch.trees) {
-      const k = kinds[shape];
-      for (const [geo, mat] of k.parts(mats)) {
-        const im = new THREE.InstancedMesh(geo, mat, list.length);
-        list.forEach((mm, i) => im.setMatrixAt(i, mm));
-        im.computeBoundingSphere();
-        add(im, mat);
-      }
-    }
     if (onProgress) onProgress(++n / chunks.size);
   }
   for (const c of cells.values()) {
     add(c.trim.mesh(mats.trimI, unit), mats.trimI, { cast: false });
     add(c.glass.mesh(mats.glassI, unit), mats.glassI, { cast: false });
   }
+  T('meshes', t0);
+  // Trees: instanced per piece of the map and shape. Rebuilt when the CC0
+  // models have loaded (D-048).
+  let treeMeshes = [];
+  const buildTrees = () => {
+    for (const m of treeMeshes) group.remove(m);
+    treeMeshes = [];
+    const kinds = treeKinds();
+    for (const ch of chunks.values()) {
+      const byShape = new Map();
+      for (const t of ch.trees.values()) {
+        const shape = Math.min(kinds.length - 1, Math.floor(t.pick * kinds.length));
+        if (!byShape.has(shape)) byShape.set(shape, []);
+        byShape.get(shape).push(t.m);
+      }
+      for (const [shape, list] of byShape)
+        for (const [geo, mat] of kinds[shape].parts(mats)) {
+          const im = new THREE.InstancedMesh(geo, mat, list.length);
+          list.forEach((mm, i) => im.setMatrixAt(i, mm));
+          im.computeBoundingSphere();
+          im.castShadow = true;
+          im.receiveShadow = true;
+          group.add(im);
+          treeMeshes.push(im);
+        }
+    }
+  };
+  buildTrees();
   // All lantern glasses in one instanced mesh.
   const lg = new THREE.InstancedMesh(P3.lanternGlass(), mats.lantern, lanterns.length);
   lanterns.forEach((mm, i) => lg.setMatrixAt(i, mm));
@@ -510,5 +568,5 @@ export function buildCity(map, mats, onProgress) {
     const t = (g.index ? g.index.count : g.attributes.position.count) / 3;
     tris += t * (m.isInstancedMesh ? m.count : 1);
   }
-  return { group, chunks: chunks.size, meshes: meshes.length, tris: Math.round(tris) };
+  return { group, chunks: chunks.size, meshes: meshes.length, tris: Math.round(tris), rebuildTrees: buildTrees };
 }
