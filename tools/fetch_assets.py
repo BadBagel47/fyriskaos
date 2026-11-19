@@ -27,13 +27,14 @@ LICENCE = re.compile(r"licen[cs]e|readme", re.I)
 # Quaternius packs (CC0, https://quaternius.com). Folder links are taken from
 # each pack's page; "include" picks the models we want by name.
 QUATERNIUS = {
-    "stylizedtree": ("1GlrFUFcNj6KIuc4-QpVEiRcXVUzSClP2", r"."),
-    "ultimatenature": ("1-Kl0L_Jg8awbh0S5T-z3zxh4mVlnxTpa", r"tree|birch|bush|willow|maple|plant|grass|flower"),
-    "simplenature": ("18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts", r"tree|bush"),
-    "backgroundposedhumans": ("18dWyZlA53euzsc1WobITqFYLcT5sFULz", r"."),
-    "animatedmen": ("17LibivOaUidsQhSkcxP3YYvDr0n7wIwu", r"."),
-    "animatedwomen": ("1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ", r"."),
-    "cars": ("1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA", r"."),
+    "stylizedtree": ("1GlrFUFcNj6KIuc4-QpVEiRcXVUzSClP2", r"^(FBX/(Tree|Birch)_\d+\.fbx|Textures/(Tree_Bark|Tree_Leaves|Birch_Bark|Birch_Leaves_Green)\.\w+)$"),
+    "ultimatenature": ("1-Kl0L_Jg8awbh0S5T-z3zxh4mVlnxTpa", r"^FBX/(CommonTree_[1-5]|BirchTree_[1-5]|Bush_[12]|BushBerries_[12])\.fbx$"),
+    "simplenature": ("18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts", r"^OBJ/(Tree\d|Bush\d)\.(obj|mtl)$"),
+    "backgroundposedhumans": ("18dWyZlA53euzsc1WobITqFYLcT5sFULz", r"/(Poses|Hairstyles)/OBJ/[^/]+\.(obj|mtl)$"),
+    "animatedmen": ("17LibivOaUidsQhSkcxP3YYvDr0n7wIwu", r"^OBJ/Male_\w+\.(obj|mtl)$"),
+    "animatedwomen": ("1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ", r"^OBJ/Female_\w+\.(obj|mtl)$"),
+    "cars": ("1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA", r"^OBJ/\w+\.(obj|mtl)$"),
+    "publictransport": ("1GUIE138uPVNraiQEf33dIx9wENhttZ15", r"(?i)(bike|bicycle|cycle)[^/]*\.(obj|mtl|fbx)$"),
 }
 
 # Kenney packs (CC0, https://kenney.nl). The zip link is read from the pack page.
@@ -90,14 +91,13 @@ def fetch_quaternius():
         with open(os.path.join(OUT, "quaternius", f"{pack}.listing.txt"), "w") as f:
             for it in files:
                 f.write(it.path + "\n")
-        rx = re.compile(include, re.I)
+        rx = re.compile(include)
         picked = []
         for it in files:
-            low = it.path.lower()
-            base = os.path.basename(low)
-            if LICENCE.search(base) and base.endswith((".txt", ".md")):
+            base = os.path.basename(it.path)
+            if LICENCE.search(base) and base.lower().endswith((".txt", ".md")):
                 picked.append(it)
-            elif ("gltf" in low or low.endswith(".glb")) and low.endswith(MODEL_EXT) and rx.search(base.replace(".", " ")):
+            elif rx.search(it.path):
                 picked.append(it)
         log(f"  {len(files)} files listed, {len(picked)} picked")
         ok = 0
@@ -118,11 +118,15 @@ def fetch_kenney():
         page = get(page_url)
         if not page:
             continue
-        m = re.search(rb'https://kenney\.nl/media/pages/assets/[^"\']+?\.zip', page)
+        m = re.search(rb'(?:https://kenney\.nl)?/media/pages/assets/[^"\'\s<>]+?\.zip', page)
         if not m:
-            log("  no zip link on the page")
+            os.makedirs(os.path.join(OUT, "kenney"), exist_ok=True)
+            with open(os.path.join(OUT, "kenney", f"{pack}.page.html"), "wb") as f:
+                f.write(page)
+            log("  no zip link on the page (page saved for a look)")
             continue
-        blob = get(m.group(0).decode())
+        link = m.group(0).decode()
+        blob = get(link if link.startswith("http") else "https://kenney.nl" + link)
         if not blob:
             continue
         dest = os.path.join(OUT, "kenney", pack)
