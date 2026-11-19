@@ -85,6 +85,14 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Bilder:** WebP; små förhandsbilder laddas först, fullstora efteråt.
 - **Granskning:** fasta kriterier i `docs/screenshots/stiltest/kriterier.md`.
 
+## Steg 4: prestanda, träd, hus och ljus (D-047)
+
+- **Träd:** stam och 5–6 grenar med två lövklungor var, plus en topp. Klungornas ljusnormaler böjs mot riktningen från kronans mitt, så att kronan skuggas som en mjuk form; lövbildens riktning tas från ytans riktiga normal (`mapNormal`). Ljus topp, mörkare undersida och insida. Två former per sort, ritade med instancing, olika storlek (0,75–1,25).
+- **Hus:** burspråk är kantiga (tre sidor) eller raka lådor, med plåttak och en list per våning; upplägget skiljer mellan husen. Varje hus har en fönstertyp (tvåluftsfönster, parfönster, rundbåge, högt fönster) och ett överstycke (fronton, list, slutsten eller inget). Översta våningen har lägre fönster. Ungefär vart tionde fönster är tänt. Butiker har breda skyltfönster och randiga markiser.
+- **Lyktor:** klassisk lykta med tak, guldring, sexkantigt glas och en kula på toppen; taket är mindre än glaset så att ljuset syns uppifrån.
+- **Ljus:** sol 0xffa848, styrka 8,2, från sydväst och lågt; himmelsljus 0xb4b0c0 och mark 0x7a5434, styrka 0,85; skuggor med mjukare kant.
+- **Budget:** cirka 240 000 trianglar och 88 anrop på Hög.
+
 ## Prestanda (mobil från start)
 
 - **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.
@@ -92,7 +100,7 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Upplösning:** pixel ratio högst 2.
 - **Kvalitetslägen:** Låg (pixel ratio 1, inga skuggor), Medel (1,5, skuggor 1024), Hög (2, skuggor 2048). Auto går ner ett steg om det blir under 50 bilder per sekund i en sekund, och upp igen efter 8 sekunder på 59 eller mer om det inte gått ner de senaste 20 sekunderna.
 - **Snabb start:** inga modellfiler att ladda; hela stiltestet (Three.js och egen kod) är ett komprimerat paket på cirka 145 kB.
-- **Mätt i molnet** 2026-11-18, se `docs/screenshots/stiltest/README.md`.
+- **Mätt i molnet** 2026-11-18 och 2026-11-19 (steg 4: 4–7 ms per bild med 4× strypning, efter laddningen), se `docs/screenshots/stiltest/README.md`.
 
 ## Arbetssätt
 

@@ -97,7 +97,7 @@ Stiltestet, båda kameravinklarna (skärmdumpar 2026-11-19, mobilstorlek, kvalit
 | 2 | 6 | 5 | 6 | 5 | 6 |
 | 3 (sista) | 7 | 5 | 6 | 5 | 7 |
 
-Målet minst 8 på allt nåddes inte. Se `docs/HANDOFF.md` för vad som återstår.
+Målet minst 8 på allt nåddes inte. Se `docs/HANDOFF.md` för vad som återstår. Bilderna ovan är från steg 3; steg 4 längre ner.
 
 ## Prestanda (samma långsamma test: 1,6 Mbit/s, 150 ms fördröjning)
 
@@ -110,3 +110,43 @@ Målet minst 8 på allt nåddes inte. Se `docs/HANDOFF.md` för vad som återst�
 - Start under 6 s: uppnått (4,1–5,1 s). Scenen visas med små förhandsbilder och de fullstora bilderna laddas efteråt; alla bilder är WebP.
 - Nedladdning: koden 171 kB komprimerad, bilderna 426 kB (förra steget 690 kB).
 - Processortiden per bild har ökat (träden, personerna och prylarna har många fler trianglar). Med strypt processor ligger den över 17 ms, alltså under 60 bilder per sekund på en svag telefon. Det behöver bantas innan stilen förs in i spelet.
+
+# Grafik steg 4 (D-047) – prestanda, träd, hus och ljus
+
+Samma målbilder som steg 3. Skärmdumpar 2026-11-19, mobilstorlek, kvalitet Hög, lutad kamera som förval:
+
+![Jämförelse liggande](jamforelse4-liggande.jpg)
+![Jämförelse stående](jamforelse4-staende.jpg)
+![Lutad, liggande](steg4-lutad-liggande.jpg)
+![Lutad, stående](steg4-lutad-staende.jpg)
+![Ovanifrån, liggande](steg4-ovanifran-liggande.jpg)
+![Ovanifrån, stående](steg4-ovanifran-staende.jpg)
+
+Ändrat: lättare prylar och personer (färre trianglar), träd byggda med stam, grenar och lövklungor som skuggas som en mjuk krona, gröna täta häckar, klassiska lyktor, kantiga burspråk med plåttak och olika upplägg per hus, fyra fönstertyper (parfönster, rundbågar, höga, tvåluftsfönster) med olika överstycken, några tända fönster, butiker med markiser, portar med pilastrar och trappsteg, mindre takpannor, lägre och mer gyllene kvällssol från sydväst och ljusare fyllnadsljus.
+
+## Poäng med fasta kriterier (samma instruktion som steg 3)
+
+| Omgång | 1 Kamera och läsbarhet | 2 Jämn detaljnivå | 3 Träd | 4 Tak och fasader | 5 Ytor och ljus |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 7 | 6 | 5 | 5 | 6 |
+| 2 | 7 | 5 | 5 | 6 | 6 |
+| 3 (sista) | 7 | 5 | 5 | 6 | 6 |
+
+Målet minst 8 nåddes inte. Det som drar ner enligt granskarna: personer och cyklar är för enkla mot bilarna (2), trädkronorna läses som klumpar och alla träd liknar varandra (3), fönstren upprepas fortfarande våning för våning (4), och cykelbanor och gräs är släta (5).
+
+## Prestanda (processortid per bild, när allt har laddats)
+
+Mätt med 4× strypt processor efter att alla bilder laddats: 3 s väntan, sedan 20 s mätning. Samma mätning gjordes på steg 3 som jämförelse.
+
+| Version | Strypning | Kvalitet | Median | 9 av 10 under | Anrop | Trianglar |
+| --- | --- | --- | --- | --- | --- | --- |
+| Steg 3 | 4× | Medel | 7,0 ms | 16,3 ms | 85 | 357 000 |
+| Steg 3 | 4× | Hög | 9,5 ms | 13,4 ms | 85 | 357 000 |
+| Steg 4 | 4× | Låg | 4,3 ms | 8,1 ms | 53 | 140 000 |
+| Steg 4 | 4× | Medel | 6,2 ms | 18,8 ms | 89 | 241 000 |
+| Steg 4 | 4× | Hög | 6,5 ms | 11,6 ms | 88 | 240 000 |
+| Steg 4 | 6× | Medel | 13,3 ms | 30 ms | 89 | 241 000 |
+
+- Under 17 ms med 4× strypning: uppnått (median 4–7 ms). Trianglarna minskade med cirka en tredjedel.
+- Siffrorna 29–45 ms i steg 3 mättes medan de fullstora bilderna laddades in och visar själva laddningen, inte vanlig körning. Under laddningen ligger det fortfarande kring 29 ms (4×).
+- Start till första bild på långsamt nät med 4× strypning: 4,4 s; alla fullstora bilder efter 12 s.

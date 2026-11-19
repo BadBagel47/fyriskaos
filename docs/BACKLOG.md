@@ -8,6 +8,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
+| F-042 | Hög | Öppen | Spelet ritas i stilen från stiltestet (Sommarkväll+ med lutad kamera, D-047), med samma mobilkrav. |
+| D-048 | Medel | Öppen | Riktiga CC0-modeller för träd, personer och cyklar (Quaternius), för att nå 8 på träd och jämn detaljnivå. Kräver att Google Drive öppnas i nätverket (`drive.google.com`, `drive.usercontent.google.com`). |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
 | F-011 | Medel | Öppen | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
@@ -46,20 +48,28 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 Ögonblicksbild; varje agent bygger sitt eget förslag från backloggen.
 
 - Prioriterat för: ägarens önskemål först, sedan designdokumentets plan.
-- **A** – starkaste modellen, hög nivå – Grafiken i spelet – bygger på D-043
-  - F-042 – Spelet ritas i den valda stilen från stiltestet, med samma mobilkrav.
-  - Fråga: Vilken variant i stiltestet? Rekommendation (också granskarens): A – Klassisk tecknad.
-- **B** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – väntar på att kartdata går att hämta
+- **A** – starkaste modellen, hög nivå – Grafiken i spelet – bygger på D-047
+  - F-042 – Spelet ritas i stilen från stiltestet: Sommarkväll+ med lutad kamera, samma mobilkrav.
+  - Fråga: Räcker grafiken i stiltestet nu (granskarna gav 5–7 mot målet 8), eller först riktiga modeller (D-048)? Rekommendation: för in stilen i spelet nu och byt modeller senare.
+- **B** – starkaste modellen, hög nivå – Riktiga modeller – kan köras före eller efter A
+  - D-048 – Träd, personer och cyklar från Quaternius (CC0), med licens i credits.
+  - Fråga: Får nätverket öppnas för Google Drive? Rekommendation: ja, bara de två adresserna.
+- **C** – starkaste modellen, hög nivå – Första riktiga området – bygger på A – kartdata går ännu inte att hämta (servrarna bryter anslutningen från molnet)
   - F-005 – Bygg centrum kring Fyrisån och Slottsbacken med vårdcentral, polis och ett första uppdrag.
   - F-011, F-023, F-028 – Vårdcentral, pil till målet, credits.
   - Fråga: Vilka stadsdelar i första versionen? Rekommendation: bara centrum kring ån och Slottsbacken.
-- **C** – starkaste modellen, hög nivå – Två spelare – bygger på B
+- **D** – starkaste modellen, hög nivå – Två spelare – bygger på C
   - F-006, F-026, F-027, F-035 – co-op via network-kit, gemensam uppdragsstart, återanslutning, integritetstext.
 
 ## Klart
 
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
+| D-047 | 2026-11-19 | Grafik steg 4 i stiltestet: processortiden under 17 ms med 4× strypning (median 4–7 ms), träd med stam och grenar, hus med kantiga burspråk, fönstertyper per hus, klassiska lyktor, gröna häckar och mer gyllene kvällsljus. Granskarna gav till sist 7, 5, 5, 6 och 6 poäng; målet 8 nåddes inte. |
+| D-046 | 2026-11-19 | Prestanda i stiltestet: ingår i D-047. |
+| D-045 | 2026-11-19 | Grafik steg 3: lutad kamera som förval, detaljerade prylar, 3D-bilar och 3D-träd, fasta granskningskriterier. |
+| D-044 | 2026-11-18 | Grafik steg 2: läget Sommarkväll+ i stiltestet, byggt mot en genererad målbild. |
+| D-043 | 2026-11-18 | Grafik steg 1: stiltest med Three.js i tre varianter (`stiltest.html`), stilbibel `docs/STYLE.md`. |
 | D-001 | 2026-11-17 | Designdokumentet (`docs/design.md`). |
 | F-033 | 2026-11-17 | Tre biltyper: småbil (cirka 70 km/h, svängig), vanlig bil (cirka 90 km/h) och sportbil (cirka 120 km/h, snabb från start, sällsynt). Namn och fart visas i hörnet (v0.2.0). |
 | F-034 | 2026-11-17 | Handbromssväng: håll bromsen och dra åt sidan i fart, så sladdar bilen runt med däckspår och behåller farten (v0.2.0). |
