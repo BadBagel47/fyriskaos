@@ -31,8 +31,8 @@ QUATERNIUS = {
     "ultimatenature": ("1-Kl0L_Jg8awbh0S5T-z3zxh4mVlnxTpa", r"^FBX/(CommonTree_[1-5]|BirchTree_[1-5]|Bush_[12]|BushBerries_[12])\.fbx$"),
     "simplenature": ("18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts", r"^OBJ/(Tree\d|Bush\d)\.(obj|mtl)$"),
     "backgroundposedhumans": ("18dWyZlA53euzsc1WobITqFYLcT5sFULz", r"(Poses|Hairstyles)/OBJ/[^/]+\.(obj|mtl)$"),
-    "animatedmen": ("17LibivOaUidsQhSkcxP3YYvDr0n7wIwu", r"^OBJ/Male_\w+\.(obj|mtl)$"),
-    "animatedwomen": ("1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ", r"^OBJ/Female_\w+\.(obj|mtl)$"),
+    "animatedmen": ("17LibivOaUidsQhSkcxP3YYvDr0n7wIwu", r"^(OBJ/Male_\w+\.(obj|mtl)|FBX/Male_(Casual|Shirt|LongSleeve)\.fbx)$"),
+    "animatedwomen": ("1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ", r"^(OBJ/Female_\w+\.(obj|mtl)|FBX/Female_(Casual|Dress|TankTop)\.fbx)$"),
     "cars": ("1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA", r"^OBJ/\w+\.(obj|mtl)$"),
     "publictransport": ("1GUIE138uPVNraiQEf33dIx9wENhttZ15", r"(?i)(bike|bicycle|cycle)[^/]*\.(obj|mtl|fbx)$"),
 }

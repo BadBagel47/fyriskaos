@@ -8,6 +8,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
+| B-058 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Fotgängarna går baklänges och spelarens figur ser ryckig ut. Rätta vridningen så att spelaren, fotgängarna och spelaren på cykeln tittar åt det håll de rör sig; byt posebytet mot en mjuk gånganimation vars takt följer farten (animerade CC0-figurer från Quaternius); fotgängarna svänger lugnt längs trottoarerna; ett automatiskt test kontrollerar att framsidan pekar åt rörelseriktningen. Gå igenom vridningen för cyklar, träd och andra modeller. |
 | F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 9 s med centrum och 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
 | D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`) och buskar. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
