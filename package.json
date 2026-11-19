@@ -1,16 +1,18 @@
 {
   "name": "fyriskaos",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Satirical top-down action game in a generated Uppsala, for 1–2 players on mobile.",
   "scripts": {
     "start": "python3 -m http.server 8080",
     "test": "node tests/driving.mjs && node tests/smoke.cjs",
-    "build:stiltest": "esbuild src/stiltest/main.js --bundle --minify --format=esm --target=es2020 --outfile=stiltest/app.js"
+    "build:stiltest": "esbuild src/stiltest/main.js --bundle --minify --format=esm --target=es2020 --outfile=stiltest/app.js",
+    "build": "esbuild src/main.js --bundle --minify --format=esm --target=es2020 --outfile=app/game.js"
   },
   "devDependencies": {
     "esbuild": "^0.25.12",
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "three": "^0.187.0"
   },
   "type": "module"
 }

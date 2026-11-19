@@ -108,6 +108,13 @@ function resize() {
   const short = tiltOn ? (w < h ? cam.tiltViewShort * 0.72 : cam.tiltViewShort) : cam.viewShort;
   const half = Math.atan(short / 2 / dist);
   camera.fov = THREE.MathUtils.radToDeg(w >= h ? 2 * half : 2 * Math.atan(Math.tan(half) / camera.aspect));
+  // Near, far and fog follow the camera distance (the tilted camera is further away, B-050).
+  camera.near = Math.max(cam.height, dist) * 0.3;
+  camera.far = Math.max(cam.height, dist) * 2.2;
+  if (built && built.scene.fog && cam.rotatePortrait) {
+    built.scene.fog.near = Math.max(cam.height, dist) * 1.15;
+    built.scene.fog.far = Math.max(cam.height, dist) * 1.6;
+  }
   camera.updateProjectionMatrix();
   fitShadowBox();
 }

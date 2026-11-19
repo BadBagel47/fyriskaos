@@ -9,7 +9,7 @@ import * as L from './look.js';
 import * as P3 from './props3.js';
 
 // height = distance from the street to the camera (straight down or tilted).
-export const CAMERA = { height: 64, viewShort: 30, tiltViewShort: 34, center: new THREE.Vector3(30, 0, -1.5), tiltCenter: new THREE.Vector3(30, 0, -3.5), tiltDistance: 56 };
+export const CAMERA = { height: 64, viewShort: 30, tiltViewShort: 34, center: new THREE.Vector3(30, 0, -1.5), tiltCenter: new THREE.Vector3(30, 0, -3.5), tiltDistance: 80 };
 
 const FLOOR = 3.2;
 // Pictures sit next to the built bundle (stiltest/app.js -> stiltest/tex/).
@@ -142,12 +142,12 @@ function addHouse(H, h, place) {
     if (ww > 0.7) H.trim.add(new THREE.BoxGeometry(0.06, gh, 0.15), frameC, at(x, y, z, rot)); // mullion
     H.trim.add(new THREE.BoxGeometry(ww, 0.05, 0.15), frameC, at(x, y + gh * 0.2, z, rot)); // transom
   };
-  const win = (x, y, z, rot, f = 1) => {
+  const win = (x, y, z, rot, f = 1, narrow = 0) => {
     const topFloor = f === floors - 1;
     const gh = topFloor ? 1.15 : wstyle === 3 ? 1.8 : 1.5;
     const yc = y + (gh - 1.5) / 2;
-    let ww = ww0;
-    if (wstyle === 1 && rot === 0) {
+    let ww = narrow || ww0;
+    if (wstyle === 1 && rot === 0 && !narrow) {
       for (const o of [-0.36, 0.36]) pane(x + o, yc, z, rot, 0.52, gh);
       ww = 1.3;
     } else pane(x, yc, z, rot, ww, gh);
@@ -228,7 +228,7 @@ function addHouse(H, h, place) {
     for (let f = 1; f < floors; f++) {
       const y = 1.0 + f * FLOOR + 1.6;
       win(bx, y, d / 2 + D + 0.02, 0, f);
-      if (!bayBox) for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa, f);
+      if (!bayBox) for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa, f, Math.min(ww0, Math.hypot((bw - fw) / 2, D) - 0.6));
     }
     // Hipped sheet-metal cap.
     const o = 0.18, ch = 0.85;
@@ -367,9 +367,11 @@ function treeTrunk() {
 
 // ---------- cars: three rounded models ----------
 
-const MODELS = {
+export const MODELS = {
   hatch: { L: 4.1, body: [[-2.05, 0.28], [2.05, 0.28], [2.05, 0.66], [1.92, 0.86], [0.85, 0.98], [-1.95, 0.98], [-2.05, 0.82]], cabin: [[0.8, 0.95], [0.05, 1.45], [-1.6, 1.45], [-1.98, 0.95]], roof: [-1.55, 0.0] },
   sedan: { L: 4.6, body: [[-2.3, 0.3], [2.3, 0.3], [2.3, 0.66], [2.15, 0.84], [1.0, 0.96], [-2.15, 0.96], [-2.3, 0.8]], cabin: [[0.95, 0.93], [0.15, 1.42], [-1.25, 1.42], [-1.85, 0.93]], roof: [-1.2, 0.1] },
+  // Low and wide, for the game's sports car (F-042).
+  sport: { L: 4.5, body: [[-2.25, 0.26], [2.25, 0.26], [2.25, 0.56], [2.1, 0.7], [0.9, 0.8], [-2.15, 0.84], [-2.25, 0.7]], cabin: [[0.7, 0.78], [-0.1, 1.18], [-1.2, 1.18], [-1.9, 0.82]], roof: [-1.05, -0.2], roofY: 1.2 },
   estate: { L: 4.8, body: [[-2.4, 0.3], [2.4, 0.3], [2.4, 0.66], [2.25, 0.86], [1.05, 0.98], [-2.35, 0.98], [-2.4, 0.82]], cabin: [[1.0, 0.95], [0.2, 1.48], [-2.15, 1.48], [-2.3, 0.95]], roof: [-2.05, 0.15] },
 };
 const W = 1.8;
@@ -402,11 +404,11 @@ function roundedSlab(x0, x1, width, y, thick) {
   return g;
 }
 
-function carParts(name) {
+export function carParts(name) {
   const m = MODELS[name];
   const paint = new Builder();
   paint.add(profileGeo(m.body, W - 0.5, 0.25), 0xffffff);
-  paint.add(roundedSlab(m.roof[0], m.roof[1], W - 0.36, 1.5, 0.07), 0xffffff);
+  paint.add(roundedSlab(m.roof[0], m.roof[1], W - 0.36, m.roofY ?? 1.5, 0.07), 0xffffff);
   const glass = new Builder();
   glass.add(profileGeo(m.cabin, W - 0.5, 0.08), 0xffffff);
   const det = new Builder();

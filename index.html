@@ -6,14 +6,22 @@
     <meta name="theme-color" content="#3a3b3d" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>Fyriskaos – prototyp 1</title>
+    <title>Fyriskaos – prototyp</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <div id="game"></div>
 
     <div id="hud">
-      <div id="badge">Fyriskaos · prototyp 1 · <span data-version></span></div>
+      <div id="badge">Fyriskaos · prototyp · <span data-version></span></div>
+      <div id="fps" hidden></div>
+      <button id="btn-settings" class="btn small-btn" aria-label="Inställningar">Inställningar</button>
+      <div id="settings" hidden>
+        <button id="set-quality" class="btn"></button>
+        <button id="set-fps" class="btn"></button>
+        <button id="set-close" class="btn">Stäng</button>
+        <p class="credit">Kartdata: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>. Modeller: Quaternius (CC0).</p>
+      </div>
       <div id="speed" hidden></div>
       <div id="joy" hidden><div id="joy-knob"></div></div>
       <button id="btn-action" class="btn" hidden></button>
@@ -24,7 +32,7 @@
     <div id="start" class="overlay">
       <div class="card">
         <h1>Fyriskaos</h1>
-        <p class="lead">Prototyp 1: prova styrningen i en grå teststad.</p>
+        <p class="lead">Prova att gå, cykla och köra i en teststad i kvällssol.</p>
         <ul>
           <li><b>Gå:</b> dra med vänster tumme var som helst på vänstra halvan, åt det håll du vill gå.</li>
           <li><b>Cykla och köra:</b> upp gasar framåt, ned bromsar och backar, åt sidan svänger.</li>
@@ -32,7 +40,7 @@
           <li><b>Broms</b> plus sväng i fart ger en handbromssväng.</li>
           <li class="desk"><b>På dator:</b> piltangenter eller WASD, E för stora knappen, mellanslag för broms.</li>
         </ul>
-        <button id="btn-start" class="btn primary">Starta</button>
+        <button id="btn-start" class="btn primary" disabled>Starta</button>
         <p class="small"><span data-version></span></p>
       </div>
     </div>
@@ -41,6 +49,6 @@
     <div id="error" class="overlay" hidden></div>
     <noscript><div class="overlay"><div class="card">Spelet behöver JavaScript.</div></div></noscript>
 
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="app/game.js"></script>
   </body>
 </html>
