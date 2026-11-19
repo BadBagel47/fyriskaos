@@ -1,7 +1,8 @@
 // Fyriskaos: walk, cycle and drive in a test city, drawn in 3D (F-042).
 
 import { STEP, VERSION } from './config.js';
-import { buildTestMap } from './map.js';
+import { loadCityMap } from './citymap.js';
+import { createPlay } from './play.js';
 import { createGame, step, actionLabel } from './sim.js';
 import { createInput } from './input.js';
 import { createHud } from './hud.js';
@@ -26,8 +27,10 @@ async function start() {
   };
   for (const el of document.querySelectorAll('[data-version]')) el.textContent = `v${VERSION}`;
 
-  const map = buildTestMap(1);
+  const map = await loadCityMap(new URL('data/map/centrum.json', document.baseURI).href);
   const game = createGame(map);
+  // The game layer adds the police cars, so it comes before the renderer.
+  const play = createPlay(game);
   // ?kvall in the address starts the round in the evening (for testing).
   const params = new URLSearchParams(location.search);
   if (params.has('kvall')) game.clockOffset = 0.6 * CYCLE;
@@ -82,6 +85,40 @@ async function start() {
   if (settings.quality !== 'auto' && QUALITY[settings.quality]) renderer.setQuality(settings.quality);
   showSettings();
 
+  // ---------- the game layer on screen ----------
+  $('set-credits').addEventListener('click', () => ($('credits').hidden = false));
+  $('credits-close').addEventListener('click', () => ($('credits').hidden = true));
+  let hudKey = '';
+  function hudPlay(st) {
+    const m = st.mission;
+    const tgt = st.target;
+    const d = tgt ? Math.round(Math.hypot(tgt.x - game.player.x, tgt.y - game.player.y)) : 0;
+    let title = '';
+    let info = '';
+    if (m && m.step === 'pickup') {
+      title = 'Nattmackorna';
+      info = `Hämta mackorna på Mackbaren · ${d} m`;
+    } else if (m && m.step === 'deliver') {
+      title = `Nattmackorna · ${Math.max(0, Math.ceil(m.time))} s`;
+      info = `${m.sandwiches} mackor till ${m.label} · ${d} m`;
+    }
+    const key = [st.money, st.stars, Math.round(st.health / 5), title, info, st.phone && st.phone.text, st.ticket > 0].join('|');
+    if (key === hudKey) return;
+    hudKey = key;
+    $('money').textContent = `${st.money} kr`;
+    $('stars').textContent = st.stars ? '★'.repeat(st.stars) + '☆'.repeat(3 - st.stars) : '';
+    $('health').firstChild.style.width = `${Math.max(0, st.health)}%`;
+    $('mission').hidden = !title;
+    $('mission-title').textContent = title;
+    $('mission-info').textContent = info;
+    $('phone').hidden = !st.phone;
+    if (st.phone) {
+      $('phone-from').textContent = `SMS från ${st.phone.from}`;
+      $('phone-text').textContent = st.phone.text;
+    }
+    $('ticket').hidden = !(st.ticket > 0);
+  }
+
   // ---------- main loop ----------
   // cpu: milliseconds of game work (simulation and drawing) per frame, for
   // the performance tests (F-042).
@@ -103,9 +140,12 @@ async function start() {
     input.update();
     while (acc >= STEP) {
       step(game, input, STEP);
+      const evs = game.events.splice(0);
+      if (input.enabled) play.step(STEP, evs);
+      for (const ev of evs) if (ev.type === 'toast') hud.toast(ev.text);
       acc -= STEP;
     }
-    for (const ev of game.events.splice(0)) if (ev.type === 'toast') hud.toast(ev.text);
+    hudPlay(play.state);
     renderer.frame(dt);
     hud.update(game, input.enabled ? actionLabel(game) : null, dt);
     perf.cpu.push(performance.now() - t0);
@@ -168,7 +208,7 @@ async function start() {
   $('btn-start').disabled = false;
 
   // Read-only handle for the automatic tests.
-  window.__fyriskaos = { game, input, renderer, perf };
+  window.__fyriskaos = { game, input, renderer, perf, play };
 }
 
 start().catch((err) => {

@@ -31,7 +31,9 @@ export function withCut(material, width = 1e4) {
       `void main() {
       float cutD = vCutP.z - uCut.y;
       ${width > 1000
-        ? 'if (cutD > 1.2 && vCutP.y > uCut.w + cutD * uCut.z) discard;'
+        ? // Houses on the camera side are cut down to their ground floor (B-055), so
+          // nothing hides the street, also when the camera is far out at speed.
+          'if (cutD > 1.5 && vCutP.y > min(uCut.w + cutD * uCut.z, 2.8)) discard;'
         : // Trees and lamps in the way turn see-through (a fine screen-door pattern) instead of being cut.
           `if (cutD > 0.5 && abs(vCutP.x - uCut.x) < ${width.toFixed(1)} && vCutP.y > uCut.w + cutD * uCut.z && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) < 0.72) discard;`}`,
     );

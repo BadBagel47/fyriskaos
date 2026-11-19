@@ -17,8 +17,9 @@ export function treeKinds() {
   if (shapes) return shapes;
   shapes = [];
   if (models) {
+    // One tree style in the whole city (F-005): the stylised leafy trees.
     for (const [name, parts] of Object.entries(models))
-      shapes.push({ kind: name, parts: (mats) => parts.map((p) => [p.geo, mats[p.mat] || mats.leaf]) });
+      if (/^Tree_/.test(name)) shapes.push({ kind: name, parts: (mats) => parts.map((p) => [p.geo, mats[p.mat] || mats.leaf]) });
     if (shapes.length) return shapes;
   }
   let seed = 11;

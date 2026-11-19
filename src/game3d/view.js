@@ -6,7 +6,8 @@
 
 import * as THREE from '../../vendor/three/three.module.js';
 import * as L from '../stiltest/look.js';
-import { buildCity } from './city.js';
+import { createCity } from './city.js';
+import { buildLandmarks } from './landmarks.js';
 import { createEntities } from './entities.js';
 import { cut, withCut } from './cut.js';
 import { eveningLevel } from '../daylight.js';
@@ -72,6 +73,7 @@ export async function createRenderer3d(container, game) {
     wall: withCut(L.worldMapped(tex.plaster, 5, { vertexColors: true, roughness: 0.95, vary: 0.6 })),
     roof: withCut(L.worldMapped(tex.roof, 0.7, { vertexColors: true, roughness: 0.8, vary: 0.9 })),
     leaf: withCut(L.worldMapped(tex.foliage, 3.6, { vertexColors: true, roughness: 0.9, triplanar: true, mapNormal: true }), 4.5),
+    hedge: withCut(L.worldMapped(tex.foliage, 2.4, { vertexColors: true, roughness: 0.9, triplanar: true }), 4.5),
     wood: withCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }), 4.5),
     plain: withCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 })),
     solid: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 }),
@@ -89,8 +91,11 @@ export async function createRenderer3d(container, game) {
   Object.assign(mats, { leafV: withCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }), 4.5), vc: mats.solid });
 
   const map = game.map;
-  const city = buildCity(map, mats);
+  const city = createCity(map, mats);
   scene.add(city.group);
+  scene.add(buildLandmarks(map, mats));
+  // Build the pieces around the start at once; the rest follow as you move.
+  city.update(game.player.x, game.player.y, Infinity);
 
   // Water under the whole map (land covers it except in the river) and
   // flat ground outside the map.
@@ -182,9 +187,19 @@ export async function createRenderer3d(container, game) {
   function frame(dt) {
     const p = game.player;
     const focus = p.vehicle || p;
-    const look = p.vehicle ? 0.7 : 0.25;
-    const tx = focus.x + focus.vx * look;
-    const tz = focus.y + focus.vy * look;
+    // Look ahead in the direction of travel (B-055), more at speed, but keep
+    // the player on screen.
+    const look = p.vehicle ? 1.1 : 0.25;
+    const lim = (cam.metres || 24) * 0.32;
+    let ax = focus.vx * look;
+    let az = focus.vy * look;
+    const al = Math.hypot(ax, az);
+    if (al > lim) {
+      ax *= lim / al;
+      az *= lim / al;
+    }
+    const tx = focus.x + ax;
+    const tz = focus.y + az;
     const k = 1 - Math.exp(-6 * dt);
     if (cam.metres === 0) {
       cam.x = tx;
@@ -204,6 +219,8 @@ export async function createRenderer3d(container, game) {
     const dist = cam.metres / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     camera.position.set(cam.x + sx, Math.cos(TILT) * dist, cam.z + Math.sin(TILT) * dist + sz);
     camera.lookAt(cam.x + sx, 0, cam.z + sz);
+    // Pieces of the city near what is on screen (the view reaches further up the screen).
+    city.update(cam.x, cam.z - cam.metres * 0.3, 3);
     camera.far = dist * 2.4 + 40;
     camera.updateProjectionMatrix();
     scene.fog.near = dist * 1.25;
@@ -247,13 +264,22 @@ export async function createRenderer3d(container, game) {
       ents.night = night;
     }
     ents.update(dt, night);
+    // An overview from high up (checks and screenshots only).
+    if (api.debugTop) {
+      camera.position.set(api.debugTop.x, api.debugTop.h, api.debugTop.y + api.debugTop.h * 0.6);
+      camera.lookAt(api.debugTop.x, 0, api.debugTop.y);
+      camera.far = api.debugTop.h * 2;
+      scene.fog.near = 1e4;
+      scene.fog.far = 2e4;
+      camera.updateProjectionMatrix();
+    }
     renderer.render(scene, camera);
   }
 
   // Prepare the shaders before the first frame (in parallel where the browser can).
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera).catch(() => {});
 
-  return {
+  const api = {
     frame,
     renderer,
     scene,
@@ -284,4 +310,5 @@ export async function createRenderer3d(container, game) {
       );
     },
   };
+  return api;
 }

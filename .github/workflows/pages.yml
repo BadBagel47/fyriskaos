@@ -41,6 +41,7 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html stiltest.html css src vendor gallery stiltest app models _site/
+          mkdir -p _site/data && cp -r data/map _site/data/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

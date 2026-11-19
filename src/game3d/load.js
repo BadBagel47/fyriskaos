@@ -20,6 +20,7 @@ export async function loadModels() {
   if (trees) setTreeModels(trees);
   if (bikes) setLoaded('bikes', bikes);
   if (people) {
+    for (const [n, parts] of Object.entries(people)) if (n.startsWith('ped_')) setLoaded(n, parts);
     const poses = ['stand', 'walk1', 'walk2', 'walk1', 'ride'].map((n) => people[`player_${n}`]).filter(Boolean);
     if (poses.length === 5) setLoaded('player', poses);
   }

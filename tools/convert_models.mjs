@@ -304,6 +304,45 @@ if (fs.existsSync(posed)) {
     people.player_ride = pose(byName[`${sex}_Sitting`] || byName[`${sex}_Standing`], playerCol);
     report.push(`player: ${sex} poses`);
   }
+  // Pedestrians (D-057): the shirt is its own part so each person can get a colour.
+  const pedPose = (file) => {
+    const parts = collect(loadOBJ(file), (m) => (/shirt|dress|top|tank/i.test(m.name) ? 'shirt' : 'vc'), (m) => (/shirt|dress|top|tank/i.test(m.name) ? new THREE.Color(1, 1, 1) : m.color));
+    const hf = hairFile(path.basename(file).split('_')[0]);
+    if (hf) {
+      const hair = collect(loadOBJ(hf), () => 'vc', () => new THREE.Color(0x3a2618));
+      const all = { vc: { position: [...parts.vc.position], normal: [], color: [], uv: [] } };
+      const P = parts.vc.position;
+      let maxY = -1e9, minY = 1e9;
+      for (let i = 1; i < P.length; i += 3) {
+        maxY = Math.max(maxY, P[i]);
+        minY = Math.min(minY, P[i]);
+      }
+      const top = maxY - (maxY - minY) * 0.06;
+      let hx = 0, hz = 0, n = 0;
+      for (let i = 0; i < P.length; i += 3)
+        if (P[i + 1] > top) {
+          hx += P[i];
+          hz += P[i + 2];
+          n++;
+        }
+      const H = hair.vc.position;
+      const hb = new THREE.Box3();
+      const v = new THREE.Vector3();
+      for (let i = 0; i < H.length; i += 3) hb.expandByPoint(v.set(H[i], H[i + 1], H[i + 2]));
+      for (let i = 0; i < H.length; i += 3) {
+        H[i] += hx / n - (hb.min.x + hb.max.x) / 2;
+        H[i + 1] += maxY + (maxY - minY) * 0.015 - hb.max.y;
+        H[i + 2] += hz / n - (hb.min.z + hb.max.z) / 2;
+      }
+      for (const k of ['position', 'normal', 'color', 'uv']) parts.vc[k].push(...hair.vc[k]);
+      void all;
+    }
+    normalise(parts, { height: 1.75, turn: -Math.PI / 2 });
+    return parts;
+  };
+  for (const sx of ['Male', 'Female'])
+    for (const ps of ['Walking', 'Standing'])
+      if (byName[`${sx}_${ps}`]) people[`ped_${sx.toLowerCase()}_${ps === 'Walking' ? 'walk' : 'stand'}`] = pedPose(byName[`${sx}_${ps}`]);
 }
 if (Object.keys(people).length) report.push(`people.bin ${writeModels('people.bin', people)} bytes`);
 else report.push('people: posed humans missing, skipped');

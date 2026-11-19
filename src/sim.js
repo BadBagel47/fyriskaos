@@ -237,7 +237,11 @@ function onBump(game, a, b, speed) {
   if (walker && speed > 5 && p.stun <= 0) {
     p.stun = 1.0;
     toast(game, 'Påkörd! Titta åt båda hållen nästa gång.');
+    game.events.push({ type: 'hurt', amount: Math.min(60, speed * 4) });
   }
+  // Ramming a police car (F-005): the game layer raises the wanted level.
+  if (p.vehicle && speed > 5 && ((a === p.vehicle && b.police) || (b === p.vehicle && a.police))) game.events.push({ type: 'policeBump' });
+  if (p.vehicle && (a === p.vehicle || b === p.vehicle) && speed > 8) game.events.push({ type: 'crash', speed });
   for (const v of [a, b]) {
     if (v.kind === 'vehicle' && v.driver && v.spec.class === 'bike' && speed > v.spec.fallImpact) {
       const other = v === a ? b : a;
@@ -264,6 +268,8 @@ function walk(p, input, dt) {
 }
 
 function onGrass(game, x, y) {
+  // The city map knows its ground per square metre (F-005).
+  if (game.map.cells) return game.map.cellAt(x, y) === game.map.G.grass;
   for (const g of game.map.grass) if (x >= g.x && x <= g.x + g.w && y >= g.y && y <= g.y + g.h) {
     for (const r of game.map.paths) if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return false;
     return true;
@@ -533,6 +539,7 @@ function fallOff(game, bike, nx, ny) {
   bike.vy *= 0.3;
   game.shake = 0.6;
   toast(game, 'Aj! Du ramlade av cykeln.');
+  game.events.push({ type: 'hurt', amount: 15 });
 }
 
 function toast(game, text) {
@@ -551,11 +558,13 @@ export function step(game, input, dt) {
   // For the tail lights: braking with the button or by pulling down.
   game.braking = !!(p.vehicle && p.vehicle.braking);
 
-  for (const v of game.vehicles) if (!v.driver && v.awake) coast(v, dt);
+  // Vehicles driven by the game (police, F-005) use the same driving model.
+  for (const v of game.vehicles) if (v.ai && !v.driver) drive(game, v, v.ai, dt);
+  for (const v of game.vehicles) if (!v.driver && !v.ai && v.awake) coast(v, dt);
 
   const movers = [];
   if (!p.vehicle) movers.push(p);
-  for (const v of game.vehicles) if (v.driver || v.awake) movers.push(v);
+  for (const v of game.vehicles) if (v.driver || v.awake || v.ai) movers.push(v);
 
   for (const m of movers) {
     m.x += m.vx * dt;
@@ -572,6 +581,7 @@ export function step(game, input, dt) {
     if (m.kind === 'vehicle' && m.driver && hit.impact > 0) {
       if (m.spec.class === 'bike' && hit.impact > m.spec.fallImpact) fallOff(game, m, hit.nx, hit.ny);
       else if (hit.impact > 6) game.shake = Math.min(1, hit.impact / 15);
+      if (hit.impact > 8) game.events.push({ type: 'crash', speed: hit.impact });
     }
   }
 

@@ -173,3 +173,75 @@ html, body {
 #settings .credit { margin: 2px 4px 0; font-size: 11px; opacity: 0.8; }
 .btn:active { filter: brightness(0.85); }
 #btn-start:disabled { opacity: 0.6; }
+
+/* Game layer (F-005, F-011, F-023): status, mission, phone, queue ticket */
+#status {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #1d1e20b3;
+  font-weight: 700;
+  font-size: 15px;
+  pointer-events: none;
+}
+#stars { color: #ffcf4a; letter-spacing: 1px; }
+#health { width: 70px; height: 8px; border-radius: 4px; background: #ffffff33; overflow: hidden; }
+#health i { display: block; height: 100%; background: #6ed36e; }
+#mission {
+  position: absolute;
+  top: calc(max(8px, env(safe-area-inset-top)) + 36px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: #1d1e20b3;
+  font-size: 13px;
+  pointer-events: none;
+  text-align: center;
+}
+#mission b { color: #ffd27a; }
+#phone {
+  position: absolute;
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, 70vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #f2f1ee;
+  color: #1d1e20;
+  font-size: 14px;
+  box-shadow: 0 4px 16px #0008;
+  pointer-events: none;
+}
+#phone b { font-size: 12px; color: #c0504a; }
+#ticket {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-3deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 22px;
+  background: #fffdf4;
+  color: #1d1e20;
+  border: 2px dashed #9a958c;
+  font-family: ui-monospace, monospace;
+  font-size: 15px;
+  pointer-events: none;
+}
+#credits .card a { color: #ffd27a; }

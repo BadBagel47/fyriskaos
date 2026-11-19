@@ -15,11 +15,16 @@
     <div id="hud">
       <div id="badge">Fyriskaos · prototyp · <span data-version></span></div>
       <div id="fps" hidden></div>
+      <div id="status"><span id="money"></span><span id="stars"></span><span id="health"><i></i></span></div>
+      <div id="mission" hidden><b id="mission-title"></b><span id="mission-info"></span></div>
+      <div id="phone" hidden><b id="phone-from"></b><span id="phone-text"></span></div>
+      <div id="ticket" hidden><b>KÖLAPP</b><span>Nummer 42</span><span>Beräknad väntetid: 4 sek</span></div>
       <button id="btn-settings" class="btn small-btn" aria-label="Inställningar">Inställningar</button>
       <div id="settings" hidden>
         <button id="set-quality" class="btn"></button>
         <button id="set-fps" class="btn"></button>
         <button id="set-steer" class="btn"></button>
+        <button id="set-credits" class="btn">Credits</button>
         <button id="set-close" class="btn">Stäng</button>
         <p class="credit">Kartdata: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>. Modeller: Quaternius (CC0).</p>
       </div>
@@ -33,11 +38,12 @@
     <div id="start" class="overlay">
       <div class="card">
         <h1>Fyriskaos</h1>
-        <p class="lead">Prova att gå, cykla och köra i en teststad i kvällssol.</p>
+        <p class="lead">Centrala Uppsala kring Fyrisån och Slottsbacken. Ett första uppdrag kommer som SMS.</p>
         <ul>
           <li><b>Gå:</b> dra med vänster tumme var som helst på vänstra halvan, åt det håll du vill gå.</li>
           <li><b>Cykla och köra:</b> dra åt det håll du vill åka, så svänger fordonet dit. Ju längre du drar, desto mer gas. Drar du bakåt bromsar du först, sedan backar eller vänder du. Släpp så rullar du ut.</li>
           <li><b>Stora knappen</b> till höger byter funktion: Ta cykeln, Kliv in, Kliv ur.</li>
+          <li><b>Pilen</b> vid din figur pekar mot nästa mål. Kör du på folk eller rammar polisen blir du efterlyst.</li>
           <li><b>Broms</b> plus dragning åt sidan i fart ger en handbromssväng. Under <b>Inställningar</b> kan du välja den klassiska styrningen.</li>
           <li class="desk"><b>På dator:</b> piltangenter eller WASD (i fordon: upp gasar, ned bromsar och backar, åt sidan svänger), E för stora knappen, mellanslag för broms.</li>
         </ul>
@@ -47,6 +53,15 @@
     </div>
 
     <div id="rotate" class="overlay"><div class="card"><p>Vrid telefonen till liggande läge.</p></div></div>
+    <div id="credits" class="overlay" hidden>
+      <div class="card">
+        <h2>Credits</h2>
+        <p>Kartdata: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> (ODbL).</p>
+        <p>Modeller: Quaternius och Kenney (CC0). Grafik: Three.js (MIT). Texturer och målbilder: genererade med ElevenLabs bildgenerator.</p>
+        <p>Allt annat: spelets egen kod. Alla namn på nationer, gäng och tjänster är påhittade.</p>
+        <button id="credits-close" class="btn primary">Stäng</button>
+      </div>
+    </div>
     <div id="error" class="overlay" hidden></div>
     <noscript><div class="overlay"><div class="card">Spelet behöver JavaScript.</div></div></noscript>
 
