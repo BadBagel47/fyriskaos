@@ -104,7 +104,9 @@ function resize() {
   // The short side of the screen always shows the same metres of street.
   const tiltOn = view === 'lutad' && cam.rotatePortrait;
   const dist = tiltOn ? cam.tiltDistance : cam.height;
-  const half = Math.atan((tiltOn ? cam.tiltViewShort : cam.viewShort) / 2 / dist);
+  // In portrait the tilted view is zoomed in a little, so the street fills the screen.
+  const short = tiltOn ? (w < h ? cam.tiltViewShort * 0.72 : cam.tiltViewShort) : cam.viewShort;
+  const half = Math.atan(short / 2 / dist);
   camera.fov = THREE.MathUtils.radToDeg(w >= h ? 2 * half : 2 * Math.atan(Math.tan(half) / camera.aspect));
   camera.updateProjectionMatrix();
   fitShadowBox();
@@ -179,7 +181,7 @@ function frame(now) {
     built.nearFade = tilted;
   }
   // In portrait the tilted view looks a little further north, at the facades.
-  const c = tilted ? (camera.aspect < 1 ? cam.tiltCenter.clone().setZ(cam.tiltCenter.z - 5) : cam.tiltCenter) : cam.center;
+  const c = tilted ? (camera.aspect < 1 ? cam.tiltCenter.clone().setZ(cam.tiltCenter.z - 1) : cam.tiltCenter) : cam.center;
   const portrait = camera.aspect < 1;
   const tx = panning ? c.x + Math.sin(t * 0.15) * 9 : c.x;
   const tz = c.z;

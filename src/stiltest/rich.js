@@ -580,7 +580,7 @@ export async function buildRich(renderer) {
   // ---------- trees: three kinds, rounded crowns carrying the crown pictures ----------
   const treeSpots = [];
   for (let x = -8; x < 90; x += 9.5) if (Math.abs(x - 30) > 3.5) treeSpots.push([x + (R() - 0.5), 7.75, 'lind']);
-  for (const [x, z, k] of [[14, -11.3, 'bjork'], [45, -11.2, 'bjork'], [-1, 11.5, 'lonn'], [41.8, 12.5, 'bjork'], [62, 11.3, 'lonn'], [28, -24, 'lonn'], [10, -27, 'lind'], [50, -26, 'bjork'], [20, 25, 'lonn'], [60, 26, 'lind']]) treeSpots.push([x, z, k]);
+  for (const [x, z, k] of [[14, -11.3, 'bjork'], [45, -11.2, 'bjork'], [-1, 11.5, 'lonn'], [41.8, 12.5, 'bjork'], [62, 11.3, 'lonn'], [28, -24, 'lonn'], [10, -27, 'lind'], [50, -26, 'bjork'], [20, 25, 'lonn'], [60, 26, 'lind'], [5, 17, 'bjork'], [33, 18, 'lind'], [48, 17.5, 'bjork'], [70, 18, 'lonn']]) treeSpots.push([x, z, k]);
   const kinds = { lind: 0, lonn: 1, bjork: 2 };
   const crownMats = treeTex.map((t) => new THREE.MeshStandardMaterial({ map: t, vertexColors: true, roughness: 0.9 }));
   for (const [kind, ti] of Object.entries(kinds)) {
