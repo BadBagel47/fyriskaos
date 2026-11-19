@@ -8,6 +8,10 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
+| F-059 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Glöd (bloom) ovanpå den nuvarande bilden: bara starka ljuskällor glöder (lyktornas lampor, billyktor och bakljus, tända fönster på kvällen, blåljus). Hög tröskel i linjärt HDR; ljuskällorna får ljusstyrka över tröskeln. Låg: ingen glöd; Medel: halv upplösning; Hög: full upplösning. |
+| F-060 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Blank lack: bilarna med klarlack som speglar kvällshimlen, och en miljökarta gjord av en himmel med låg sol, så att lack och rutor speglar den. |
+| F-061 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Kvällsljus och dimma: lägre och varmare sol på kvällen (cirka 4–5° över horisonten) med långa skuggor, svagare himmelsljus för mer kontrast, och exponentiell dimma i en varm, dämpad ton som tonar bort det som ligger långt bort. |
+| F-062 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Spegling i Fyrisån: husen, broarna och lyktorna speglas i ån (bara när ån syns). Låg och Medel: ån speglar bara miljökartan; Hög: riktig spegling i låg upplösning. |
 | F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 9 s med centrum och 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
 | D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`) och buskar. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
