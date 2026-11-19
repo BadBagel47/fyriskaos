@@ -1010,3 +1010,62 @@ Kenney mini-characters: https://kenney.nl/assets/mini-characters
   233 files in zip, 45 kept
 Kenney city-kit-suburban: https://kenney.nl/assets/city-kit-suburban
   225 files in zip, 13 kept
+Fetched 2026-11-19
+Quaternius backgroundposedhumans: https://drive.google.com/drive/folders/18dWyZlA53euzsc1WobITqFYLcT5sFULz
+  114 files listed, 57 picked
+  download failed Male/Male Poses/OBJ/Male_Standing_Waving.obj: Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1hUF5EuBSqa5iVigsfhK3nkalybBuZsF7
+
+but Gdown can't. Please check connections and permissions.
+  download failed Male/Male Poses/OBJ/Male_Standing.mtl: Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1smW3UJYnJCVavWgy2Py4SLCH_fzYveqK
+
+but Gdown can't. Please check connections and permissions.
+  download failed Male/Male Poses/OBJ/Male_Standing.obj: Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1sYxmvLuMH9CkwwLGyTAhZsN_-tFIhbHu
+
+but Gdown can't. Please check connections and permissions.
+  download failed Male/Male Poses/OBJ/Male_Walking.mtl: Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1Zv_nbFAwvCaPURwTnMBUDGGqjtfzfodI
+
+but Gdown can't. Please check connections and permissions.
+  download failed Male/Male Poses/OBJ/Male_Walking.obj: Failed to retrieve file url:
+
+	Cannot retrieve the public link of the file. You may need to change
+	the permission to 'Anyone with the link', or have had many accesses.
+	Check FAQ in https://github.com/wkentaro/gdown?tab=readme-ov-file#faq.
+
+You may still be able to access the file from the browser:
+
+	https://drive.google.com/uc?id=1VAjoX0X9gFFx8F1L0F3TC2YjS40CNoi7
+
+but Gdown can't. Please check connections and permissions.
+  52 downloaded
