@@ -172,26 +172,43 @@ function addHouse(H, h, place) {
   H.trim.add(new THREE.BoxGeometry(2.6, 0.35, 1.1), 0xa29a8e, at(dx, 0.17, d / 2 + 0.55));
   // Bay windows (burspråk): three-sided, standing out 1.4 m, with corner
   // trim, a band per floor and a hipped metal roof.
+  // Angular bay outline (half-trapezoid) as a flat-shaded prism standing on the wall.
+  const bayPrism = (bw, fw, D, hgt) => {
+    const sh = new THREE.Shape();
+    sh.moveTo(-bw / 2, 0);
+    sh.lineTo(-fw / 2, -D);
+    sh.lineTo(fw / 2, -D);
+    sh.lineTo(bw / 2, 0);
+    sh.lineTo(-bw / 2, 0);
+    const g = new THREE.ExtrudeGeometry(sh, { depth: hgt, bevelEnabled: false, curveSegments: 1 });
+    g.rotateX(-Math.PI / 2);
+    return g;
+  };
   for (const bc of bayCols) {
     const bx = -w / 2 + step * (bc + 0.5);
     const bh = (floors - 1) * FLOOR;
     const by = 1.0 + FLOOR;
     const bw = step * 1.3;
-    const bayG = new THREE.CylinderGeometry(bw * 0.62, bw * 0.62, bh, 6, 1, false, -Math.PI / 2, Math.PI);
-    bayG.scale(1, 1, 1.4 / (bw * 0.62));
-    H.wall.add(bayG, new THREE.Color(wallC).multiplyScalar(1.04).getHex(), at(bx, by + bh / 2, d / 2));
-    for (let f = 0; f <= floors - 1; f++) {
-      const ring = new THREE.CylinderGeometry(bw * 0.66, bw * 0.66, 0.18, 6, 1, false, -Math.PI / 2, Math.PI);
-      ring.scale(1, 1, 1.55 / (bw * 0.66));
-      H.trim.add(ring, 0xf4efe6, at(bx, by + f * FLOOR, d / 2));
-    }
+    const fw = bw * 0.5;
+    const D = 1.3;
+    H.wall.add(bayPrism(bw, fw, D, bh), new THREE.Color(wallC).multiplyScalar(1.04).getHex(), at(bx, by, d / 2));
+    for (let f = 0; f <= floors - 1; f++) H.trim.add(bayPrism(bw + 0.3, fw + 0.2, D + 0.12, 0.18), 0xf4efe6, at(bx, by + f * FLOOR - 0.09, d / 2));
+    // Side facet: centre and outward angle.
+    const sx = (bw + fw) / 4;
+    const sa = Math.atan2(D, (bw - fw) / 2);
     for (let f = 1; f < floors; f++) {
-      win(bx, 1.0 + f * FLOOR + 1.6, d / 2 + 1.42, 0);
-      for (const sgn of [-1, 1]) win(bx + sgn * bw * 0.42, 1.0 + f * FLOOR + 1.6, d / 2 + 0.72, sgn * 0.98);
+      const y = 1.0 + f * FLOOR + 1.6;
+      win(bx, y, d / 2 + D + 0.02, 0);
+      for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa);
     }
-    const cap = new THREE.ConeGeometry(bw * 0.72, 1.3, 6, 1, false, -Math.PI / 2, Math.PI);
-    cap.scale(1, 1, 1.7 / (bw * 0.72));
-    H.roof.add(cap, 0x7f8c95, at(bx, by + bh + 0.65, d / 2));
+    // Hipped sheet-metal cap.
+    const o = 0.18, ch = 0.85;
+    const P = [[-bw / 2 - o, 0, 0], [-fw / 2 - o * 0.5, 0, D + o], [fw / 2 + o * 0.5, 0, D + o], [bw / 2 + o, 0, 0], [-fw * 0.3, ch, 0], [fw * 0.3, ch, 0]];
+    const tri = [0, 1, 4, 1, 2, 5, 1, 5, 4, 2, 3, 5];
+    const cg = new THREE.BufferGeometry();
+    cg.setAttribute('position', new THREE.Float32BufferAttribute(tri.flatMap((i) => P[i]), 3));
+    cg.computeVertexNormals();
+    H.roof.add(cg, 0x6f7a82, at(bx, by + bh + 0.05, d / 2));
   }
   // Main cornice (gesims) with brackets under it.
   for (let k = 0; k < Math.floor(w / 0.9); k++) H.trim.add(new THREE.BoxGeometry(0.22, 0.35, 0.5), 0xe6dfd2, at(-w / 2 + 0.45 + k * 0.9, top - 0.15, d / 2 + 0.25));

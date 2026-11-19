@@ -134,8 +134,8 @@ export function addLamp(B, place, dir = 1) {
   // Classic lantern: a small pointed roof with a gold knob, a bright glass
   // body (drawn separately so it glows), a thin frame and a bottom cup.
   const lz = dir * 1.12;
-  B.add(new THREE.CylinderGeometry(0.05, 0.37, 0.24, 6), iron, at(0, 4.98, lz));
-  B.add(new THREE.CylinderGeometry(0.38, 0.38, 0.05, 6), 0xb8923a, at(0, 4.86, lz));
+  B.add(new THREE.CylinderGeometry(0.05, 0.27, 0.22, 6), iron, at(0, 4.98, lz));
+  B.add(new THREE.CylinderGeometry(0.29, 0.29, 0.05, 6), 0xb8923a, at(0, 4.86, lz));
   B.add(new THREE.SphereGeometry(0.07, 6, 4), 0xd4aa48, at(0, 5.15, lz));
   for (let k = 0; k < 6; k++) {
     const a = (k / 6) * Math.PI * 2 + Math.PI / 6;
@@ -515,9 +515,9 @@ export function trunkGeometry(B, kind) {
 export function treeV2(kind, seed) {
   const R = rng(seed * 97 + 13);
   const K = {
-    lind: { h: 3.6, br: 6, reach: 2.5, rise: 2.6, cl: [0.75, 1.1], n: 4, leaf: [0.78, 1.0, 0.42], bark: 0x4a3a2c, w: 0.26 },
-    lonn: { h: 3.0, br: 7, reach: 2.9, rise: 2.2, cl: [0.8, 1.2], n: 4, leaf: [0.66, 0.9, 0.36], bark: 0x3f3328, w: 0.3 },
-    bjork: { h: 4.4, br: 5, reach: 1.6, rise: 3.0, cl: [0.6, 0.9], n: 4, leaf: [0.95, 1.1, 0.5], bark: 0xe6e1d6, w: 0.17 },
+    lind: { h: 3.6, br: 5, reach: 2.6, rise: 2.6, cl: [0.5, 0.85], n: 5, leaf: [0.55, 1.2, 0.42], bark: 0x4a3a2c, w: 0.26 },
+    lonn: { h: 3.0, br: 6, reach: 3.0, rise: 2.2, cl: [0.55, 0.9], n: 5, leaf: [0.5, 1.12, 0.38], bark: 0x3f3328, w: 0.3 },
+    bjork: { h: 4.4, br: 5, reach: 1.7, rise: 3.0, cl: [0.42, 0.68], n: 5, leaf: [0.56, 1.2, 0.42], bark: 0xe6e1d6, w: 0.17 },
   }[kind];
   const wood = new Builder2();
   const leaves = new Builder2();
@@ -539,7 +539,7 @@ export function treeV2(kind, seed) {
     wood.tube(mid, end, K.w * 0.4, K.w * 0.22, K.bark, 4);
     for (let c = 0; c < K.n; c++) {
       const t = c === 0 ? 1 : 0.55 + R() * 0.35;
-      const p = [start[0] + (end[0] - start[0]) * t + (R() - 0.5) * 0.9, start[1] + (end[1] - start[1]) * t + 0.3 + R() * 0.6, start[2] + (end[2] - start[2]) * t + (R() - 0.5) * 0.9];
+      const p = [start[0] + (end[0] - start[0]) * t + (R() - 0.5) * 0.6, start[1] + (end[1] - start[1]) * t + 0.3 + R() * 0.5, start[2] + (end[2] - start[2]) * t + (R() - 0.5) * 0.6];
       clusters.push([p, K.cl[0] + R() * (K.cl[1] - K.cl[0])]);
     }
   }
@@ -559,9 +559,12 @@ export function treeV2(kind, seed) {
       const inner = Math.max(0, -(nor[i] * p[0] + nor[i + 2] * p[2])) * 0.08;
       const k = tone * (0.7 + 0.25 * height - inner);
       // Leaf green, warmed towards gold where the evening sun hits.
-      col[i] = K.leaf[0] * k + ndl * 0.55;
-      col[i + 1] = K.leaf[1] * k + ndl * 0.4;
-      col[i + 2] = K.leaf[2] * k + ndl * 0.05;
+      // The real sun already brightens the lit side; damp it there so lit
+      // leaves stay yellow-green instead of burning out to gold.
+      const damp = 1 - 0.4 * ndl;
+      col[i] = K.leaf[0] * k * damp * 0.9;
+      col[i + 1] = K.leaf[1] * k * damp;
+      col[i + 2] = K.leaf[2] * k * damp;
     }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     g.translate(p[0], p[1], p[2]);
@@ -576,13 +579,13 @@ function lumpCluster(r, seed) {
   const g = new THREE.IcosahedronGeometry(r, 1);
   const R = rng(seed);
   const p = g.attributes.position;
-  const bumps = Array.from({ length: 6 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.12 + R() * 0.2]);
+  const bumps = Array.from({ length: 7 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.15 + R() * 0.35]);
   for (let i = 0; i < p.count; i++) {
     const v = new THREE.Vector3().fromBufferAttribute(p, i).normalize();
-    let k = 0.8 + R() * 0.12;
+    let k = 0.72 + R() * 0.16;
     for (const [bx, by, bz, a] of bumps) k += a * Math.max(0, v.x * bx + v.y * by + v.z * bz) ** 2;
     v.multiplyScalar(r * k);
-    if (v.y < 0) v.y *= 0.55;
+    v.y *= v.y < 0 ? 0.5 : 0.8;
     v.x *= 1.15;
     v.z *= 1.15;
     p.setXYZ(i, v.x, v.y, v.z);
