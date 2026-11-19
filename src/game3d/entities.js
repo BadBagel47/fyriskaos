@@ -7,7 +7,8 @@ import { Builder, m4 } from '../stiltest/geo.js';
 import * as P3 from '../stiltest/props3.js';
 import { carParts, MODELS } from '../stiltest/rich.js';
 import * as L from '../stiltest/look.js';
-import { people, getLoaded } from './models.js';
+import { people, getLoaded, playerWalk } from './models.js';
+import { walkMaterial, walkDepthMaterial, stepRate, stepAmount } from './walk.js';
 
 const CAR_MODEL = { small: ['hatch'], car: ['sedan', 'estate', 'sedan'], sport: ['sport'] };
 
@@ -113,7 +114,8 @@ export function createEntities(game, mats) {
   }
 
   // The player: a CC0 figure when the models are there, otherwise the
-  // code-built person. Walking swaps between a few poses.
+  // code-built person. Walking swings the arms and legs (B-058); on the bike
+  // the sitting figure is shown.
   const player = new THREE.Group();
   let poses = [];
   const setPoses = () => {
@@ -158,7 +160,8 @@ export function createEntities(game, mats) {
     group.add(b);
   }
 
-  let walk = 0;
+  let stepPhase = 0;
+  let stepAmt = 0;
   function update(dt, night) {
     // Only vehicles that move need a new place (most stand parked).
     for (const [v, root] of views) {
@@ -174,10 +177,13 @@ export function createEntities(game, mats) {
     const inCar = veh && veh.spec.class === 'car';
     player.visible = !inCar;
     const speed = Math.hypot(p.vx, p.vy);
-    walk += dt * speed * 2.2;
     const onBike = veh && veh.spec.class === 'bike';
-    const k = onBike ? poses.length - 1 : speed > 0.4 ? 1 + (Math.floor(walk) % (poses.length - 2)) : 0;
-    poses.forEach((m, i) => (m.visible = i === Math.min(k, poses.length - 1)));
+    poses.forEach((m, i) => (m.visible = i === (onBike ? 1 : 0)));
+    // The step follows the speed: faster and longer when running.
+    const pace = onBike || p.stun > 0 ? 0 : speed;
+    stepPhase = (stepPhase + dt * stepRate(pace)) % (Math.PI * 2);
+    stepAmt += (stepAmount(pace) - stepAmt) * Math.min(1, dt * 8);
+    playerWalk.value.set(stepPhase, stepAmt);
     const at = veh || p;
     player.position.set(at.x, onBike ? 0.14 + 0.35 : 0.14, at.y);
     player.rotation.y = -(veh ? veh.heading : p.heading);
@@ -213,7 +219,7 @@ export function createEntities(game, mats) {
       bar[0].material.color.setHex(on ? 0x3a7bff : 0x1f3f8f);
       bar[1].material.color.setHex(on ? 0xff3a3a : 0x8f1f1f);
     }
-    crowd.update(game.play ? game.play.peds : []);
+    crowd.update(game.play ? game.play.peds : [], dt);
     skids.update(game.vehicles);
     const showLights = veh && night > 0.05;
     for (const b of [...beams, ...tails]) b.visible = !!showLights;
@@ -243,7 +249,8 @@ export function createEntities(game, mats) {
     setPoses();
     crowd.load();
   }
-  return { group, update, views, upgrade };
+  // For tests (B-058): the player's figures and the crowd's meshes.
+  return { group, update, views, upgrade, player, poses: () => poses, crowd };
 }
 
 function hash(s) {
@@ -305,52 +312,66 @@ function createSkidMarks() {
   };
 }
 
-// Pedestrians (D-057): instanced CC0 people (man and woman, walking and
-// standing), each with its own shirt colour. Shown when the models have loaded.
+// Pedestrians (D-057): instanced CC0 people (a man and a woman), each with
+// its own shirt colour. Their arms and legs swing in the vertex shader
+// (B-058), the step from each person's speed. Shown when the models have loaded.
 function createCrowd(group, game, mats) {
   const MAX = 40;
-  let sets = null; // [kind*2 + stand] -> { body, shirt }
-  const shirtMat = new THREE.MeshStandardMaterial({ roughness: 0.8 });
+  let sets = null; // per kind: { body, shirt, walk }
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
   const e = new THREE.Euler();
+  const pos = new THREE.Vector3();
   const one = new THREE.Vector3(1, 1, 1);
   const c = new THREE.Color();
+  const steps = new WeakMap(); // person -> { phase, amt }
   return {
+    get sets() {
+      return sets;
+    },
     load() {
-      const names = ['ped_male_walk', 'ped_male_stand', 'ped_female_walk', 'ped_female_stand'];
-      const got = names.map((n) => getLoaded(n));
+      const got = ['ped_male', 'ped_female'].map((n) => getLoaded(n));
       if (got.some((g) => !g)) return;
       sets = got.map((parts) => {
-        const mk = (p, mat) => {
-          const im = new THREE.InstancedMesh(p.geo, mat, MAX);
+        const body = parts.find((p) => p.mat === 'vc');
+        const shirt = parts.find((p) => p.mat === 'shirt');
+        const rig = body.rig;
+        const walk = new THREE.InstancedBufferAttribute(new Float32Array(MAX * 2), 2).setUsage(THREE.DynamicDrawUsage);
+        const mk = (p, base) => {
+          p.geo.setAttribute('walk', walk);
+          const im = new THREE.InstancedMesh(p.geo, rig ? walkMaterial(base, rig) : base, MAX);
+          if (rig) im.customDepthMaterial = walkDepthMaterial(rig);
           im.count = 0;
           im.castShadow = true;
           im.frustumCulled = false;
           group.add(im);
           return im;
         };
-        const body = parts.find((p) => p.mat === 'vc');
-        const shirt = parts.find((p) => p.mat === 'shirt');
-        const sh = shirt ? mk(shirt, shirtMat) : null;
+        const sh = shirt ? mk(shirt, new THREE.MeshStandardMaterial({ roughness: 0.8 })) : null;
         if (sh) sh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX * 3).fill(1), 3);
-        return { body: mk(body, mats.solid), shirt: sh };
+        return { body: mk(body, mats.solid), shirt: sh, walk };
       });
     },
-    update(peds) {
+    update(peds, dt) {
       if (!sets) return;
       for (const s of sets) {
         s.body.count = 0;
         if (s.shirt) s.shirt.count = 0;
       }
       for (const p of peds) {
-        const s = sets[p.kind * 2 + (p.stand || p.down > 0 ? 1 : 0)];
+        const s = sets[p.kind];
         const i = s.body.count;
         if (i >= MAX) continue;
-        const bob = p.stand || p.down > 0 ? 0 : Math.abs(Math.sin(game.time * 7 + p.x)) * 0.05;
+        // The step: phase and amount follow the speed, smoothly.
+        const pace = p.stand || p.down > 0 ? 0 : p.pace ?? p.speed;
+        let st = steps.get(p);
+        if (!st) steps.set(p, (st = { phase: Math.abs(p.x * 1.7) % 6.28, amt: 0 }));
+        st.phase = (st.phase + dt * stepRate(pace)) % (Math.PI * 2);
+        st.amt += (stepAmount(pace) - st.amt) * Math.min(1, dt * 6);
+        s.walk.setXY(i, st.phase, st.amt);
         e.set(p.down > 0 ? Math.PI / 2 : 0, -p.heading, 0, 'YXZ');
         q.setFromEuler(e);
-        m.compose(new THREE.Vector3(p.x, 0.14 + bob + (p.down > 0 ? 0.3 : 0), p.y), q, one);
+        m.compose(pos.set(p.x, 0.14 + (p.down > 0 ? 0.3 : 0), p.y), q, one);
         s.body.setMatrixAt(i, m);
         s.body.count = i + 1;
         if (s.shirt) {
@@ -361,6 +382,7 @@ function createCrowd(group, game, mats) {
       }
       for (const s of sets) {
         s.body.instanceMatrix.needsUpdate = true;
+        s.walk.needsUpdate = true;
         if (s.shirt) {
           s.shirt.instanceMatrix.needsUpdate = true;
           if (s.shirt.instanceColor) s.shirt.instanceColor.needsUpdate = true;

@@ -293,6 +293,7 @@ export async function createRenderer3d(container, game) {
       return quality;
     },
     city,
+    ents,
     // Load the CC0 models after the start and swap them in (D-048).
     async upgradeModels() {
       const [, tt] = await Promise.all([loadModels(), treeTextures(L.loadTexture)]);

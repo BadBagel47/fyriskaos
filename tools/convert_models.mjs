@@ -5,7 +5,8 @@
 //
 // File format (read by src/game3d/models.js): uint32 header length, a JSON
 // header { models: { name: [ { mat, n, index, uv, wide } ] } }, padded to 4
-// bytes, then per part: positions (Float32 x3), normals (Int8 x4), colours
+// bytes, then per part: positions (Float32 x3), normals (Int8 x4; the fourth
+// byte marks arms and legs of people, see rigCodes), colours
 // (Uint8 x4), uvs (Float32 x2, if uv) and the index (Uint16, or Uint32 if wide).
 
 import fs from 'fs';
@@ -161,6 +162,81 @@ function softCrown(P, tint = [1, 1, 1]) {
   }
 }
 
+// Walking people (B-058): each vertex of a standing person is marked as part
+// of an arm or a leg, so the game can swing the limbs in the vertex shader.
+// The figure faces +x, up is y, its left and right are -z and +z. Stored in
+// the normal's spare fourth byte: 0 body, ±1..60 leg (weight), ±64..124 arm;
+// the sign is the side. Proportions below are of a figure 1.75 m tall.
+const rigs = new Map(); // parts -> height
+// The joints, as parts of the height; written into the file for the game.
+const RIG = { hip: 0.5, knee: 0.27, shoulder: 0.79 };
+function rigCodes(pos, index, H) {
+  const n = pos.length / 3;
+  // The figures are flat shaded: corners in the same place are separate
+  // vertices. Weld them by place to follow the surface.
+  const weld = new Int32Array(n);
+  const at = new Map();
+  for (let i = 0; i < n; i++) {
+    const k = `${Math.round(pos[i * 3] * 2000)},${Math.round(pos[i * 3 + 1] * 2000)},${Math.round(pos[i * 3 + 2] * 2000)}`;
+    if (!at.has(k)) at.set(k, at.size);
+    weld[i] = at.get(k);
+  }
+  const m = at.size;
+  const wpos = new Float32Array(m * 3);
+  for (let i = 0; i < n; i++) wpos.set(pos.subarray(i * 3, i * 3 + 3), weld[i] * 3);
+  const f = (i) => wpos[i * 3 + 1] / H;
+  const az = (i) => (Math.abs(wpos[i * 3 + 2]) * 1.75) / H;
+  const ramp = (a, b, v) => Math.max(0, Math.min(1, (v - a) / (b - a)));
+  const next = Array.from({ length: m }, () => []);
+  for (let t = 0; t < index.length; t += 3)
+    for (let k = 0; k < 3; k++) next[weld[index[t + k]]].push(weld[index[t + (k + 1) % 3]], weld[index[t + (k + 2) % 3]]);
+  // Arms: start from the upper arms (clearly outside the chest) and follow the
+  // surface down to the fingertips. Below the armpit an arm hangs free, so the
+  // fill never reaches the body, and the hands never mix with the thighs.
+  const arm = new Uint8Array(m);
+  const stack = [];
+  for (let i = 0; i < m; i++)
+    if (f(i) > 0.55 && f(i) < 0.7 && az(i) > 0.19) {
+      arm[i] = 1;
+      stack.push(i);
+    }
+  while (stack.length) {
+    const i = stack.pop();
+    for (const j of next[i])
+      if (!arm[j] && f(j) < 0.7) {
+        arm[j] = 1;
+        stack.push(j);
+      }
+  }
+  // Hands that are separate pieces: a piece that touches an arm goes with it.
+  const piece = new Int32Array(m).fill(-1);
+  const pieces = [];
+  for (let i = 0; i < m; i++) {
+    if (piece[i] >= 0) continue;
+    const list = [i];
+    piece[i] = pieces.length;
+    for (let k = 0; k < list.length; k++) for (const j of next[list[k]]) if (piece[j] < 0) ((piece[j] = pieces.length), list.push(j));
+    pieces.push(list);
+  }
+  const armList = [];
+  for (let i = 0; i < m; i++) if (arm[i] && f(i) < 0.6) armList.push(i);
+  const near = 0.03 * (H / 1.75);
+  for (const list of pieces) {
+    if (arm[list[0]] || list.length > m / 4) continue;
+    const touches = list.some((i) => f(i) < 0.6 && armList.some((j) => Math.hypot(wpos[i * 3] - wpos[j * 3], wpos[i * 3 + 1] - wpos[j * 3 + 1], wpos[i * 3 + 2] - wpos[j * 3 + 2]) < near));
+    if (touches) for (const i of list) arm[i] = 1;
+  }
+  const out = new Int8Array(n);
+  for (let v = 0; v < n; v++) {
+    const i = weld[v];
+    const side = wpos[i * 3 + 2] < 0 ? -1 : 1;
+    if (arm[i] || (f(i) >= 0.7 && f(i) < 0.81 && az(i) > 0.19)) out[v] = side * (64 + Math.round(60 * ramp(0.8, 0.73, f(i))));
+    // Legs from the hip down; the shirt hem and the crotch line (z near 0) stay with the body.
+    else if (f(i) < 0.5) out[v] = side * Math.round(60 * ramp(0.5, 0.43, f(i)) * ramp(0.004, 0.03, az(i)));
+  }
+  return out;
+}
+
 function writeModels(file, models) {
   const head = { models: {} };
   const chunks = [];
@@ -187,12 +263,13 @@ function writeModels(file, models) {
         }
         col[i * 4 + 3] = 255;
       }
+      if (rigs.has(parts)) rigCodes(pos, idx, rigs.get(parts)).forEach((v, i) => (nor[i * 4 + 3] = v));
       chunks.push(Buffer.from(pos.buffer), Buffer.from(nor.buffer), Buffer.from(col.buffer));
       if (hasUv) chunks.push(Buffer.from(new Float32Array(g.attributes.uv.array).buffer));
       const ib = wide ? new Uint32Array(idx) : new Uint16Array(idx);
       const ibuf = Buffer.from(ib.buffer);
       chunks.push(ibuf, Buffer.alloc((4 - (ibuf.length % 4)) % 4));
-      return { mat, n, index: idx.length, uv: hasUv, wide };
+      return rigs.has(parts) ? { mat, n, index: idx.length, uv: hasUv, wide, rig: { h: rigs.get(parts), ...RIG } } : { mat, n, index: idx.length, uv: hasUv, wide };
     });
   }
   const hb = Buffer.from(JSON.stringify(head));
@@ -250,7 +327,7 @@ if (fs.existsSync(posed)) {
     walk(posed);
     return out;
   };
-  // The player: a man in an orange jacket, standing, walking, running, sitting on the bike.
+  // The player: a man in an orange jacket, standing and sitting on the bike.
   const hairFile = (sex) => find(new RegExp(`^${sex}_Hairstyle_1\\.obj$`))[0];
   const pose = (file, recolour) => {
     const parts = collect(loadOBJ(file), () => 'vc', (m) => recolour(m) || m.color);
@@ -289,18 +366,19 @@ if (fs.existsSync(posed)) {
       }
       for (const k of ['position', 'normal', 'color', 'uv']) parts.vc[k].push(...hair.vc[k]);
     }
-    normalise(parts, { height: 1.85, turn: -Math.PI / 2 });
+    normalise(parts, { height: 1.85, turn: Math.PI / 2 });
     return parts;
   };
   const playerCol = (m) => (/shirt|jacket|top|body|cloth/i.test(m.name) ? new THREE.Color(0xf0a43a) : null);
   const files = find(/^(Male|Female)_(Standing|Walking|Running|Sitting)\.obj$/);
   const byName = Object.fromEntries(files.map((f) => [path.basename(f, '.obj'), f]));
   // Prefer the man; use the woman if one of his poses is missing.
-  const sex = ['Male', 'Female'].find((x) => ['Standing', 'Walking', 'Running'].every((p) => byName[`${x}_${p}`]));
+  const sex = ['Male', 'Female'].find((x) => byName[`${x}_Standing`]);
   if (sex) {
+    // Standing, with arms and legs marked so the game can swing them (B-058),
+    // and sitting on the bike.
     people.player_stand = pose(byName[`${sex}_Standing`], playerCol);
-    people.player_walk1 = pose(byName[`${sex}_Walking`], playerCol);
-    people.player_walk2 = pose(byName[`${sex}_Running`], playerCol);
+    rigs.set(people.player_stand, 1.85);
     people.player_ride = pose(byName[`${sex}_Sitting`] || byName[`${sex}_Standing`], playerCol);
     report.push(`player: ${sex} poses`);
   }
@@ -337,12 +415,16 @@ if (fs.existsSync(posed)) {
       for (const k of ['position', 'normal', 'color', 'uv']) parts.vc[k].push(...hair.vc[k]);
       void all;
     }
-    normalise(parts, { height: 1.75, turn: -Math.PI / 2 });
+    normalise(parts, { height: 1.75, turn: Math.PI / 2 });
     return parts;
   };
+  // One standing figure each; the game swings the arms and legs (B-058).
   for (const sx of ['Male', 'Female'])
-    for (const ps of ['Walking', 'Standing'])
-      if (byName[`${sx}_${ps}`]) people[`ped_${sx.toLowerCase()}_${ps === 'Walking' ? 'walk' : 'stand'}`] = pedPose(byName[`${sx}_${ps}`]);
+    if (byName[`${sx}_Standing`]) {
+      const parts = pedPose(byName[`${sx}_Standing`]);
+      rigs.set(parts, 1.75);
+      people[`ped_${sx.toLowerCase()}`] = parts;
+    }
 }
 if (Object.keys(people).length) report.push(`people.bin ${writeModels('people.bin', people)} bytes`);
 else report.push('people: posed humans missing, skipped');

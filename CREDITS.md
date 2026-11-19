@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | Träd i spelet: Tree_1, 3, 5, 7, 9 och Birch_2, 6 med bark- och lövbilder (*Stylized Tree*) samt CommonTree_1, 3 (*Ultimate Nature*) | [Quaternius](https://quaternius.com), hämtade 2026-11-19 (`assets/cc0/quaternius/`), omgjorda till `models/trees.bin` och `models/tex/` | CC0 1.0 |
 | Cyklar: Bicycle och SquareFrameBicycle (*Public Transport*), omgjorda till `models/bikes.bin` men inte använda just nu (spelet använder den egna stadscykeln, B-056) | [Quaternius](https://quaternius.com) | CC0 1.0 |
-| Spelaren och fotgängarna (*Background Posed Humans*: poser och frisyrer) i `models/people.bin` | [Quaternius](https://quaternius.com) | CC0 1.0 |
+| Spelaren och fotgängarna (*Background Posed Humans*: stående och sittande pose och frisyrer) i `models/people.bin`; gången (svängande armar och ben) är egen kod i `src/game3d/walk.js` | [Quaternius](https://quaternius.com) | CC0 1.0 |
 | Hämtade men inte använda än: fler träd, buskar, personer, bilar (Quaternius); *Nature Kit*, *Car Kit*, *Mini Characters*, *City Kit (Suburban)* | [Quaternius](https://quaternius.com), [Kenney](https://kenney.nl), i `assets/cc0/` med paketens licensfiler | CC0 1.0 |
 | Hus, tak, takkupor, fönster, portar, burspråk, Domkyrkan, Slottet, Gunillaklockan, skyltar, gatlyktor, bänkar, papperskorgar, cykelställ, häckar, bilar, polisbilar, cyklar, gator och trottoarer | egen kod (`src/game3d/`, `src/stiltest/`) | samma som repot |
 | Galleriets testbilder (asfalt, plattor, gräs, tak, träd, bil) | genererade med ElevenLabs bildgenerator, se `docs/legal.md` punkt 11 | enligt ElevenLabs villkor |

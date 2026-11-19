@@ -175,7 +175,17 @@ export function createPlay(game) {
       const x = player.x + Math.cos(a) * d;
       const y = player.y + Math.sin(a) * d;
       if (!walkable(map.cellAt(x, y))) continue;
-      return { x, y, heading: Math.floor(R() * 4) * (Math.PI / 2), speed: 1.1 + R() * 0.6, kind: Math.floor(R() * 2), stand: R() < 0.2, shirt: SHIRTS[Math.floor(R() * SHIRTS.length)], down: 0, turn: 0 };
+      // Walk along the sidewalk: the first of the four street directions that is open.
+      const k0 = Math.floor(R() * 4);
+      let want = k0 * (Math.PI / 2);
+      for (let k = 0; k < 4; k++) {
+        const h = ((k0 + k) % 4) * (Math.PI / 2);
+        if (open(x, y, h, 3)) {
+          want = h;
+          break;
+        }
+      }
+      return { x, y, heading: want, want, speed: 1.1 + R() * 0.6, pace: 0, kind: Math.floor(R() * 2), stand: R() < 0.2, shirt: SHIRTS[Math.floor(R() * SHIRTS.length)], down: 0, look: 0 };
     }
     return null;
   }
@@ -207,16 +217,51 @@ export function createPlay(game) {
         wanted(1, 'Du körde på någon!');
         continue;
       }
-      if (p.stand) continue;
-      const nx = p.x + Math.cos(p.heading) * p.speed * dt;
-      const ny = p.y + Math.sin(p.heading) * p.speed * dt;
-      const ahead = map.cellAt(p.x + Math.cos(p.heading) * 1.2, p.y + Math.sin(p.heading) * 1.2);
-      if (!walkable(ahead)) p.heading += (R() < 0.5 ? 1 : -1) * (Math.PI / 2) * (R() < 0.2 ? 2 : 1);
-      else {
-        p.x = nx;
-        p.y = ny;
+      if (p.stand) {
+        p.pace = 0;
+        continue;
       }
+      walkPed(p, dt);
     }
+  }
+  // Is the sidewalk open for `len` metres from (x, y) in direction h?
+  function open(x, y, h, len) {
+    const cx = Math.cos(h);
+    const cy = Math.sin(h);
+    for (let d = 1; d <= len; d += 1) if (!walkable(map.cellAt(x + cx * d, y + cy * d))) return false;
+    return true;
+  }
+  // Pedestrians (B-058) follow the sidewalks: they keep a wanted direction
+  // (one of the four street directions) and turn towards it calmly, slowing
+  // down in the turn. At a wall they pick a side that is open; now and then
+  // they take a side street.
+  const TURN = 2.2; // rad/s
+  function walkPed(p, dt) {
+    p.look -= dt;
+    if (p.look <= 0) {
+      p.look = 0.4 + R() * 0.3;
+      if (!open(p.x, p.y, p.want, 2)) {
+        const side = R() < 0.5 ? 1 : -1;
+        const choices = [p.want + side * (Math.PI / 2), p.want - side * (Math.PI / 2), p.want + Math.PI];
+        p.want = choices.find((h) => open(p.x, p.y, h, 3)) ?? choices.find((h) => open(p.x, p.y, h, 1)) ?? p.want + Math.PI;
+      } else if (R() < 0.04) {
+        const h = p.want + (R() < 0.5 ? 1 : -1) * (Math.PI / 2);
+        if (open(p.x, p.y, h, 6)) p.want = h;
+      }
+      p.want = Math.atan2(Math.sin(p.want), Math.cos(p.want));
+    }
+    let d = p.want - p.heading;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    p.heading += Math.max(-TURN * dt, Math.min(TURN * dt, d));
+    // Slow in a sharp turn, at full pace when walking straight.
+    const target = p.speed * Math.max(0.25, Math.cos(Math.min(Math.PI / 2, Math.abs(d))));
+    p.pace += (target - p.pace) * Math.min(1, dt * 4);
+    const nx = p.x + Math.cos(p.heading) * p.pace * dt;
+    const ny = p.y + Math.sin(p.heading) * p.pace * dt;
+    if (walkable(map.cellAt(nx + Math.cos(p.heading) * 0.4, ny + Math.sin(p.heading) * 0.4))) {
+      p.x = nx;
+      p.y = ny;
+    } else p.look = 0; // blocked: look for a new way at once
   }
 
   // ---------- police: a distance field over the streets to the player ----------

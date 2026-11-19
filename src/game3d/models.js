@@ -5,31 +5,34 @@
 import * as THREE from '../../vendor/three/three.module.js';
 import { Builder, m4 } from '../stiltest/geo.js';
 import * as P3 from '../stiltest/props3.js';
+import { rigGeometry, walkMaterial, walkDepthMaterial } from './walk.js';
 
 const PLAYER = { jacket: 0xf0a43a, pants: 0x2f3440, skin: 0, hair: 1, scale: 1.1 };
 
 // Loaded model sets: name -> list of { geo, material kind }.
 const loaded = new Map();
 
+// The player's step (B-058): phase and amount, set each frame by entities.js.
+export const playerWalk = { value: new THREE.Vector2() };
+
 export const people = {
-  // [standing, walk poses..., riding]
+  // [walking, riding]
   player(mats) {
     const set = loaded.get('player');
     if (set) return set.map((parts) => meshOf(parts, mats));
-    const out = [];
-    for (const walk of [0, 0.9, 0, -0.9, 0]) {
-      const B = new Builder();
-      P3.addPerson(B, m4(0, 0, 0), { ...PLAYER, walk });
-      out.push(new THREE.Mesh(B.build({ outline: false }), mats.solid));
-    }
-    return out;
+    const B = new Builder();
+    P3.addPerson(B, m4(0, 0, 0), { ...PLAYER, walk: 0 });
+    const geo = B.build({ outline: false });
+    return [new THREE.Mesh(geo, mats.solid), new THREE.Mesh(geo, mats.solid)];
   },
 };
 
 function meshOf(parts, mats) {
   const g = new THREE.Group();
   for (const p of parts) {
-    const m = new THREE.Mesh(p.geo, mats[p.mat] || mats.solid);
+    const base = mats[p.mat] || mats.solid;
+    const m = new THREE.Mesh(p.geo, p.rig ? walkMaterial(base, p.rig, playerWalk) : base);
+    if (p.rig) m.customDepthMaterial = walkDepthMaterial(p.rig, playerWalk);
     m.castShadow = true;
     g.add(m);
   }
@@ -60,7 +63,9 @@ export async function loadModelFile(url) {
       if (ph.uv) g.setAttribute('uv', new THREE.BufferAttribute(take(Float32Array, ph.n * 2), 2));
       g.setIndex(new THREE.BufferAttribute(take(ph.wide ? Uint32Array : Uint16Array, ph.index), 1));
       g.computeBoundingSphere();
-      return { geo: g, mat: ph.mat };
+      // People with marked arms and legs walk in the vertex shader (B-058).
+      if (ph.rig) rigGeometry(g);
+      return ph.rig ? { geo: g, mat: ph.mat, rig: ph.rig } : { geo: g, mat: ph.mat };
     });
   }
   return models;
