@@ -23,7 +23,7 @@ const ORDER = ['low', 'medium', 'high'];
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.localClippingEnabled = true;
 $('view').appendChild(renderer.domElement);
 
@@ -250,6 +250,9 @@ setVariant(variantIndex).then(() => {
 // Read-only handle for the automatic tests and measurements.
 window.__stiltest = {
   renderer,
+  get scene() {
+    return built && built.scene;
+  },
   get level() {
     return level;
   },

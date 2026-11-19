@@ -148,6 +148,7 @@ function addHouse(H, h, place) {
     for (let f = 0; f < floors; f++)
       for (let c = 0; c < cols; c++) {
         if (side === 1 && f === 0 && c === doorCol) continue;
+        if (side === 1 && f === 0 && h.shop) continue;
         if (side === 1 && f > 0 && bayCols.includes(c)) continue;
         win(-w / 2 + step * (c + 0.5), 1.0 + f * FLOOR + 1.6, side * (d / 2 + 0.04), 0);
         if (h.ornate && side === 1 && c > 0 && f > 0) H.trim.add(new THREE.BoxGeometry(0.3, FLOOR - 0.1, 0.12), new THREE.Color(wallC).multiplyScalar(1.06).getHex(), at(-w / 2 + step * c, 1.0 + f * FLOOR + FLOOR / 2, d / 2 + 0.06));
@@ -159,21 +160,50 @@ function addHouse(H, h, place) {
   }
   // Door with a stone portal and steps.
   const dx = -w / 2 + step * (doorCol + 0.5);
-  H.trim.add(new THREE.BoxGeometry(2.1, 3.2, 0.22), 0xd8d0c2, at(dx, 1.6, d / 2 + 0.07));
+  H.trim.add(new THREE.BoxGeometry(2.1, 3.2, 0.06), 0xd8d0c2, at(dx, 1.6, d / 2 + 0.05));
+  H.trim.add(new THREE.BoxGeometry(2.8, 0.3, 0.5), 0xe6dfd2, at(dx, 3.6, d / 2 + 0.2));
+  for (const sx of [-1, 1]) H.trim.add(new THREE.BoxGeometry(0.3, 3.3, 0.4), 0xe6dfd2, at(dx + sx * 1.1, 1.65, d / 2 + 0.18));
+  H.trim.add(new THREE.BoxGeometry(2.6, 0.2, 0.6), 0xa29a8e, at(dx, 0.1, d / 2 + 1.05)); // lower step
   const doorC = [0x5a3626, 0x2f4a3a, 0x3b4a6a, 0x6a2a24][h.facade % 4];
   H.dark.add(new THREE.BoxGeometry(1.4, 2.6, 0.25), doorC, at(dx, 1.3, d / 2 + 0.09));
   for (const ox of [-0.33, 0.33]) for (const oy of [0.7, 1.75]) H.dark.add(new THREE.BoxGeometry(0.5, 0.75, 0.27), new THREE.Color(doorC).multiplyScalar(1.25).getHex(), at(dx + ox, oy, d / 2 + 0.1));
   H.glass.add(new THREE.BoxGeometry(1.3, 0.38, 0.26), 0xffd9a0, at(dx, 2.85, d / 2 + 0.09)); // fanlight
   H.trim.add(new THREE.BoxGeometry(0.05, 0.25, 0.08), 0xc9a24a, at(dx + 0.55, 1.25, d / 2 + 0.24)); // handle
   H.trim.add(new THREE.BoxGeometry(2.6, 0.35, 1.1), 0xa29a8e, at(dx, 0.17, d / 2 + 0.55));
-  // Bay windows (burspråk) with small tower roofs.
+  // Bay windows (burspråk): three-sided, standing out 1.4 m, with corner
+  // trim, a band per floor and a hipped metal roof.
   for (const bc of bayCols) {
     const bx = -w / 2 + step * (bc + 0.5);
     const bh = (floors - 1) * FLOOR;
-    H.wall.add(new THREE.BoxGeometry(step * 1.15, bh, 1.0), wallC, at(bx, 1.0 + FLOOR + bh / 2, d / 2 + 0.5));
-    for (let f = 1; f < floors; f++) win(bx, 1.0 + f * FLOOR + 1.6, d / 2 + 1.04, 0);
-    // A low sheet-metal cap; a tall cone turns into a big wedge at the screen edge.
-    H.trim.add(new THREE.BoxGeometry(step * 1.25, 0.3, 1.2), 0x6f7880, at(bx, 1.0 + FLOOR + bh + 0.15, d / 2 + 0.5));
+    const by = 1.0 + FLOOR;
+    const bw = step * 1.3;
+    const bayG = new THREE.CylinderGeometry(bw * 0.62, bw * 0.62, bh, 6, 1, false, -Math.PI / 2, Math.PI);
+    bayG.scale(1, 1, 1.4 / (bw * 0.62));
+    H.wall.add(bayG, new THREE.Color(wallC).multiplyScalar(1.04).getHex(), at(bx, by + bh / 2, d / 2));
+    for (let f = 0; f <= floors - 1; f++) {
+      const ring = new THREE.CylinderGeometry(bw * 0.66, bw * 0.66, 0.18, 6, 1, false, -Math.PI / 2, Math.PI);
+      ring.scale(1, 1, 1.55 / (bw * 0.66));
+      H.trim.add(ring, 0xf4efe6, at(bx, by + f * FLOOR, d / 2));
+    }
+    for (let f = 1; f < floors; f++) {
+      win(bx, 1.0 + f * FLOOR + 1.6, d / 2 + 1.42, 0);
+      for (const sgn of [-1, 1]) win(bx + sgn * bw * 0.42, 1.0 + f * FLOOR + 1.6, d / 2 + 0.72, sgn * 0.98);
+    }
+    const cap = new THREE.ConeGeometry(bw * 0.72, 1.3, 6, 1, false, -Math.PI / 2, Math.PI);
+    cap.scale(1, 1, 1.7 / (bw * 0.72));
+    H.roof.add(cap, 0x7f8c95, at(bx, by + bh + 0.65, d / 2));
+  }
+  // Main cornice (gesims) with brackets under it.
+  for (let k = 0; k < Math.floor(w / 0.9); k++) H.trim.add(new THREE.BoxGeometry(0.22, 0.35, 0.5), 0xe6dfd2, at(-w / 2 + 0.45 + k * 0.9, top - 0.15, d / 2 + 0.25));
+  // Shops with striped awnings on some houses.
+  if (h.shop) {
+    const awn = [0x2f6a4a, 0x8a2a2a, 0x2a4a7a][h.facade % 3];
+    for (let c = 0; c < cols; c++) {
+      if (c === doorCol) continue;
+      const x = -w / 2 + step * (c + 0.5);
+      H.glass.add(new THREE.BoxGeometry(step * 0.82, 2.1, 0.16), 0xc8a878, at(x, 1.55, d / 2 + 0.05));
+      for (let k = 0; k < 6; k++) H.trim.add(new THREE.BoxGeometry(step * 0.9 / 6, 0.06, 1.3), k % 2 ? 0xf2ede2 : awn, at(x - step * 0.45 + (k + 0.5) * (step * 0.9 / 6), 2.95, d / 2 + 0.65).multiply(new THREE.Matrix4().makeRotationX(0.32)));
+    }
   }
   // Roof with dormers and chimneys.
   const rh = Math.min(d * 0.42, 5.2);
@@ -385,7 +415,7 @@ export async function buildRich(renderer) {
     plain: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 }),
     glass: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.05, metalness: 0.3, envMapIntensity: 1.6 }),
     paint: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.45, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.6 }),
-    lantern: new THREE.MeshBasicMaterial({ color: 0xffd99a }),
+    lantern: new THREE.MeshBasicMaterial({ color: 0xfff0c8 }),
   };
   const mesh = (geo, mat, { cast = true, receive = true } = {}) => {
     const m = new THREE.Mesh(geo, mat);
@@ -429,9 +459,9 @@ export async function buildRich(renderer) {
   const north = [
     { x: -6, w: 14, floors: 4, facade: 4, bay: true, ornate: true },
     { x: 7.5, w: 13, floors: 4, facade: 0, bay: true, narrow: true },
-    { x: 20.3, w: 12.6, floors: 5, facade: 3, bay: false, slate: true },
+    { x: 20.3, w: 12.6, floors: 5, facade: 3, bay: false, slate: true, shop: true },
     { x: 36.6, w: 15.2, floors: 4, facade: 1, bay: true, ornate: true },
-    { x: 51.4, w: 14.2, floors: 4, facade: 2, bay: false },
+    { x: 51.4, w: 14.2, floors: 4, facade: 2, bay: true, shop: true },
     { x: 65.5, w: 13.6, floors: 5, facade: 5, bay: true, ornate: true },
   ];
   const south = [
@@ -461,12 +491,17 @@ export async function buildRich(renderer) {
   const nearHouses = houseMeshes(Hs, nearMats);
   // Inside of the cut: dark, like the section of a cut-away model.
   const inside = new THREE.MeshBasicMaterial({ color: 0x2a2220, side: THREE.BackSide });
-  const insideMeshes = nearHouses.map((nm) => {
-    const im = new THREE.Mesh(nm.geometry, inside);
-    im.visible = false;
-    world.add(im);
-    return im;
-  });
+  const insideMeshes = [];
+  const proxyB = new Builder();
+  for (const h of south) {
+    const top = h.floors * FLOOR + 1.0;
+    proxyB.box(h.w, top + 0.5, 12, 0xffffff, h.x, (top + 0.5) / 2, 9.0 + 6 + 1.4);
+    proxyB.add(gableRoof(h.w, 12, Math.min(12 * 0.42, 5.2), 0.45), 0xffffff, m4(h.x, top + 0.45, 9.0 + 6 + 1.4, Math.PI));
+  }
+  const shadowProxy = new THREE.Mesh(proxyB.build({ outline: false }), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+  shadowProxy.castShadow = true;
+  shadowProxy.visible = false;
+  world.add(shadowProxy);
   // Tilted view: the row on the camera side is cut along the line of sight
   // that just grazes the sidewalk, so roofs and back walls still show below
   // the street on screen but never cover it (D-045).
@@ -475,14 +510,11 @@ export async function buildRich(renderer) {
     const n = new THREE.Vector3(0, -1, k);
     const len = n.length();
     const plane = new THREE.Plane(n.divideScalar(len), (-k * 9.6 + 0.2) / len);
-    // The cut along the line of sight still showed dark sections; simpler and
-    // cleaner: in the tilted view the row is not drawn but still casts its shadow.
+    // In the tilted view the camera-side row is hidden; a few plain boxes in
+    // its place still cast its evening shadow (cheap: about 30 triangles a house).
     void plane;
-    for (const m of Object.values(nearMats)) {
-      m.colorWrite = !on;
-      m.depthWrite = !on;
-      m.needsUpdate = true;
-    }
+    for (const nm of nearHouses) nm.visible = !on;
+    shadowProxy.visible = on;
     for (const im of insideMeshes) im.visible = false;
     for (const nm of nearHouses) {
       nm.renderOrder = on ? 10 : 0;
@@ -501,8 +533,8 @@ export async function buildRich(renderer) {
     for (const [a, b] of [[gd.x0, gd.door - 1.6], [gd.door + 1.6, gd.x1]]) {
       if (b - a < 1) continue;
       // A clipped hedge built from a few lumps.
-      F.box(b - a, 0.9, 0.9, 0xc8c8c8, (a + b) / 2, 0.45, gd.z); // the clipped block of the hedge
-      for (let x = a + 0.5; x < b - 0.2; x += 1.0) F.add(lump(0.62, Math.floor(x * 10), 1), 0xffffff, m4(x, 0.95, gd.z, 0, 1, 0.55, 0.85));
+      F.box(b - a, 0.95, 0.95, 0x8ec86a, (a + b) / 2, 0.47, gd.z); // the clipped block of the hedge
+      for (let x = a + 0.5; x < b - 0.2; x += 1.0) F.add(lump(0.6, Math.floor(x * 10), 1), 0xa8dc78, m4(x, 1.0, gd.z, 0, 1, 0.5, 0.85));
       // Low metal fence on the street side of the hedge.
       const fz = gd.z + Math.sign(gd.z) * -0.75;
       P3.addRailing(P, m4(a, 0.12, fz), b - a);
@@ -530,7 +562,7 @@ export async function buildRich(renderer) {
   }
   const heads = lampSpots.map(([x, z, dir]) => P3.addLamp(P, m4(x, 0.12, z), dir));
   const lanterns = new THREE.InstancedMesh(P3.lanternGlass(), mats.lantern, lampSpots.length);
-  lampSpots.forEach(([x, z, dir], i) => lanterns.setMatrixAt(i, m4(x, 4.85, z + dir * 1.12)));
+  lampSpots.forEach(([x, z, dir], i) => lanterns.setMatrixAt(i, m4(x, 4.64, z + dir * 1.12)));
   world.add(lanterns);
   // Hoop racks with bikes, and a few bikes leaning elsewhere.
   const bikeColors = [0x2b2d33, 0x7a2a22, 0x2a4a70, 0x3a5a3a, 0x8a8f96, 0xc9c2b0, 0x1f1f24];
@@ -574,40 +606,41 @@ export async function buildRich(renderer) {
   addPerson(P, m4(36.5, 0.12, 7.5, Math.PI + 0.3), { jacket: 0x3f9a6a, pants: 0x44506a, skin: 0, hair: 0, bag: true, walk: 2, scale: 1.55 });
   addPerson(P, m4(10.2, 0.12, -8.6, -Math.PI / 2), { jacket: 0xc0504a, pants: 0x2a2a30, skin: 2, hair: 3, scale: 1.55 });
   addPerson(P, m4(46.5, 0.12, -8.0, Math.PI / 2 + 0.4), { jacket: 0x2a6a9a, pants: 0x3a3a40, skin: 3, hair: 4, scale: 1.55, walk: 1 });
-  mesh(P.build({ outline: false }), mats.plain);
+  mesh(P.build({ outline: false }), mats.plain, { cast: false });
 
   T('props');
   // ---------- trees: three kinds, rounded crowns carrying the crown pictures ----------
   const treeSpots = [];
   for (let x = -8; x < 90; x += 9.5) if (Math.abs(x - 30) > 3.5) treeSpots.push([x + (R() - 0.5), 7.75, 'lind']);
-  for (const [x, z, k] of [[14, -11.3, 'bjork'], [45, -11.2, 'bjork'], [-1, 11.5, 'lonn'], [41.8, 12.5, 'bjork'], [62, 11.3, 'lonn'], [28, -24, 'lonn'], [10, -27, 'lind'], [50, -26, 'bjork'], [20, 25, 'lonn'], [60, 26, 'lind'], [5, 17, 'bjork'], [33, 18, 'lind'], [48, 17.5, 'bjork'], [70, 18, 'lonn']]) treeSpots.push([x, z, k]);
-  const kinds = { lind: 0, lonn: 1, bjork: 2 };
-  const crownMats = treeTex.map((t) => new THREE.MeshStandardMaterial({ map: t, vertexColors: true, roughness: 0.9 }));
-  for (const [kind, ti] of Object.entries(kinds)) {
+  for (const [x, z, k] of [[-1, 11.5, 'lonn'], [41.8, 12.5, 'bjork'], [62, 11.3, 'lonn'], [28, -24, 'lonn'], [10, -27, 'lind'], [50, -26, 'bjork'], [20, 25, 'lonn'], [60, 26, 'lind'], [5, 17, 'bjork'], [33, 18, 'lind'], [48, 17.5, 'bjork'], [70, 18, 'lonn']]) treeSpots.push([x, z, k]);
+  // Two shapes per kind, so neighbouring trees differ; instanced per shape.
+  const leafMat = new THREE.MeshStandardMaterial({ map: foliage, vertexColors: true, roughness: 0.9 });
+  leafMat.onBeforeCompile = mats.foliage.onBeforeCompile;
+  leafMat.customProgramCacheKey = mats.foliage.customProgramCacheKey;
+  const woodMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
+  let shapeNo = 0;
+  for (const kind of ['lind', 'lonn', 'bjork']) {
     const list = treeSpots.filter((t) => t[2] === kind);
-    if (!list.length) continue;
-    const TB = new Builder();
-    P3.trunkGeometry(TB, kind);
-    const trunks = new THREE.InstancedMesh(TB.build({ outline: false }), mats.plain, list.length);
-    const crowns = new THREE.InstancedMesh(P3.crownGeometry(kind, ti + 3), crownMats[ti % crownMats.length], list.length);
-    const c = new THREE.Color();
-    list.forEach(([x, z], i) => {
-      const sc = 0.88 + R() * 0.24;
-      const mtx = m4(x, 0, z, R() * 6.28, sc, sc, sc);
-      trunks.setMatrixAt(i, mtx);
-      crowns.setMatrixAt(i, mtx);
-      const tint = { lind: [1, 1.02, 0.92], lonn: [0.82, 0.94, 0.78], bjork: [1.18, 1.22, 0.92] }[kind];
-      const v = 0.94 + R() * 0.1;
-      crowns.setColorAt(i, c.setRGB(tint[0] * v, tint[1] * v, tint[2] * v));
-    });
-    for (const t of [trunks, crowns]) {
-      t.castShadow = true;
-      t.receiveShadow = true;
-      world.add(t);
+    for (let v = 0; v < 2; v++) {
+      const sub = list.filter((_, i) => i % 2 === v);
+      if (!sub.length) continue;
+      const g = P3.treeV2(kind, 11 + shapeNo++);
+      const wood = new THREE.InstancedMesh(g.wood, woodMat, sub.length);
+      const leaves = new THREE.InstancedMesh(g.leaves, leafMat, sub.length);
+      sub.forEach(([x, z], i) => {
+        const sc = 0.9 + R() * 0.25;
+        // Turned only by small amounts, so the sunlit side stays towards the sun.
+        const mtx = m4(x, 0.12, z, (R() - 0.5) * 0.6, sc, sc * (0.95 + R() * 0.1), sc);
+        wood.setMatrixAt(i, mtx);
+        leaves.setMatrixAt(i, mtx);
+      });
+      for (const t of [wood, leaves]) {
+        t.castShadow = true;
+        t.receiveShadow = true;
+        world.add(t);
+      }
     }
   }
-
-  T('trees');
   // ---------- cars ----------
   const parts = { hatch: carParts('hatch'), sedan: carParts('sedan'), estate: carParts('estate') };
   const paints = [0xb0b6bc, 0x3a78c8, 0x6a6f78, 0xd9dcdf, 0xf3f3f1, 0xc8382c, 0x2f9a90, 0x7a8b55];
@@ -749,13 +782,13 @@ export async function buildRich(renderer) {
   };
 
   // ---------- light: low warm evening sun from the west, cool sky ----------
-  const sun = new THREE.DirectionalLight(0xffb052, 7.4);
+  const sun = new THREE.DirectionalLight(0xffa848, 8.2);
   sun.castShadow = true;
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.05;
-  const sunOffset = new THREE.Vector3(-60, 23, 15); // west-south-west, about 20° above the horizon
+  const sunOffset = new THREE.Vector3(-52, 24, 34); // south-west, low: lights the facades facing the street
   scene.add(sun, sun.target);
-  scene.add(new THREE.HemisphereLight(0xc8b8a8, 0x8a6440, 0.85));
+  scene.add(new THREE.HemisphereLight(0xa8b0c8, 0x6a4a30, 0.6));
   const fill = new THREE.DirectionalLight(0x9aa8d0, 0.3); // cool light from the east fills the shadows
   fill.position.set(60, 30, -10);
   scene.add(fill);

@@ -53,15 +53,15 @@ export function addPerson(B, place, { jacket = 0x3a5a8a, pants = 0x2f3440, skin 
   }
   // Hips, torso (jacket), collar, arms with hands.
   B.add(new THREE.BoxGeometry(0.22, 0.18, 0.36), pants, at(0, 0.88, 0));
-  B.add(new THREE.CapsuleGeometry(0.17, 0.36, 3, 8), jacket, at(0, 1.2, 0, new THREE.Matrix4().makeScale(0.85, 1, 1.15)));
+  B.add(new THREE.CapsuleGeometry(0.17, 0.36, 2, 8), jacket, at(0, 1.2, 0, new THREE.Matrix4().makeScale(0.85, 1, 1.15)));
   B.add(new THREE.CylinderGeometry(0.08, 0.1, 0.08, 8), new THREE.Color(jacket).multiplyScalar(0.8).getHex(), at(0, 1.5, 0));
   for (const [side, ph] of [[0.26, -sw], [-0.26, sw]]) {
     B.add(new THREE.CapsuleGeometry(0.06, 0.5, 2, 6), jacket, at(ph * 0.3, 1.15, side, Rz(ph * 0.6)));
     B.add(new THREE.SphereGeometry(0.055, 6, 5), sk, at(ph * 0.55, 0.84, side));
   }
   // Head, hair, nose so the facing reads.
-  B.add(new THREE.SphereGeometry(0.12, 10, 8), sk, at(0.01, 1.66, 0));
-  B.add(new THREE.SphereGeometry(0.128, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.55), hr, at(-0.015, 1.68, 0, Rz(0.25)));
+  B.add(new THREE.SphereGeometry(0.12, 8, 6), sk, at(0.01, 1.66, 0));
+  B.add(new THREE.SphereGeometry(0.128, 8, 4, 0, Math.PI * 2, 0, Math.PI * 0.55), hr, at(-0.015, 1.68, 0, Rz(0.25)));
   B.add(new THREE.BoxGeometry(0.04, 0.04, 0.04), sk, at(0.13, 1.65, 0));
   if (bag) B.add(new THREE.BoxGeometry(0.16, 0.3, 0.26), 0x5a3a24, at(-0.2, 1.2, 0));
 }
@@ -73,9 +73,8 @@ export function addBike(B, place, color, { basket = true } = {}) {
   const tyre = 0x1b1b1f;
   const steel = 0xb8bcc2;
   const wheel = (cx) => {
-    B.add(new THREE.TorusGeometry(0.33, 0.035, 6, 18), tyre, place.clone().multiply(m4(cx, 0.35, 0)));
-    B.add(new THREE.TorusGeometry(0.29, 0.012, 4, 18), steel, place.clone().multiply(m4(cx, 0.35, 0)));
-    for (let k = 0; k < 4; k++) B.add(new THREE.BoxGeometry(0.56, 0.008, 0.008), steel, place.clone().multiply(m4(cx, 0.35, 0)).multiply(Rz((k * Math.PI) / 4)));
+    B.add(new THREE.TorusGeometry(0.33, 0.04, 4, 14), tyre, place.clone().multiply(m4(cx, 0.35, 0)));
+    for (let k = 0; k < 2; k++) B.add(new THREE.BoxGeometry(0.56, 0.01, 0.01), steel, place.clone().multiply(m4(cx, 0.35, 0)).multiply(Rz((k * Math.PI) / 2)));
     B.add(new THREE.CylinderGeometry(0.035, 0.035, 0.1, 6), steel, place.clone().multiply(m4(cx, 0.35, 0)).multiply(Rx(Math.PI / 2)));
   };
   wheel(-0.6);
@@ -95,8 +94,8 @@ export function addBike(B, place, color, { basket = true } = {}) {
   tube(B, place, head, [0.46, 0.98, 0], 0.016, steel);
   tube(B, place, [0.44, 0.98, -0.28], [0.44, 0.98, 0.28], 0.016, 0x222226);
   // Mudguards, chain guard, rear rack.
-  B.add(new THREE.TorusGeometry(0.37, 0.025, 3, 10, Math.PI * 0.75), color, place.clone().multiply(m4(-0.6, 0.35, 0)).multiply(Rz(Math.PI * 0.15)));
-  B.add(new THREE.TorusGeometry(0.37, 0.025, 3, 10, Math.PI * 0.6), color, place.clone().multiply(m4(0.6, 0.35, 0)).multiply(Rz(Math.PI * 0.2)));
+  B.add(new THREE.TorusGeometry(0.37, 0.025, 3, 6, Math.PI * 0.75), color, place.clone().multiply(m4(-0.6, 0.35, 0)).multiply(Rz(Math.PI * 0.15)));
+  B.add(new THREE.TorusGeometry(0.37, 0.025, 3, 5, Math.PI * 0.6), color, place.clone().multiply(m4(0.6, 0.35, 0)).multiply(Rz(Math.PI * 0.2)));
   B.add(new THREE.BoxGeometry(0.42, 0.08, 0.03), 0x2a2a2e, place.clone().multiply(m4(-0.3, 0.38, 0.06)));
   B.add(new THREE.BoxGeometry(0.44, 0.03, 0.2), steel, place.clone().multiply(m4(-0.55, 0.74, 0)));
   if (basket) {
@@ -112,7 +111,7 @@ export function addRack(B, place, n, spacing = 0.8) {
   for (let i = 0; i < n; i++) {
     const x = i * spacing;
     const hoop = place.clone().multiply(m4(x, 0, 0, Math.PI / 2));
-    B.add(new THREE.TorusGeometry(0.42, 0.03, 5, 12, Math.PI), steel, hoop.clone().multiply(m4(0, 0.4, 0)));
+    B.add(new THREE.TorusGeometry(0.42, 0.03, 4, 8, Math.PI), steel, hoop.clone().multiply(m4(0, 0.4, 0)));
     tube(B, hoop, [-0.42, 0, 0], [-0.42, 0.4, 0], 0.03, steel);
     tube(B, hoop, [0.42, 0, 0], [0.42, 0.4, 0], 0.03, steel);
   }
@@ -132,16 +131,22 @@ export function addLamp(B, place, dir = 1) {
   // Curved arm towards the street.
   B.add(new THREE.TorusGeometry(0.55, 0.045, 5, 10, Math.PI / 2), iron, at(0, 5.0, dir * 0.55, Ry(dir > 0 ? -Math.PI / 2 : Math.PI / 2)));
   B.add(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 4), iron, at(0, 5.25, dir * 0.95));
-  // Lantern: six-sided cap with a finial; the glass is drawn separately (it glows).
-  B.add(new THREE.ConeGeometry(0.52, 0.42, 6), iron, at(0, 5.06, dir * 1.12));
-  B.add(new THREE.SphereGeometry(0.09, 6, 4), iron, at(0, 5.32, dir * 1.12));
-  B.add(new THREE.CylinderGeometry(0.28, 0.16, 0.1, 6), iron, at(0, 4.36, dir * 1.12));
-  for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; B.add(new THREE.BoxGeometry(0.04, 0.62, 0.04), iron, at(Math.cos(a) * 0.36, 4.66, dir * 1.12 + Math.sin(a) * 0.36)); }
+  // Classic lantern: a small pointed roof with a gold knob, a bright glass
+  // body (drawn separately so it glows), a thin frame and a bottom cup.
+  const lz = dir * 1.12;
+  B.add(new THREE.CylinderGeometry(0.05, 0.37, 0.24, 6), iron, at(0, 4.98, lz));
+  B.add(new THREE.CylinderGeometry(0.38, 0.38, 0.05, 6), 0xb8923a, at(0, 4.86, lz));
+  B.add(new THREE.SphereGeometry(0.07, 6, 4), 0xd4aa48, at(0, 5.15, lz));
+  for (let k = 0; k < 6; k++) {
+    const a = (k / 6) * Math.PI * 2 + Math.PI / 6;
+    B.add(new THREE.BoxGeometry(0.035, 0.66, 0.035), iron, at(Math.cos(a) * 0.3, 4.52, lz + Math.sin(a) * 0.3));
+  }
+  B.add(new THREE.CylinderGeometry(0.24, 0.12, 0.12, 6), iron, at(0, 4.16, lz));
   return [place.elements[12], place.elements[14] + dir * 1.12];
 }
 
 export function lanternGlass() {
-  return new THREE.CylinderGeometry(0.42, 0.28, 0.6, 6);
+  return new THREE.CylinderGeometry(0.31, 0.22, 0.64, 6);
 }
 
 // ---------- signs (faces as small drawn pictures) ----------
@@ -291,7 +296,7 @@ export function addBin(B, place) {
 
 export function addBollard(B, place) {
   B.add(new THREE.CylinderGeometry(0.1, 0.13, 0.9, 10), 0x1f2a26, place.clone().multiply(m4(0, 0.45, 0)));
-  B.add(new THREE.SphereGeometry(0.11, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0x1f2a26, place.clone().multiply(m4(0, 0.9, 0)));
+  B.add(new THREE.SphereGeometry(0.11, 6, 3, 0, Math.PI * 2, 0, Math.PI / 2), 0x1f2a26, place.clone().multiply(m4(0, 0.9, 0)));
   B.add(new THREE.CylinderGeometry(0.105, 0.105, 0.08, 10), 0xe8e4da, place.clone().multiply(m4(0, 0.72, 0)));
 }
 
@@ -300,7 +305,6 @@ export function addRailing(B, place, len) {
   const iron = 0x1c2220;
   for (let x = 0; x <= len + 0.01; x += 0.32) {
     B.add(new THREE.BoxGeometry(0.035, 0.95, 0.035), iron, place.clone().multiply(m4(x, 0.48, 0)));
-    B.add(new THREE.SphereGeometry(0.04, 5, 4), iron, place.clone().multiply(m4(x, 0.97, 0)));
   }
   for (const y of [0.15, 0.85]) B.add(new THREE.BoxGeometry(len, 0.045, 0.045), iron, place.clone().multiply(m4(len / 2, y, 0)));
 }
@@ -500,4 +504,138 @@ export function trunkGeometry(B, kind) {
   // Tree grate and a little soil.
   B.add(new THREE.BoxGeometry(1.4, 0.04, 1.4), 0x2c2f33, m4(0, 0.135, 0));
   B.add(new THREE.CylinderGeometry(0.42, 0.42, 0.045, 10), 0x3a2c22, m4(0, 0.14, 0));
+}
+
+// ---------- trees v2 (D-047): branches with leaf clusters and gaps ----------
+
+// A tree built like a real one: a trunk that forks into a few main branches,
+// each ending in two or three irregular leaf clusters. Light comes from the
+// low west-south-west sun: clusters on that side are warm and bright, inner
+// and lower ones darker. Returns { wood, leaves } geometries with colours.
+export function treeV2(kind, seed) {
+  const R = rng(seed * 97 + 13);
+  const K = {
+    lind: { h: 3.6, br: 6, reach: 2.5, rise: 2.6, cl: [0.75, 1.1], n: 4, leaf: [0.78, 1.0, 0.42], bark: 0x4a3a2c, w: 0.26 },
+    lonn: { h: 3.0, br: 7, reach: 2.9, rise: 2.2, cl: [0.8, 1.2], n: 4, leaf: [0.66, 0.9, 0.36], bark: 0x3f3328, w: 0.3 },
+    bjork: { h: 4.4, br: 5, reach: 1.6, rise: 3.0, cl: [0.6, 0.9], n: 4, leaf: [0.95, 1.1, 0.5], bark: 0xe6e1d6, w: 0.17 },
+  }[kind];
+  const wood = new Builder2();
+  const leaves = new Builder2();
+  // Trunk, slightly leaning.
+  const lean = [(R() - 0.5) * 0.3, (R() - 0.5) * 0.3];
+  const top = [lean[0], K.h, lean[1]];
+  wood.tube([0, 0, 0], top, K.w, K.w * 0.75, K.bark, 7);
+  if (kind === 'bjork') for (let y = 0.5; y < K.h; y += 0.42) wood.box(K.w * 2.1, 0.05, K.w * 2.1, 0x2a2a2a, lean[0] * (y / K.h), y, lean[1] * (y / K.h));
+  const sun = new THREE.Vector3(-0.9, 0.35, 0.3).normalize();
+  const clusters = [];
+  for (let b = 0; b < K.br; b++) {
+    const a = (b / K.br) * Math.PI * 2 + R() * 0.9;
+    const reach = K.reach * (0.7 + R() * 0.5);
+    const rise = K.rise * (0.7 + R() * 0.5);
+    const start = [top[0], K.h - R() * 0.8, top[2]];
+    const mid = [start[0] + Math.cos(a) * reach * 0.55, start[1] + rise * 0.55, start[2] + Math.sin(a) * reach * 0.55];
+    const end = [start[0] + Math.cos(a) * reach, start[1] + rise, start[2] + Math.sin(a) * reach];
+    wood.tube(start, mid, K.w * 0.55, K.w * 0.4, K.bark, 5);
+    wood.tube(mid, end, K.w * 0.4, K.w * 0.22, K.bark, 4);
+    for (let c = 0; c < K.n; c++) {
+      const t = c === 0 ? 1 : 0.55 + R() * 0.35;
+      const p = [start[0] + (end[0] - start[0]) * t + (R() - 0.5) * 0.9, start[1] + (end[1] - start[1]) * t + 0.3 + R() * 0.6, start[2] + (end[2] - start[2]) * t + (R() - 0.5) * 0.9];
+      clusters.push([p, K.cl[0] + R() * (K.cl[1] - K.cl[0])]);
+    }
+  }
+  // A crown top cluster or two.
+  clusters.push([[top[0], K.h + K.rise + 0.6, top[2]], K.cl[1] * 1.05]);
+  if (kind !== 'bjork') clusters.push([[top[0] + 0.5, K.h + K.rise * 0.7, top[2] - 0.6], K.cl[1]]);
+  const cy = clusters.reduce((s, c) => s + c[0][1], 0) / clusters.length;
+  for (const [p, r] of clusters) {
+    const g = lumpCluster(r, Math.floor(R() * 1e6));
+    const pos = g.attributes.position.array;
+    const nor = g.attributes.normal.array;
+    const col = new Float32Array(pos.length);
+    const tone = 0.85 + R() * 0.3;
+    for (let i = 0; i < pos.length; i += 3) {
+      const ndl = Math.max(0, nor[i] * sun.x + nor[i + 1] * sun.y + nor[i + 2] * sun.z);
+      const height = (p[1] + pos[i + 1] - cy) / 3;
+      const inner = Math.max(0, -(nor[i] * p[0] + nor[i + 2] * p[2])) * 0.08;
+      const k = tone * (0.7 + 0.25 * height - inner);
+      // Leaf green, warmed towards gold where the evening sun hits.
+      col[i] = K.leaf[0] * k + ndl * 0.55;
+      col[i + 1] = K.leaf[1] * k + ndl * 0.4;
+      col[i + 2] = K.leaf[2] * k + ndl * 0.05;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    g.translate(p[0], p[1], p[2]);
+    leaves.addColoured(g);
+  }
+  return { wood: wood.build(), leaves: leaves.build() };
+}
+
+// An irregular, flattened leaf cluster (not a ball): a low-poly sphere pushed
+// out in a few directions and squashed underneath.
+function lumpCluster(r, seed) {
+  const g = new THREE.IcosahedronGeometry(r, 1);
+  const R = rng(seed);
+  const p = g.attributes.position;
+  const bumps = Array.from({ length: 6 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.12 + R() * 0.2]);
+  for (let i = 0; i < p.count; i++) {
+    const v = new THREE.Vector3().fromBufferAttribute(p, i).normalize();
+    let k = 0.8 + R() * 0.12;
+    for (const [bx, by, bz, a] of bumps) k += a * Math.max(0, v.x * bx + v.y * by + v.z * bz) ** 2;
+    v.multiplyScalar(r * k);
+    if (v.y < 0) v.y *= 0.55;
+    v.x *= 1.15;
+    v.z *= 1.15;
+    p.setXYZ(i, v.x, v.y, v.z);
+  }
+  const ng = g.toNonIndexed();
+  ng.computeVertexNormals();
+  smoothNormals(ng);
+  g.dispose();
+  return ng;
+}
+
+// Minimal builder for coloured pieces (trees), separate from geo.js so it can
+// keep per-corner colours from the source geometry.
+class Builder2 {
+  constructor() {
+    this.pos = [];
+    this.nor = [];
+    this.col = [];
+  }
+  addColoured(g) {
+    const ng = g.index ? g.toNonIndexed() : g;
+    this.pos.push(...ng.attributes.position.array);
+    this.nor.push(...ng.attributes.normal.array);
+    this.col.push(...ng.attributes.color.array);
+  }
+  addSolid(g, color) {
+    const ng = g.index ? g.toNonIndexed() : g;
+    ng.computeVertexNormals();
+    const c = new THREE.Color(color);
+    const n = ng.attributes.position.count;
+    const col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
+    ng.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    this.addColoured(ng);
+  }
+  tube(a, b, r0, r1, color, seg) {
+    const A = new THREE.Vector3(...a);
+    const C = new THREE.Vector3(...b);
+    const g = new THREE.CylinderGeometry(r1, r0, A.distanceTo(C), seg, 1, true);
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), C.clone().sub(A).normalize());
+    g.applyMatrix4(new THREE.Matrix4().compose(A.clone().add(C).multiplyScalar(0.5), q, new THREE.Vector3(1, 1, 1)));
+    this.addSolid(g, color);
+  }
+  box(w, h, d, color, x, y, z) {
+    const g = new THREE.BoxGeometry(w, h, d);
+    g.translate(x, y, z);
+    this.addSolid(g, color);
+  }
+  build() {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
+    return g;
+  }
 }
