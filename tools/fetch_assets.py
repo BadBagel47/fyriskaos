@@ -86,6 +86,7 @@ def fetch_quaternius():
         if not files:
             log("  empty listing")
             continue
+        os.makedirs(os.path.join(OUT, "quaternius"), exist_ok=True)
         with open(os.path.join(OUT, "quaternius", f"{pack}.listing.txt"), "w") as f:
             for it in files:
                 f.write(it.path + "\n")
@@ -128,6 +129,7 @@ def fetch_kenney():
         rx = re.compile(include, re.I)
         z = zipfile.ZipFile(io.BytesIO(blob))
         names = z.namelist()
+        os.makedirs(os.path.join(OUT, "kenney"), exist_ok=True)
         with open(os.path.join(OUT, "kenney", f"{pack}.listing.txt"), "w") as f:
             f.write("\n".join(names) + "\n")
         ok = 0
@@ -185,11 +187,11 @@ if __name__ == "__main__":
 
     what = sys.argv[1:] or ["quaternius", "kenney", "osm"]
     os.makedirs(OUT, exist_ok=True)
-    if "quaternius" in what:
-        fetch_quaternius()
-    if "kenney" in what:
-        fetch_kenney()
-    if "osm" in what:
-        fetch_osm()
+    for name, fn in (("quaternius", fetch_quaternius), ("kenney", fetch_kenney), ("osm", fetch_osm)):
+        if name in what:
+            try:
+                fn()
+            except Exception as e:  # noqa: BLE001 - keep going with the other sources
+                log(f"{name} failed: {e!r}")
     with open(os.path.join(OUT, "FETCH-REPORT.txt"), "w") as f:
         f.write(f"Fetched {date.today().isoformat()}\n" + "\n".join(report) + "\n")
