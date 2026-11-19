@@ -14,19 +14,34 @@ export class Builder {
   }
 
   // Add a geometry (any three.js geometry) with a colour and a transform.
+  // Works straight on the arrays (no copies), which matters on slow phones.
   add(geometry, color, matrix) {
-    const g = geometry.index ? geometry.toNonIndexed() : geometry.clone();
-    if (matrix) g.applyMatrix4(matrix);
-    if (!g.attributes.normal) g.computeVertexNormals();
-    const p = g.attributes.position.array;
-    const n = g.attributes.normal.array;
+    const pa = geometry.attributes.position.array;
+    if (!geometry.attributes.normal) geometry.computeVertexNormals();
+    const na = geometry.attributes.normal.array;
+    const index = geometry.index ? geometry.index.array : null;
+    const count = index ? index.length : pa.length / 3;
     tmpColor.set(color);
-    for (let i = 0; i < p.length; i += 3) {
-      this.pos.push(p[i], p[i + 1], p[i + 2]);
-      this.nor.push(n[i], n[i + 1], n[i + 2]);
-      this.col.push(tmpColor.r, tmpColor.g, tmpColor.b);
+    const r = tmpColor.r, g = tmpColor.g, b = tmpColor.b;
+    const e = matrix ? matrix.elements : null;
+    // Normal matrix: for rotation and uniform-ish scale the upper 3x3 is close enough
+    // once the result is normalised.
+    for (let k = 0; k < count; k++) {
+      const i = (index ? index[k] : k) * 3;
+      const x = pa[i], y = pa[i + 1], z = pa[i + 2];
+      let nx = na[i], ny = na[i + 1], nz = na[i + 2];
+      if (e) {
+        this.pos.push(e[0] * x + e[4] * y + e[8] * z + e[12], e[1] * x + e[5] * y + e[9] * z + e[13], e[2] * x + e[6] * y + e[10] * z + e[14]);
+        const tx = e[0] * nx + e[4] * ny + e[8] * nz, ty = e[1] * nx + e[5] * ny + e[9] * nz, tz = e[2] * nx + e[6] * ny + e[10] * nz;
+        const l = Math.hypot(tx, ty, tz) || 1;
+        nx = tx / l;
+        ny = ty / l;
+        nz = tz / l;
+      } else this.pos.push(x, y, z);
+      this.nor.push(nx, ny, nz);
+      this.col.push(r, g, b);
     }
-    g.dispose();
+    geometry.dispose();
     return this;
   }
 
@@ -34,12 +49,12 @@ export class Builder {
     return this.add(new THREE.BoxGeometry(w, h, d), color, m4(x, y, z, rotY));
   }
 
-  build() {
+  build({ outline = true } = {}) {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
-    addOutlineNormals(g);
+    if (outline) addOutlineNormals(g);
     g.computeBoundingSphere();
     return g;
   }

@@ -22,7 +22,7 @@ export function loadTexture(url) {
 // With triplanar: true the picture is blended from all three directions, so
 // round shapes (tree crowns, hedges) are not smeared; it costs three reads.
 export function worldMapped(map, metresPerTile, opts = {}) {
-  const { triplanar = false, ...rest } = opts;
+  const { triplanar = false, vary = 0, ...rest } = opts;
   const m = new THREE.MeshStandardMaterial({ map, roughness: 0.9, metalness: 0, ...rest });
   const scale = { value: 1 / metresPerTile };
   m.onBeforeCompile = (sh) => {
@@ -52,10 +52,16 @@ export function worldMapped(map, metresPerTile, opts = {}) {
         : `vec3 an = abs(vWN);
       vec2 wuv = an.y > max(an.x, an.z) ? vWP.xz : (an.x > an.z ? vWP.zy : vWP.xy);
       vec4 sampledDiffuseColor = texture2D(map, wuv * uvScale);
+      ${vary > 0 ? `// Break up repetition: a second, larger and turned sample of the same picture
+      // and a soft brightness wave across the surface.
+      vec2 ruv = mat2(0.8, -0.6, 0.6, 0.8) * wuv * uvScale * 0.31 + 0.37;
+      float big = dot(texture2D(map, ruv).rgb, vec3(0.333));
+      float wave = 0.5 + 0.5 * sin(wuv.x * 0.21 + sin(wuv.y * 0.17) * 2.0) * sin(wuv.y * 0.13 + 1.3);
+      sampledDiffuseColor.rgb *= mix(1.0, (0.75 + big * 0.6) * (0.88 + wave * 0.24), ${vary.toFixed(2)});` : ''}
       diffuseColor *= sampledDiffuseColor;`,
     );
   };
-  m.customProgramCacheKey = () => `wm${metresPerTile}${triplanar}`;
+  m.customProgramCacheKey = () => `wm${metresPerTile}${triplanar}${vary}`;
   return m;
 }
 

@@ -4,10 +4,14 @@
 import * as THREE from '../../vendor/three/three.module.js';
 import { VARIANTS } from './variants.js';
 import { buildScene, CAM_HEIGHT, VIEW_SHORT } from './scene.js';
-import { buildRich } from './rich.js';
+import { buildRich, upgradeTextures } from './rich.js';
 
+(globalThis.__times ||= []).push(['moduleStart', Math.round(performance.now())]);
 const params = new URLSearchParams(location.search);
 const still = params.has('still'); // fixed camera and time, for screenshots
+// Tilted camera (fixed angle, D-045) is the default; ?vy=ovan starts straight down.
+let view = params.get('vy') === 'ovan' ? 'ovan' : 'lutad';
+const TILT = THREE.MathUtils.degToRad(33);
 const $ = (id) => document.getElementById(id);
 
 const QUALITY = {
@@ -20,6 +24,7 @@ const ORDER = ['low', 'medium', 'high'];
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.localClippingEnabled = true;
 $('view').appendChild(renderer.domElement);
 
 const camera = new THREE.PerspectiveCamera(20, 1, 10, 200);
@@ -57,7 +62,7 @@ async function setVariant(i) {
   if (built) built.scene.traverse((o) => o.geometry && o.geometry.dispose());
   if (mode.id === 'sommarkvall') {
     built = await buildRich(renderer);
-    cam = { height: built.camera.height, viewShort: built.camera.viewShort, center: built.camera.center, rotatePortrait: true };
+    cam = { height: built.camera.height, viewShort: built.camera.viewShort, center: built.camera.center, tiltCenter: built.camera.tiltCenter, tiltDistance: built.camera.tiltDistance, tiltViewShort: built.camera.tiltViewShort, rotatePortrait: true };
     renderer.toneMapping = built.toneMapping;
     renderer.toneMappingExposure = built.exposure;
   } else {
@@ -79,7 +84,8 @@ async function setVariant(i) {
 function fitShadowBox() {
   if (!built) return;
   const long = cam.viewShort * Math.max(camera.aspect, 1 / camera.aspect);
-  const half = long / 2 + 10;
+  // The tilted view sees further towards the top of the screen.
+  const half = (view === 'lutad' && cam.rotatePortrait ? long * 0.75 : long / 2) + 10;
   const sc = built.sun.shadow.camera;
   sc.left = -half;
   sc.right = half;
@@ -96,7 +102,9 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   // The short side of the screen always shows the same metres of street.
-  const half = Math.atan(cam.viewShort / 2 / cam.height);
+  const tiltOn = view === 'lutad' && cam.rotatePortrait;
+  const dist = tiltOn ? cam.tiltDistance : cam.height;
+  const half = Math.atan((tiltOn ? cam.tiltViewShort : cam.viewShort) / 2 / dist);
   camera.fov = THREE.MathUtils.radToDeg(w >= h ? 2 * half : 2 * Math.atan(Math.tan(half) / camera.aspect));
   camera.updateProjectionMatrix();
   fitShadowBox();
@@ -165,15 +173,27 @@ function frame(now) {
   clock += dt;
   if (!still) t += dt;
   built.update(still ? 3 : t);
-  const c = cam.center;
+  const tilted = view === 'lutad' && cam.rotatePortrait;
+  if (built.setNearFade && built.nearFade !== tilted) {
+    built.setNearFade(tilted, TILT);
+    built.nearFade = tilted;
+  }
+  const c = tilted ? cam.tiltCenter : cam.center;
   const portrait = camera.aspect < 1;
   const tx = panning ? c.x + Math.sin(t * 0.15) * 9 : c.x;
   const tz = c.z;
-  camera.position.set(tx, cam.height, tz);
-  // North up; in portrait the richer scene turns so the street runs up the screen.
-  if (portrait && cam.rotatePortrait) camera.up.set(1, 0, 0);
-  else camera.up.set(0, 0, -1);
-  camera.lookAt(tx, 0, tz);
+  if (view === 'lutad' && cam.rotatePortrait) {
+    // Fixed tilt from the south, about 35° from vertical, north up.
+    camera.position.set(tx, cam.tiltDistance * Math.cos(TILT), tz + cam.tiltDistance * Math.sin(TILT));
+    camera.up.set(0, 1, 0);
+    camera.lookAt(tx, 0, tz);
+  } else {
+    camera.position.set(tx, cam.height, tz);
+    // North up; in portrait the richer scene turns so the street runs up the screen.
+    if (portrait && cam.rotatePortrait) camera.up.set(1, 0, 0);
+    else camera.up.set(0, 0, -1);
+    camera.lookAt(tx, 0, tz);
+  }
   // Keep the sun's shadow box around the camera, snapped to whole metres so shadows do not shimmer.
   const sx = Math.round(tx);
   built.sun.target.position.set(sx, 0, tz);
@@ -196,6 +216,13 @@ $('btn-quality').addEventListener('click', () => {
   $('btn-quality').textContent = `Kvalitet: ${qualityMode === 'auto' ? 'auto' : QUALITY[level].name}`;
   applyQuality();
 });
+const viewLabel = () => ($('btn-view').textContent = view === 'lutad' ? 'Vy: lutad' : 'Vy: rakt ovanifrån');
+$('btn-view').addEventListener('click', () => {
+  view = view === 'lutad' ? 'ovan' : 'lutad';
+  viewLabel();
+  resize();
+});
+viewLabel();
 $('btn-pan').addEventListener('click', () => {
   panning = !panning;
   $('btn-pan').textContent = panning ? 'Kamera: rör sig' : 'Kamera: still';
@@ -203,11 +230,17 @@ $('btn-pan').addEventListener('click', () => {
 $('btn-pan').textContent = panning ? 'Kamera: rör sig' : 'Kamera: still';
 
 const t0 = performance.now();
+(globalThis.__times ||= []).push(['t0', Math.round(t0)]);
 setVariant(variantIndex).then(() => {
   requestAnimationFrame((now) => {
     last = now;
     frame(now);
     window.__stiltest.firstFrameMs = performance.now() - t0;
+    // Time from the start of the page load to the first picture, as the browser measures it.
+    window.__stiltest.startMs = performance.now();
+    (globalThis.__times ||= []).push(['firstFrame', Math.round(performance.now() - t0)]);
+    // Full-size pictures after the first frames.
+    setTimeout(() => upgradeTextures().then(() => (window.__stiltest.fullMs = performance.now())), 300);
   });
 });
 
@@ -223,6 +256,9 @@ window.__stiltest = {
   samples,
   cpu,
   setVariant,
+  get view() {
+    return view;
+  },
   get variant() {
     return MODES[variantIndex].id;
   },

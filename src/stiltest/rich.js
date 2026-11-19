@@ -6,13 +6,37 @@
 import * as THREE from '../../vendor/three/three.module.js';
 import { Builder, m4, gableRoof } from './geo.js';
 import * as L from './look.js';
+import * as P3 from './props3.js';
 
-export const CAMERA = { height: 72, viewShort: 30, center: new THREE.Vector3(30, 0, -0.1) };
+// height = distance from the street to the camera (straight down or tilted).
+export const CAMERA = { height: 64, viewShort: 30, tiltViewShort: 34, center: new THREE.Vector3(30, 0, -1.5), tiltCenter: new THREE.Vector3(30, 0, -3.5), tiltDistance: 56 };
 
 const FLOOR = 3.2;
 // Pictures sit next to the built bundle (stiltest/app.js -> stiltest/tex/).
-const TEX = (n) => new URL(`./tex/${n}.jpg`, import.meta.url).href;
-const PNG = (n) => new URL(`./tex/${n}.webp`, import.meta.url).href;
+// Pictures sit next to the built bundle. A tiny version of every picture is
+// loaded first so the street shows at once; the full pictures follow (D-045).
+const TEX = (n) => new URL(`./tex/${n}.webp`, import.meta.url).href;
+const PNG = TEX;
+const SMALL = (n) => new URL(`./tex/small/${n}.webp`, import.meta.url).href;
+const upgrades = [];
+async function loadProgressive(name) {
+  const t = await L.loadTexture(SMALL(name));
+  if (t) upgrades.push([t, name]);
+  return t;
+}
+// Swap in the full pictures one after another, after the first frames.
+export async function upgradeTextures() {
+  await Promise.all(
+    upgrades.map(async ([t, name]) => {
+      const full = await L.loadTexture(TEX(name));
+      if (!full) return;
+      // A bigger picture needs new GPU storage: release the old one first.
+      t.dispose();
+      t.image = full.image;
+      t.needsUpdate = true;
+    }),
+  );
+}
 
 // Generated pictures seen from straight above (cars, tree crowns), laid flat at
 // their height so they cast matching, cut-out shadows.
@@ -76,18 +100,44 @@ function addHouse(H, h, place) {
   const wallC = FACADES[h.facade % FACADES.length];
   const plinth = 0x8f8a82;
   H.wall.add(new THREE.BoxGeometry(w, top, d), wallC, at(0, top / 2, 0));
-  H.wall.add(new THREE.BoxGeometry(w + 0.12, 1.0, d + 0.12), plinth, at(0, 0.5, 0));
-  for (let f = 1; f < floors; f++) H.trim.add(new THREE.BoxGeometry(w + 0.1, 0.16, d + 0.1), 0xf4efe6, at(0, 1.0 + f * FLOOR, 0));
-  H.trim.add(new THREE.BoxGeometry(w + 0.6, 0.45, d + 0.6), 0xf4efe6, at(0, top + 0.22, 0));
+  // Bands around the walls only (not solid slabs), so a cut-away house is hollow inside.
+  const band = (B, out, hgt, y, c) => {
+    B.add(new THREE.BoxGeometry(w + out * 2, hgt, out + 0.06), c, at(0, y, d / 2 + out / 2));
+    B.add(new THREE.BoxGeometry(w + out * 2, hgt, out + 0.06), c, at(0, y, -d / 2 - out / 2));
+    B.add(new THREE.BoxGeometry(out + 0.06, hgt, d), c, at(w / 2 + out / 2, y, 0));
+    B.add(new THREE.BoxGeometry(out + 0.06, hgt, d), c, at(-w / 2 - out / 2, y, 0));
+  };
+  band(H.wall, 0.06, 1.0, 0.5, plinth);
+  for (let f = 1; f < floors; f++) band(H.trim, 0.05, 0.16, 1.0 + f * FLOOR, 0xf4efe6);
+  band(H.trim, 0.3, 0.45, top + 0.22, 0xf4efe6);
   const cols = Math.max(3, Math.floor(w / 2.6));
   const step = w / cols;
   const bayCols = h.bay ? [1, cols - 2] : [];
   const doorCol = Math.floor(cols / 2);
+  const HR = rng(Math.floor(h.x * 31 + h.facade * 7 + w));
+  const frameC = HR() < 0.3 ? 0x5a3a2a : HR() < 0.5 ? 0x2f4a3a : 0xf6f2ea;
+  const ww = h.narrow ? 0.85 : 1.05;
   const win = (x, y, z, rot) => {
-    H.trim.add(new THREE.BoxGeometry(1.3, 1.85, 0.1), 0xf6f2ea, at(x, y, z, rot));
-    H.glass.add(new THREE.BoxGeometry(1.0, 1.55, 0.12), 0xffffff, at(x, y, z, rot));
-    H.trim.add(new THREE.BoxGeometry(1.35, 0.1, 0.25), 0xe6e0d6, at(x, y - 0.95, z, rot)); // sill
-    H.trim.add(new THREE.BoxGeometry(0.06, 1.5, 0.14), 0xf6f2ea, at(x, y, z, rot)); // mullion
+    // Recess, frame, two sashes with a cross bar, glass, sill and a lintel.
+    const glass = [0x8fa6bf, 0x6f879f, 0xa9bccc, 0x5d7186][Math.floor(HR() * 4)];
+    H.dark.add(new THREE.BoxGeometry(ww + 0.32, 1.86, 0.06), 0x3c3530, at(x, y, z, rot));
+    H.trim.add(new THREE.BoxGeometry(ww + 0.2, 1.72, 0.1), frameC, at(x, y, z, rot));
+    H.glass.add(new THREE.BoxGeometry(ww, 1.5, 0.12), glass, at(x, y, z, rot));
+    const r = HR();
+    if (r < 0.35) H.trim.add(new THREE.BoxGeometry(ww * 0.42, 1.3, 0.13), [0xf3eee0, 0xd9c7a0, 0xc7d4e0][Math.floor(HR() * 3)], at(x - ww * 0.24 * (r < 0.17 ? 1 : -1), y + 0.05, z, rot)); // curtain
+    if (r > 0.88) H.trim.add(new THREE.BoxGeometry(ww * 0.95, 0.5, 0.13), 0xe8dcc0, at(x, y + 0.45, z, rot)); // blind
+    H.trim.add(new THREE.BoxGeometry(0.06, 1.5, 0.15), frameC, at(x, y, z, rot)); // mullion
+    H.trim.add(new THREE.BoxGeometry(ww, 0.05, 0.15), frameC, at(x, y + 0.3, z, rot)); // transom
+    H.trim.add(new THREE.BoxGeometry(ww + 0.3, 0.08, 0.3), 0x8e949a, at(x, y - 0.93, z, rot)); // sheet-metal sill
+    if (h.ornate) {
+      H.trim.add(new THREE.BoxGeometry(ww + 0.45, 0.22, 0.14), 0xf4efe6, at(x, y + 1.0, z, rot)); // lintel
+      H.trim.add(new THREE.ConeGeometry((ww + 0.4) / 2, 0.3, 4, 1), 0xf4efe6, at(x, y + 1.25, z, rot).multiply(new THREE.Matrix4().makeScale(1, 1, 0.25)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 4))); // pediment
+    }
+    // A window box with flowers on some windows facing the street.
+    if (rot === 0 && z > 0 && y > 3 && HR() < 0.3) {
+      H.dark.add(new THREE.BoxGeometry(ww + 0.1, 0.22, 0.25), 0x5a3a26, at(x, y - 0.82, z + 0.16, rot));
+      for (let k = 0; k < 5; k++) H.trim.add(new THREE.IcosahedronGeometry(0.11, 0), [0xe0506a, 0x4f8f3a, 0xf2c94c, 0x4f8f3a, 0xd96aa0][k], at(x - ww / 2 + 0.1 + k * (ww / 4.4), y - 0.65, z + 0.2, rot));
+    }
   };
   for (const side of [1, -1])
     for (let f = 0; f < floors; f++)
@@ -104,7 +154,11 @@ function addHouse(H, h, place) {
   // Door with a stone portal and steps.
   const dx = -w / 2 + step * (doorCol + 0.5);
   H.trim.add(new THREE.BoxGeometry(2.1, 3.2, 0.22), 0xd8d0c2, at(dx, 1.6, d / 2 + 0.07));
-  H.dark.add(new THREE.BoxGeometry(1.4, 2.6, 0.25), 0x5a3626, at(dx, 1.3, d / 2 + 0.09));
+  const doorC = [0x5a3626, 0x2f4a3a, 0x3b4a6a, 0x6a2a24][h.facade % 4];
+  H.dark.add(new THREE.BoxGeometry(1.4, 2.6, 0.25), doorC, at(dx, 1.3, d / 2 + 0.09));
+  for (const ox of [-0.33, 0.33]) for (const oy of [0.7, 1.75]) H.dark.add(new THREE.BoxGeometry(0.5, 0.75, 0.27), new THREE.Color(doorC).multiplyScalar(1.25).getHex(), at(dx + ox, oy, d / 2 + 0.1));
+  H.glass.add(new THREE.BoxGeometry(1.3, 0.38, 0.26), 0xffd9a0, at(dx, 2.85, d / 2 + 0.09)); // fanlight
+  H.trim.add(new THREE.BoxGeometry(0.05, 0.25, 0.08), 0xc9a24a, at(dx + 0.55, 1.25, d / 2 + 0.24)); // handle
   H.trim.add(new THREE.BoxGeometry(2.6, 0.35, 1.1), 0xa29a8e, at(dx, 0.17, d / 2 + 0.55));
   // Bay windows (burspråk) with small tower roofs.
   for (const bc of bayCols) {
@@ -121,7 +175,7 @@ function addHouse(H, h, place) {
   H.trim.add(new THREE.BoxGeometry(w + 1.0, 0.18, 0.4), h.slate ? 0x5f656e : 0x9a4e3a, at(0, top + 0.45 + rh, 0));
   for (let c = 1; c < cols - 1; c += 2) {
     const x = -w / 2 + step * (c + 0.5);
-    for (const side of [-1]) {
+    for (const side of [1, -1]) {
       const zf = side * (d / 2 - 1.5);
       H.wall.add(new THREE.BoxGeometry(1.5, 1.6, 1.4), wallC, at(x, top + 0.45 + 1.1, zf));
       H.roof.add(gableRoof(1.5, 1.4, 0.8, 0.15), h.slate ? 0x8d939c : 0xffffff, place.clone().multiply(m4(x, top + 0.45 + 1.9, zf, Math.PI / 2)));
@@ -156,7 +210,7 @@ function treeCrown() {
   const B = new Builder();
   const parts = [[0, 5.4, 0, 2.5, 1], [1.6, 4.7, 1.0, 1.8, 2], [-1.5, 4.8, -0.9, 1.9, 3], [0.5, 6.7, -0.4, 1.7, 4], [-0.8, 4.5, 1.5, 1.6, 5], [1.1, 5.1, -1.6, 1.6, 6], [-1.6, 6.0, 0.6, 1.4, 7]];
   for (const [x, y, z, r, s] of parts) B.add(lump(r * 0.88, s, 1), 0xffffff, m4(x, y, z));
-  const g = B.build();
+  const g = B.build({ outline: false });
   // Shade inside and underneath the crown, light on the sunny west top.
   const p = g.attributes.position.array;
   const c = g.attributes.color.array;
@@ -226,7 +280,7 @@ function treeTrunk() {
   const B = new Builder();
   B.add(new THREE.CylinderGeometry(0.17, 0.26, 4.4, 7), 0x5a4232, m4(0, 2.2, 0));
   B.add(new THREE.CylinderGeometry(0.08, 0.12, 2.0, 5), 0x5a4232, m4(0.5, 3.8, 0.2).multiply(new THREE.Matrix4().makeRotationZ(-0.6)));
-  return B.build();
+  return B.build({ outline: false });
 }
 
 // ---------- cars: three rounded models ----------
@@ -283,40 +337,29 @@ function carParts(name) {
   }
   if (name === 'estate') for (const sz of [-1, 1]) det.add(new THREE.BoxGeometry(2.0, 0.06, 0.06), 0x2a2a2e, m4(-1.05, 1.62, sz * 0.62)); // roof rails
   if (name === 'hatch') det.add(new THREE.BoxGeometry(0.7, 0.04, 0.7), 0x2c3846, m4(-0.75, 1.6, 0)); // sunroof
-  return { paint: paint.build(), glass: glass.build(), det: det.build() };
+  return { paint: paint.build({ outline: false }), glass: glass.build({ outline: false }), det: det.build({ outline: false }) };
 }
 
-// ---------- people and bikes ----------
-
-function addPerson(B, place, shirt, scale = 1.5) {
-  const at = (x, y, z) => place.clone().multiply(m4(x * scale, y * scale, z * scale, 0, scale, scale, scale));
-  B.add(new THREE.CapsuleGeometry(0.09, 0.62, 2, 6), 0x2f3a4a, at(0, 0.42, 0.11));
-  B.add(new THREE.CapsuleGeometry(0.09, 0.62, 2, 6), 0x2f3a4a, at(0, 0.42, -0.11));
-  B.add(new THREE.CapsuleGeometry(0.2, 0.42, 2, 8), shirt, at(0, 1.12, 0));
-  B.add(new THREE.CapsuleGeometry(0.07, 0.5, 2, 6), shirt, at(0.04, 1.1, 0.27));
-  B.add(new THREE.CapsuleGeometry(0.07, 0.5, 2, 6), shirt, at(0.04, 1.1, -0.27));
-  B.add(new THREE.SphereGeometry(0.15, 10, 8), 0xf0c8a0, at(0.02, 1.62, 0));
-  B.add(new THREE.SphereGeometry(0.155, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0x4a3020, at(-0.01, 1.66, 0));
-}
-
-function addBike(B, place, color) {
-  const at = (x, y, z) => place.clone().multiply(m4(x, y, z));
-  for (const wx of [-0.62, 0.62]) B.add(new THREE.TorusGeometry(0.33, 0.06, 5, 14), 0x18181c, at(wx, 0.36, 0));
-  B.add(new THREE.CylinderGeometry(0.05, 0.05, 1.15, 5), color, at(0, 0.62, 0).multiply(new THREE.Matrix4().makeRotationZ(Math.PI / 2)));
-  B.add(new THREE.CylinderGeometry(0.05, 0.05, 0.55, 5), color, at(-0.28, 0.58, 0).multiply(new THREE.Matrix4().makeRotationZ(0.3)));
-  B.add(new THREE.BoxGeometry(0.5, 0.06, 0.14), color, at(-0.6, 0.72, 0)); // mudguard and rack
-  B.add(new THREE.BoxGeometry(0.26, 0.06, 0.13), 0x1f1f22, at(-0.33, 0.88, 0));
-  B.add(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 5), 0x2a2a2e, at(0.55, 0.92, 0).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)));
-  B.add(new THREE.BoxGeometry(0.3, 0.2, 0.34), 0x8a6a42, at(0.78, 0.8, 0));
-}
+const addPerson = P3.addPerson;
+const addBike = P3.addBike;
 
 // ---------- the scene ----------
 
+const T0 = { t: 0 };
+function T(name) {
+  const now = performance.now();
+  (globalThis.__times ||= []).push([name, Math.round(now - T0.t)]);
+  T0.t = now;
+}
+
 export async function buildRich(renderer) {
-  const [asphalt, slabs, grass, plaster, roof, foliage] = await Promise.all(['asphalt', 'slabs', 'grass', 'plaster', 'roof', 'foliage'].map((n) => L.loadTexture(TEX(n))));
-  const carTex = (await Promise.all(['car-1', 'car-2', 'car-3', 'car-4'].map((n) => L.loadTexture(PNG(n))))).filter(Boolean);
-  const treeTex = (await Promise.all(['tree-1', 'tree-2', 'tree-3'].map((n) => L.loadTexture(PNG(n))))).filter(Boolean);
+  T0.t = performance.now();
+  const all = await Promise.all(['asphalt', 'slabs', 'grass', 'plaster', 'roof', 'foliage', 'car-1', 'car-2', 'car-3', 'car-4', 'tree-1', 'tree-2', 'tree-3'].map(loadProgressive));
+  const [asphalt, slabs, grass, plaster, roof, foliage] = all;
+  const carTex = all.slice(6, 10).filter(Boolean);
+  const treeTex = all.slice(10).filter(Boolean);
   for (const t of [...carTex, ...treeTex]) t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+  T('textures');
   const scene = new THREE.Scene();
   const haze = 0xd9b98f;
   scene.background = new THREE.Color(haze);
@@ -327,14 +370,14 @@ export async function buildRich(renderer) {
   const R = rng(44);
 
   const mats = {
-    asphalt: L.worldMapped(asphalt, 6, { vertexColors: true, roughness: 0.92 }),
-    slabs: L.worldMapped(slabs, 4, { vertexColors: true, roughness: 0.88 }),
-    grass: L.worldMapped(grass, 4, { vertexColors: true, roughness: 1 }),
-    wall: L.worldMapped(plaster, 5, { vertexColors: true, roughness: 0.95 }),
-    roof: L.worldMapped(roof, 2.6, { vertexColors: true, roughness: 0.8 }),
+    asphalt: L.worldMapped(asphalt, 6, { vertexColors: true, roughness: 0.92, vary: 0.7 }),
+    slabs: L.worldMapped(slabs, 4, { vertexColors: true, roughness: 0.88, vary: 0.5 }),
+    grass: L.worldMapped(grass, 4, { vertexColors: true, roughness: 1, vary: 0.8 }),
+    wall: L.worldMapped(plaster, 5, { vertexColors: true, roughness: 0.95, vary: 0.6 }),
+    roof: L.worldMapped(roof, 1.25, { vertexColors: true, roughness: 0.8, vary: 0.9 }),
     foliage: L.worldMapped(foliage, 3.6, { vertexColors: true, roughness: 0.85, triplanar: true }),
     plain: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 }),
-    glass: new THREE.MeshStandardMaterial({ color: 0x4a5a6c, roughness: 0.04, metalness: 0.35, envMapIntensity: 2.0 }),
+    glass: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.05, metalness: 0.3, envMapIntensity: 1.6 }),
     paint: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.45, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.6 }),
     lantern: new THREE.MeshBasicMaterial({ color: 0xffd99a }),
   };
@@ -346,6 +389,7 @@ export async function buildRich(renderer) {
     return m;
   };
 
+  T('env');
   // ---------- ground ----------
   const X0 = -40;
   const X1 = 100;
@@ -371,17 +415,18 @@ export async function buildRich(renderer) {
   slab(S, 26.7, 29.3, -21.3, -9.3, 0xd8d2c6, 0.1); // passage between north houses
   slab(S, 40.6, 43.0, 9.0, 21, 0xd8d2c6, 0.1);
   for (const z of [-6.3, -4.5, 4.2, 6.0]) P.box(X1 - X0, 0.16, 0.25, 0x9c968c, (X0 + X1) / 2, 0.08, z); // granite curbs
-  const ground = [mesh(A.build(), mats.asphalt, { cast: false }), mesh(S.build(), mats.slabs, { cast: false }), mesh(Gr.build(), mats.grass, { cast: false })];
+  const ground = [mesh(A.build({ outline: false }), mats.asphalt, { cast: false }), mesh(S.build({ outline: false }), mats.slabs, { cast: false }), mesh(Gr.build({ outline: false }), mats.grass, { cast: false })];
 
+  T('ground');
   // ---------- houses ----------
   const H = { wall: new Builder(), trim: new Builder(), glass: new Builder(), roof: new Builder(), dark: new Builder() };
   const north = [
-    { x: -6, w: 14, floors: 4, facade: 4, bay: true },
-    { x: 7.5, w: 13, floors: 4, facade: 0, bay: true },
+    { x: -6, w: 14, floors: 4, facade: 4, bay: true, ornate: true },
+    { x: 7.5, w: 13, floors: 4, facade: 0, bay: true, narrow: true },
     { x: 20.3, w: 12.6, floors: 5, facade: 3, bay: false, slate: true },
-    { x: 36.6, w: 15.2, floors: 4, facade: 1, bay: true },
+    { x: 36.6, w: 15.2, floors: 4, facade: 1, bay: true, ornate: true },
     { x: 51.4, w: 14.2, floors: 4, facade: 2, bay: false },
-    { x: 65.5, w: 13.6, floors: 5, facade: 5, bay: true },
+    { x: 65.5, w: 13.6, floors: 5, facade: 5, bay: true, ornate: true },
   ];
   const south = [
     { x: -2, w: 15, floors: 4, facade: 2, bay: false },
@@ -391,14 +436,52 @@ export async function buildRich(renderer) {
     { x: 69, w: 14.5, floors: 4, facade: 1, bay: false },
   ];
   // The camera looks between the two rows, so houses face the street.
+  const Hs = { wall: new Builder(), trim: new Builder(), glass: new Builder(), roof: new Builder(), dark: new Builder() };
   for (const h of north) addHouse(H, { ...h, d: 12 }, m4(h.x, 0, -9.3 - 6 - 1.4, 0));
-  for (const h of south) addHouse(H, { ...h, d: 12 }, m4(h.x, 0, 9.0 + 6 + 1.4, Math.PI));
-  mesh(bakeGroundShade(H.wall.build(), 0.5, 2.6), mats.wall);
-  mesh(bakeGroundShade(H.trim.build(), 0.35, 2.0), mats.plain);
-  mesh(H.glass.build(), mats.glass);
-  mesh(H.roof.build(), mats.roof);
-  mesh(H.dark.build(), mats.plain);
+  for (const h of south) addHouse(Hs, { ...h, d: 12 }, m4(h.x, 0, 9.0 + 6 + 1.4, Math.PI));
+  const houseMeshes = (B, list) => [
+    mesh(bakeGroundShade(B.wall.build({ outline: false }), 0.5, 2.6), list.wall),
+    mesh(bakeGroundShade(B.trim.build({ outline: false }), 0.35, 2.0), list.plain),
+    mesh(B.glass.build({ outline: false }), list.glass),
+    mesh(B.roof.build({ outline: false }), list.roof),
+    mesh(B.dark.build({ outline: false }), list.plain),
+  ];
+  houseMeshes(H, mats);
+  // The row on the camera side gets its own materials, so it can fade when
+  // the tilted camera looks over it at the street (as in many top-down games).
+  const nearMats = { wall: mats.wall.clone(), plain: mats.plain.clone(), glass: mats.glass.clone(), roof: mats.roof.clone() };
+  for (const k of ['wall', 'roof']) nearMats[k].onBeforeCompile = mats[k].onBeforeCompile;
+  for (const k of ['wall', 'roof']) nearMats[k].customProgramCacheKey = mats[k].customProgramCacheKey;
+  const nearHouses = houseMeshes(Hs, nearMats);
+  // Inside of the cut: dark, like the section of a cut-away model.
+  const inside = new THREE.MeshBasicMaterial({ color: 0x2a2220, side: THREE.BackSide });
+  const insideMeshes = nearHouses.map((nm) => {
+    const im = new THREE.Mesh(nm.geometry, inside);
+    im.visible = false;
+    world.add(im);
+    return im;
+  });
+  // Tilted view: the row on the camera side is cut along the line of sight
+  // that just grazes the sidewalk, so roofs and back walls still show below
+  // the street on screen but never cover it (D-045).
+  const setNearFade = (on, tilt = 0.576) => {
+    const k = 1 / Math.tan(tilt);
+    const n = new THREE.Vector3(0, -1, k);
+    const len = n.length();
+    const plane = new THREE.Plane(n.divideScalar(len), (-k * 9.6 + 0.2) / len);
+    for (const m of [...Object.values(nearMats), inside]) {
+      m.clippingPlanes = on ? [plane] : [];
+      m.clipShadows = false;
+      m.needsUpdate = true;
+    }
+    for (const im of insideMeshes) im.visible = on;
+    for (const nm of nearHouses) {
+      nm.renderOrder = on ? 10 : 0;
+      nm.castShadow = true;
+    }
+  };
 
+  T('houses');
   // ---------- front gardens: hedges, flower boxes, fences ----------
   const F = new Builder();
   const gardens = [
@@ -413,12 +496,11 @@ export async function buildRich(renderer) {
       for (let x = a + 0.5; x < b - 0.2; x += 1.0) F.add(lump(0.62, Math.floor(x * 10), 1), 0xffffff, m4(x, 0.95, gd.z, 0, 1, 0.55, 0.85));
       // Low metal fence on the street side of the hedge.
       const fz = gd.z + Math.sign(gd.z) * -0.75;
-      for (let x = a; x <= b; x += 0.35) P.box(0.09, 1.15, 0.09, 0x1f2124, x, 0.67, fz);
-      for (const fy of [0.45, 1.2]) P.box(b - a, 0.1, 0.1, 0x1f2124, (a + b) / 2, fy, fz);
+      P3.addRailing(P, m4(a, 0.12, fz), b - a);
     }
   }
-  // Flower boxes by the doors and on the sidewalk.
-  const flowerBox = (x, z, rot = 0) => {
+  const flowerBox = (x, z, rot = 0) => P3.addFlowerBox(P, m4(x, 0.12, z, rot), Math.floor(x * 7 + z));
+  const oldFlowerBox = (x, z, rot = 0) => {
     P.add(new THREE.BoxGeometry(1.9, 0.6, 0.8), 0x8a6040, m4(x, 0.42, z, rot));
     const r2 = rng(Math.floor(x * 7 + z));
     for (let i = 0; i < 12; i++) {
@@ -428,107 +510,95 @@ export async function buildRich(renderer) {
     }
   };
   for (const gd of gardens) flowerBox(gd.door + (gd.z < 0 ? 2.3 : -2.3), gd.z + (gd.z < 0 ? 1.0 : -1.0));
-  mesh(F.build(), mats.foliage);
+  mesh(F.build({ outline: false }), mats.foliage);
 
+  T('gardens');
   // ---------- street furniture and clutter (one mesh) ----------
   const lampSpots = [];
   for (let x = -10; x < 90; x += 16) {
-    lampSpots.push([x, -6.9, 1]);
-    lampSpots.push([x + 8, 6.6, -1]);
+    lampSpots.push([x, -6.85, 1]);
+    lampSpots.push([x + 8, 6.55, -1]);
   }
-  for (const [x, z, dir] of lampSpots) {
-    // Cast-iron lamp: base, post, curved arm, lantern.
-    P.add(new THREE.CylinderGeometry(0.2, 0.26, 0.6, 8), 0x23262a, m4(x, 0.42, z));
-    P.add(new THREE.CylinderGeometry(0.12, 0.16, 5.4, 8), 0x23262a, m4(x, 2.8, z));
-    P.add(new THREE.BoxGeometry(0.14, 0.14, 1.2), 0x23262a, m4(x, 5.45, z + dir * 0.55));
-    P.add(new THREE.ConeGeometry(0.38, 0.32, 4), 0x23262a, m4(x, 5.55, z + dir * 1.15, Math.PI / 4));
-    P.add(new THREE.BoxGeometry(0.1, 0.1, 0.1), 0x23262a, m4(x, 5.75, z + dir * 1.15));
-  }
-  const lanternGeo = new THREE.CylinderGeometry(0.34, 0.24, 0.6, 4);
-  const lanterns = new THREE.InstancedMesh(lanternGeo, mats.lantern, lampSpots.length);
-  lampSpots.forEach(([x, z, dir], i) => lanterns.setMatrixAt(i, m4(x, 5.2, z + dir * 1.15, Math.PI / 4)));
+  const heads = lampSpots.map(([x, z, dir]) => P3.addLamp(P, m4(x, 0.12, z), dir));
+  const lanterns = new THREE.InstancedMesh(P3.lanternGlass(), mats.lantern, lampSpots.length);
+  lampSpots.forEach(([x, z, dir], i) => lanterns.setMatrixAt(i, m4(x, 4.85, z + dir * 1.12)));
   world.add(lanterns);
-  // Bike racks with bikes (rows like in the target picture).
-  const bikeColors = [0x2b2d33, 0x5a1f1a, 0x1f3550, 0x2f4a33, 0x3b3b40, 0x6b6b70];
+  // Hoop racks with bikes, and a few bikes leaning elsewhere.
+  const bikeColors = [0x2b2d33, 0x7a2a22, 0x2a4a70, 0x3a5a3a, 0x8a8f96, 0xc9c2b0, 0x1f1f24];
   const rack = (x0, z, n) => {
-    for (let i = 0; i < n; i++) {
-      const x = x0 + i * 0.75;
-      P.box(0.05, 0.75, 0.05, 0x8a8f96, x, 0.5, z - 0.35);
-      P.box(0.05, 0.75, 0.05, 0x8a8f96, x, 0.5, z + 0.35);
-      P.box(0.05, 0.05, 0.75, 0x8a8f96, x, 0.88, z);
-      if (R() < 0.8) addBike(P, m4(x + 0.2, 0.12, z, Math.PI / 2 + (R() - 0.5) * 0.2), bikeColors[i % bikeColors.length]);
-    }
+    P3.addRack(P, m4(x0, 0.12, z), n);
+    for (let i = 0; i < n; i++) if (R() < 0.8) addBike(P, m4(x0 + i * 0.8, 0.12, z, Math.PI / 2 + (R() - 0.5) * 0.15), bikeColors[Math.floor(R() * bikeColors.length)], { basket: R() < 0.6 });
   };
-  rack(6.5, -7.4, 7);
-  rack(44.5, 7.6, 6);
-  // Wooden crates and a pallet (picture 3's clutter).
-  const crate = (x, y, z, s, rot) => {
-    P.add(new THREE.BoxGeometry(s, s * 0.8, s), 0xb38455, m4(x, y + s * 0.4, z, rot));
-    for (const off of [-0.25, 0, 0.25]) P.add(new THREE.BoxGeometry(s * 1.01, 0.04, 0.05), 0x7a5530, m4(x, y + s * 0.4 + off * s, z + s * 0.5, rot));
-  };
-  for (const [cx, cz] of [[38.5, 7.6], [22.5, -8.0]]) {
-    crate(cx, 0.12, cz, 1.0, 0.1);
-    crate(cx + 1.1, 0.12, cz + 0.1, 0.9, -0.15);
-    crate(cx + 0.5, 0.92, cz + 0.05, 0.8, 0.3);
-    P.add(new THREE.BoxGeometry(1.2, 0.14, 1.0), 0xa98a62, m4(cx + 2.4, 0.19, cz + 0.2, 0.05));
-    P.add(new THREE.CylinderGeometry(0.32, 0.32, 0.9, 10), 0x2f6aa0, m4(cx - 1.0, 0.57, cz + 0.2));
+  rack(6.5, -7.6, 7);
+  rack(44.5, 7.7, 6);
+  addBike(P, m4(15.3, 0.12, -8.9, 0.1), 0x7a2a22);
+  addBike(P, m4(58.6, 0.12, 8.6, Math.PI - 0.15), 0x2a4a70);
+  // Crates, a pallet and a barrel by two doors (picture 3's clutter).
+  for (const [cx, cz] of [[38.5, 7.7], [22.5, -8.1]]) {
+    P3.addCrate(P, m4(cx, 0.12, cz, 0.1), 0.95, 0);
+    P3.addCrate(P, m4(cx + 1.05, 0.12, cz + 0.1, -0.15), 0.85, 1);
+    P3.addCrate(P, m4(cx + 0.5, 0.12 + 0.95 * 0.75, cz + 0.05, 0.3), 0.75, 2);
+    P3.addPallet(P, m4(cx + 2.4, 0.12, cz + 0.2, 0.05));
+    P.add(new THREE.CylinderGeometry(0.3, 0.3, 0.88, 12), 0x2f6aa0, m4(cx - 1.0, 0.56, cz + 0.2));
+    for (const y of [0.32, 0.8]) P.add(new THREE.TorusGeometry(0.3, 0.025, 4, 12), 0x24507a, m4(cx - 1.0, y, cz + 0.2).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)));
   }
-  // Benches, bins, bollards and signs.
-  for (const [x, z] of [[18, 7.9], [34, -8.1]]) {
-    P.box(1.8, 0.08, 0.5, 0x8a5a3a, x, 0.58, z);
-    P.box(1.8, 0.4, 0.07, 0x8a5a3a, x, 0.82, z + Math.sign(z) * 0.24);
-    for (const lx of [-0.75, 0.75]) P.box(0.08, 0.46, 0.45, 0x2a2c30, x + lx, 0.35, z);
+  // Benches, bins, bollards.
+  P3.addBench(P, m4(18, 0.12, 8.0, Math.PI));
+  P3.addBench(P, m4(34, 0.12, -8.2, 0));
+  for (const [x, z] of [[21, 8.0], [31.5, -8.2], [47.5, -8.3]]) P3.addBin(P, m4(x, 0.12, z));
+  for (const [x, z] of [[28, -6.0], [32, -6.0], [28, 5.7], [32, 5.7]]) P3.addBollard(P, m4(x, 0.12, z));
+  // Signs: posts in the merged mesh, faces as small pictures turned towards the camera.
+  const signs = [[3, -6.75, 0, 0.62, 0.62, 2.55], [26.6, 6.4, 0, 0.62, 0.62, 2.55], [27.2, -6.75, 1, 1.2, 0.56, 2.9], [55.5, 6.4, 2, 0.55, 0.7, 2.4], [-4, 6.4, 3, 0.6, 0.6, 2.5]];
+  const atlas = P3.signAtlas();
+  const signMat = new THREE.MeshStandardMaterial({ map: atlas, roughness: 0.5, side: THREE.DoubleSide });
+  for (const [x, z, face, w2, h2, y] of signs) {
+    P3.addSignPost(P, m4(x, 0.12, z), y + h2 / 2);
+    const plate = new THREE.Mesh(P3.signPlate(face, w2, h2), signMat);
+    plate.position.set(x, y + 0.12, z + 0.04);
+    plate.rotation.x = -0.25; // tipped back a little so it reads from above
+    plate.castShadow = true;
+    world.add(plate);
+    P.add(new THREE.BoxGeometry(w2 + 0.04, h2 + 0.04, 0.03), 0x9aa0a6, m4(x, y + 0.12, z).multiply(new THREE.Matrix4().makeRotationX(-0.25)).multiply(m4(0, 0, 0.02)));
   }
-  for (const [x, z] of [[21, 7.9], [31, -8.1], [47.5, -8.2]]) P.add(new THREE.CylinderGeometry(0.28, 0.24, 0.95, 10), 0x3b6b4b, m4(x, 0.6, z));
-  for (const [x, z] of [[28, -6.0], [32, -6.0], [28, 5.7], [32, 5.7]]) P.add(new THREE.CylinderGeometry(0.1, 0.12, 0.9, 8), 0x2a2c30, m4(x, 0.55, z));
-  const sign = (x, z, color) => {
-    P.add(new THREE.CylinderGeometry(0.04, 0.04, 2.6, 6), 0x8a8f96, m4(x, 1.42, z));
-    P.add(new THREE.BoxGeometry(0.75, 0.06, 0.75), 0xf2efe6, m4(x, 2.62, z));
-    P.add(new THREE.BoxGeometry(0.62, 0.08, 0.62), color, m4(x, 2.64, z));
-  };
-  sign(3, -6.7, 0x2a5ca8);
-  sign(26.8, 6.4, 0x2a5ca8);
-  // People: the player in an orange jacket, two others.
-  addPerson(P, m4(35.5, 0.12, 7.0, 0.4), 0x6a5acd);
-  addPerson(P, m4(36.2, 0.12, 7.4, Math.PI + 0.3), 0x3f9a6a);
-  mesh(P.build(), mats.plain);
+  // People on the sidewalks.
+  addPerson(P, m4(35.5, 0.12, 7.0, 0.4), { jacket: 0x6a5acd, pants: 0x2f3440, skin: 1, hair: 2, walk: 0.5 });
+  addPerson(P, m4(36.3, 0.12, 7.4, Math.PI + 0.3), { jacket: 0x3f9a6a, pants: 0x44506a, skin: 0, hair: 0, bag: true, walk: 2 });
+  addPerson(P, m4(10.2, 0.12, -8.6, -Math.PI / 2), { jacket: 0xc0504a, pants: 0x2a2a30, skin: 2, hair: 3 });
+  mesh(P.build({ outline: false }), mats.plain);
 
-  // ---------- trees ----------
+  T('props');
+  // ---------- trees: three kinds, rounded crowns carrying the crown pictures ----------
   const treeSpots = [];
-  for (let x = -8; x < 90; x += 9.5) if (Math.abs(x - 30) > 3.5) treeSpots.push([x + (R() - 0.5), 7.75]);
-  for (const [x, z] of [[14, -11.3], [45, -11.2], [-1, 11.5], [41.8, 12.5], [62, 11.3], [28, -24], [10, -27], [50, -26], [20, 25], [60, 26]]) treeSpots.push([x, z]);
-  const trunkGeo = treeTrunk();
-  const trunks = new THREE.InstancedMesh(trunkGeo, mats.plain, treeSpots.length);
-  const crownMats = treeTex.map((t) => new THREE.MeshStandardMaterial({ map: t, alphaTest: 0.45, roughness: 0.9, side: THREE.DoubleSide }));
-  const byTex = crownMats.map(() => []);
-  treeSpots.forEach(([x, z], i) => {
-    const s2 = 0.85 + R() * 0.3;
-    trunks.setMatrixAt(i, m4(x, 0.12, z, R() * 6.28, s2, s2, s2));
-    byTex[i % crownMats.length].push({ x, z, s: s2, rot: R() * 0.6 - 0.3 });
-  });
-  trunks.castShadow = trunks.receiveShadow = true;
-  world.add(trunks);
-  const crownGeo = topPlane(6.6, 6.6);
-  crownMats.forEach((mat, k) => {
-    const list = byTex[k];
-    if (!list.length) return;
-    // Two layers per tree: a darker, smaller one below and the full crown above.
-    for (const [y, scale, tone] of [[5.0, 0.95, 0.5], [6.3, 1, 1]]) {
-      const im = new THREE.InstancedMesh(crownGeo, mat, list.length);
-      const c = new THREE.Color();
-      list.forEach((t, i) => {
-        im.setMatrixAt(i, m4(t.x, y * t.s, t.z, t.rot + (scale < 1 ? 1.3 : 0), t.s * scale, 1, t.s * scale));
-        im.setColorAt(i, c.setScalar(tone));
-      });
-      im.castShadow = true;
-      im.receiveShadow = scale < 1;
-      world.add(im);
+  for (let x = -8; x < 90; x += 9.5) if (Math.abs(x - 30) > 3.5) treeSpots.push([x + (R() - 0.5), 7.75, 'lind']);
+  for (const [x, z, k] of [[14, -11.3, 'bjork'], [45, -11.2, 'bjork'], [-1, 11.5, 'lonn'], [41.8, 12.5, 'bjork'], [62, 11.3, 'lonn'], [28, -24, 'lonn'], [10, -27, 'lind'], [50, -26, 'bjork'], [20, 25, 'lonn'], [60, 26, 'lind']]) treeSpots.push([x, z, k]);
+  const kinds = { lind: 0, lonn: 1, bjork: 2 };
+  const crownMats = treeTex.map((t) => new THREE.MeshStandardMaterial({ map: t, vertexColors: true, roughness: 0.9 }));
+  for (const [kind, ti] of Object.entries(kinds)) {
+    const list = treeSpots.filter((t) => t[2] === kind);
+    if (!list.length) continue;
+    const TB = new Builder();
+    P3.trunkGeometry(TB, kind);
+    const trunks = new THREE.InstancedMesh(TB.build({ outline: false }), mats.plain, list.length);
+    const crowns = new THREE.InstancedMesh(P3.crownGeometry(kind, ti + 3), crownMats[ti % crownMats.length], list.length);
+    const c = new THREE.Color();
+    list.forEach(([x, z], i) => {
+      const sc = 0.88 + R() * 0.24;
+      const mtx = m4(x, 0, z, R() * 6.28, sc, sc, sc);
+      trunks.setMatrixAt(i, mtx);
+      crowns.setMatrixAt(i, mtx);
+      crowns.setColorAt(i, c.setRGB(0.92 + R() * 0.12, 0.95 + R() * 0.1, 0.9 + R() * 0.12));
+    });
+    for (const t of [trunks, crowns]) {
+      t.castShadow = true;
+      t.receiveShadow = true;
+      world.add(t);
     }
-  });
+  }
 
+  T('trees');
   // ---------- cars ----------
   const parts = { hatch: carParts('hatch'), sedan: carParts('sedan'), estate: carParts('estate') };
-  const paints = [0x9aa0a6, 0x1f5fa8, 0x15171c, 0xc9ccd0, 0xf3f3f1, 0xb0201c, 0x1f7a78, 0x5a6b45];
+  const paints = [0xb0b6bc, 0x3a78c8, 0x6a6f78, 0xd9dcdf, 0xf3f3f1, 0xc8382c, 0x2f9a90, 0x7a8b55];
   const parked = [];
   let px = -12;
   while (px < 92) {
@@ -537,50 +607,69 @@ export async function buildRich(renderer) {
     if (Math.abs(px - 30) > 4.5 && R() < 0.85) parked.push({ model, x: px + len / 2, z: -3.4, rot: R() < 0.5 ? 0 : Math.PI, color: paints[Math.floor(R() * paints.length)] });
     px += len + 1.2 + R() * 1.6;
   }
-  // Parked cars: generated pictures from above, tinted per car (the grey
-  // and silver pictures take a colour well), lifted to roof height.
-  const carMats = carTex.map((t) => new THREE.MeshStandardMaterial({ map: t, alphaTest: 0.5, roughness: 0.45, metalness: 0.1, envMapIntensity: 0.6 }));
+  // Parked cars: rounded 3D bodies whose top carries a generated car picture,
+  // tinted per car, with wheels, sills and lights underneath.
+  const CAR_META = { 'car-1': { aspect: 0.412, cab: [-0.38, 0.24], kind: 'sedan' }, 'car-2': { aspect: 0.403, cab: [-0.4, 0.25], kind: 'sedan' }, 'car-3': { aspect: 0.424, cab: [-0.46, 0.25], kind: 'estate' }, 'car-4': { aspect: 0.387, cab: [-0.46, 0.26], kind: 'estate' } };
+  const carMats = carTex.map((t) => new THREE.MeshPhysicalMaterial({ map: t, roughness: 0.32, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.2 }));
+  const carBody = carTex.map((t, k) => {
+    const meta = CAR_META[`car-${k + 1}`];
+    const Lc = 4.5;
+    const g = P3.carBodyGeometry(Lc, Lc * meta.aspect * 1.05, meta.kind, meta.cab);
+    const ub = new Builder();
+    P3.carUnderGeometry(ub, Lc, Lc * meta.aspect);
+    return { body: g, under: ub.build({ outline: false }), L: Lc };
+  });
   carMats.forEach((mat, k) => {
     const list = parked.filter((_, i) => i % carMats.length === k);
     if (!list.length) return;
-    const im = new THREE.InstancedMesh(topPlane(1, 1), mat, list.length);
+    const body = new THREE.InstancedMesh(carBody[k].body, mat, list.length);
+    const under = new THREE.InstancedMesh(carBody[k].under, mats.plain, list.length);
     const c = new THREE.Color();
     list.forEach((car, i) => {
-      const L2 = MODELS[car.model].L + 0.2;
-      im.setMatrixAt(i, m4(car.x, 1.2, car.z, car.rot, L2, 1, L2 * (mat.map.image.height / mat.map.image.width)));
-      im.setColorAt(i, k < 2 ? c.set(car.color).lerp(new THREE.Color(1, 1, 1), 0.35) : c.setScalar(1));
+      const s2 = MODELS[car.model].L / carBody[k].L;
+      const mtx = m4(car.x, 0.02, car.z, car.rot, s2, 1, 1);
+      body.setMatrixAt(i, mtx);
+      under.setMatrixAt(i, mtx);
+      body.setColorAt(i, k < 2 ? c.set(car.color).lerp(new THREE.Color(1, 1, 1), 0.3) : c.setScalar(0.85 + (i % 3) * 0.1));
     });
-    im.castShadow = true;
-    world.add(im);
+    for (const im of [body, under]) {
+      im.castShadow = true;
+      im.receiveShadow = true;
+      world.add(im);
+    }
   });
-  // A moving car (same pieces, its own paint colour).
+  // A moving car with its own colour.
   const car = new THREE.Group();
   if (carMats.length) {
-    const red = carMats[0].clone();
-    red.color.set(0xff5040);
-    const cm = new THREE.Mesh(topPlane(4.7, 4.7 * (red.map.image.height / red.map.image.width)), red);
-    cm.position.y = 1.2;
-    cm.castShadow = true;
-    car.add(cm);
+    const red = carMats[1 % carMats.length].clone();
+    red.color.set(0xd84030);
+    const bm = new THREE.Mesh(carBody[1 % carMats.length].body, red);
+    const um = new THREE.Mesh(carBody[1 % carMats.length].under, mats.plain);
+    for (const m of [bm, um]) {
+      m.castShadow = true;
+      car.add(m);
+    }
   }
   world.add(car);
   // The player (walking) and a cyclist.
   const actor = (build) => {
     const b = new Builder();
     build(b);
-    const m = new THREE.Mesh(b.build(), mats.plain);
+    const m = new THREE.Mesh(b.build({ outline: false }), mats.plain);
     m.castShadow = true;
     const g = new THREE.Group();
     g.add(m);
     world.add(g);
     return g;
   };
-  const player = actor((b) => addPerson(b, m4(0, 0, 0), 0xf07a1a, 2.6));
+  // The player: the same person model, a little larger, in an orange jacket.
+  const player = actor((b) => addPerson(b, m4(0, 0, 0), { jacket: 0xf07a1a, pants: 0x2a3550, skin: 0, hair: 1, scale: 1.25, walk: 0.6 }));
   const cyclist = actor((b) => {
-    addBike(b, m4(0, 0, 0), 0x1e8449);
-    addPerson(b, m4(-0.12, 0.45, 0, 0, 0.85, 0.85, 0.85), 0xd4ac0d, 1.3);
+    addBike(b, m4(0, 0, 0), 0x2a4a70);
+    addPerson(b, m4(-0.2, 0.42, 0, 0, 1, 0.82, 1), { jacket: 0xd4ac0d, pants: 0x2f3440, skin: 1, hair: 2 });
   });
 
+  T('cars');
   // ---------- decals: baked shade, stains, paint, manholes, light pools ----------
   const D = new THREE.Group();
   world.add(D);
@@ -643,7 +732,7 @@ export async function buildRich(renderer) {
     const wx = 30 + Math.sin(t * 0.22) * 9;
     player.position.set(wx, 0.12, -7.3);
     player.rotation.y = Math.cos(t * 0.22) > 0 ? 0 : Math.PI;
-    ring.setMatrixAt(0, m4(wx, 0.15, -7.3, 0, 3.0, 1, 3.0));
+    ring.setMatrixAt(0, m4(wx, 0.15, -7.3, 0, 2.2, 1, 2.2));
     ring.instanceMatrix.needsUpdate = true;
   };
 
@@ -659,5 +748,5 @@ export async function buildRich(renderer) {
   fill.position.set(60, 30, -10);
   scene.add(fill);
 
-  return { scene, sun, sunOffset, update, camera: CAMERA, glows, toneMapping: THREE.ACESFilmicToneMapping, exposure: 0.95 };
+  return { scene, sun, sunOffset, update, camera: CAMERA, glows, setNearFade, toneMapping: THREE.ACESFilmicToneMapping, exposure: 0.95 };
 }
