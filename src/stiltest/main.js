@@ -5,6 +5,7 @@ import * as THREE from '../../vendor/three/three.module.js';
 import { VARIANTS } from './variants.js';
 import { buildScene, CAM_HEIGHT, VIEW_SHORT } from './scene.js';
 import { buildRich, upgradeTextures } from './rich.js';
+import { GL_NONE, showGlMessage, watchContext, webglAvailable } from '../glcheck.js';
 
 (globalThis.__times ||= []).push(['moduleStart', Math.round(performance.now())]);
 const params = new URLSearchParams(location.search);
@@ -21,7 +22,17 @@ const QUALITY = {
 };
 const ORDER = ['low', 'medium', 'high'];
 
+// B-053: without WebGL there is nothing to draw; say so and stop here.
+if (!webglAvailable()) {
+  showGlMessage(GL_NONE);
+  throw new Error('WebGL 2 is not available');
+}
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+let glLost = false;
+watchContext(renderer.domElement, () => {
+  glLost = true;
+  $('fps').hidden = true;
+});
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.localClippingEnabled = true;
@@ -177,6 +188,7 @@ let last = performance.now();
 let t = 0;
 let panning = !still;
 function frame(now) {
+  if (glLost) return;
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   clock += dt;
@@ -257,6 +269,9 @@ setVariant(variantIndex).then(() => {
 // Read-only handle for the automatic tests and measurements.
 window.__stiltest = {
   renderer,
+  get glLost() {
+    return glLost;
+  },
   get scene() {
     return built && built.scene;
   },

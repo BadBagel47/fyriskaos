@@ -62,6 +62,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
+| B-053 | 2026-11-19 | När 3D-grafiken förloras (webglcontextlost) eller inte går att starta slutar spelet och stiltestet rita och visar på svenska att man kan prova en annan webbläsare, t.ex. Chrome. Testat med WEBGL_lose_context. |
 | F-042 | 2026-11-19 | Spelet ritas i 3D i Sommarkväll+ med den lutade kameran (v0.5.0): staden från kartan i bitar, bortklippning av det som skymmer spelaren, kväll, inställningar för grafik och fps-mätare. Med 4× strypning medan bilen kör: cirka 11 ms per bild i median. |
 | D-048 | 2026-11-19 | CC0-modeller från Quaternius i spelet: nio olika träd (två sorters lövträd med lövbilder, björkar, lågpolyträd), två cyklar och spelaren i fyra poser. |
 | F-049 | 2026-11-19 | Arbetsflöde som hämtar Quaternius (Google Drive), Kenney och OpenStreetMap-data för Uppsala via GitHub Actions; källor och licenser i CREDITS.md, OSM-krediten i spelets inställningar. |

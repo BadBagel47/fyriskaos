@@ -7,6 +7,7 @@ import { createInput } from './input.js';
 import { createHud } from './hud.js';
 import { CYCLE } from './daylight.js';
 import { createRenderer3d, QUALITY } from './game3d/view.js';
+import { GL_NONE, showGlMessage, watchContext, webglAvailable } from './glcheck.js';
 
 const $ = (id) => document.getElementById(id);
 // Start-up times for the performance test (ms since the page began).
@@ -33,7 +34,18 @@ async function start() {
   const input = createInput(els);
   const hud = createHud(els);
   mark('game');
+  if (!webglAvailable()) {
+    showGlMessage(GL_NONE);
+    return;
+  }
   const renderer = await createRenderer3d($('game'), game);
+  // B-053: if the browser drops the 3D graphics, stop drawing and say so.
+  let glLost = false;
+  watchContext(renderer.renderer.domElement, () => {
+    glLost = true;
+    $('fps').hidden = true;
+    if (window.__fyriskaos) window.__fyriskaos.glLost = true;
+  });
   mark('city');
 
   // ---------- settings: graphics quality and the fps meter ----------
@@ -75,6 +87,7 @@ async function start() {
   let lastDrop = -99;
   let clock = 0;
   function loop(now) {
+    if (glLost) return;
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     const t0 = performance.now();

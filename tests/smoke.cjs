@@ -218,8 +218,55 @@ function fail(msg) {
     if (v0 === v1) fail('style button did not change the variant');
     await page.waitForFunction(() => /fps/.test(document.getElementById('fps').textContent) && !/…/.test(document.getElementById('fps').textContent), null, { timeout: 30000 });
 
+    // B-053: when the browser drops the 3D graphics, drawing stops and a Swedish
+    // message says so (game and style test).
+    const glMessage = () => page.evaluate(() => {
+      const el = document.getElementById('gl-fail');
+      return el && !el.hidden && getComputedStyle(el).display !== 'none' ? el.textContent : null;
+    });
+    const loseContext = (canvasSel) => page.evaluate((sel) => {
+      const gl = document.querySelector(sel).getContext('webgl2');
+      gl.getExtension('WEBGL_lose_context').loseContext();
+    }, canvasSel);
+    const stillDrawing = async (count) => {
+      const a = await page.evaluate(count);
+      await page.waitForTimeout(1500);
+      return (await page.evaluate(count)) !== a;
+    };
+    await page.goto(`http://127.0.0.1:${port}/index.html?fps`);
+    await page.waitForFunction(() => window.__fyriskaos && window.__fyriskaos.perf.frames > 2, null, { timeout: 120000 });
+    await page.click('#btn-start');
+    await loseContext('#game canvas');
+    await page.waitForFunction(() => document.getElementById('gl-fail'), null, { timeout: 10000 }).catch(() => {});
+    const gameMsg = await glMessage();
+    if (!gameMsg || !/slutade fungera/.test(gameMsg) || !/Chrome/.test(gameMsg)) fail(`game: no message after losing the 3D context (${gameMsg})`);
+    if (await stillDrawing(() => window.__fyriskaos.perf.frames)) fail('game: still drawing after losing the 3D context');
+    if (!(await page.evaluate(() => document.getElementById('fps').hidden))) fail('game: fps meter still shown after losing the 3D context');
+    await page.goto(`http://127.0.0.1:${port}/stiltest.html?q=low`);
+    await page.waitForFunction(() => window.__stiltest && window.__stiltest.firstFrameMs, null, { timeout: 120000 });
+    await loseContext('#view canvas');
+    await page.waitForFunction(() => document.getElementById('gl-fail'), null, { timeout: 10000 }).catch(() => {});
+    const styleMsg = await glMessage();
+    if (!styleMsg || !/slutade fungera/.test(styleMsg)) fail(`style test: no message after losing the 3D context (${styleMsg})`);
+    if (await stillDrawing(() => window.__stiltest.cpu.length + window.__stiltest.samples.length)) fail('style test: still drawing after losing the 3D context');
+
     if (errors.length) fail('errors on the page:\n' + errors.join('\n'));
-    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test');
+
+    // No WebGL at all: both pages say so instead of failing silently.
+    const noGl = await context.newPage();
+    await noGl.addInitScript(() => {
+      const orig = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+        return /webgl/.test(type) ? null : orig.call(this, type, ...rest);
+      };
+    });
+    for (const url of ['index.html', 'stiltest.html']) {
+      await noGl.goto(`http://127.0.0.1:${port}/${url}`);
+      const msg = await noGl.waitForFunction(() => document.getElementById('gl-fail')?.textContent, null, { timeout: 30000 }).then((h) => h.jsonValue()).catch(() => null);
+      if (!msg || !/kunde inte starta/.test(msg)) fail(`${url}: no message when WebGL cannot start (${msg})`);
+    }
+    await noGl.close();
+    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test, lost 3D context, no WebGL');
   } finally {
     await browser.close();
     server.kill();
