@@ -115,6 +115,102 @@ check(hb.speed > 8, 'handbrake keeps some speed (not a full stop)');
   check(speed(ctx3.car) < 0.1, 'only sideways does not move a standing car');
 }
 
+// B-054: touch steering by screen direction. The vehicle goes where the
+// stick points on the screen (x right, y down = map directions).
+{
+  const dir = (a) => ({ x: Math.cos(a), y: Math.sin(a), m: 1 });
+  const moving = (v) => Math.atan2(v.vy, v.vx);
+  const off = (a, b) => Math.abs(wrapAngle(a - b));
+  const vF = (v) => v.vx * Math.cos(v.heading) + v.vy * Math.sin(v.heading);
+  const screen = (type = 'car') => {
+    const ctx = field(type);
+    ctx.input.steer = 'screen';
+    return ctx;
+  };
+  // Pointing the stick right, down, left and up from a stop, facing east.
+  for (const [name, a] of [['right', 0], ['down', Math.PI / 2], ['left', Math.PI], ['up', -Math.PI / 2]])
+    for (const type of ['car', 'bike']) {
+      const ctx = screen('car');
+      if (type === 'bike') {
+        // Swap the car for a bike in the same place.
+        ctx.car.spec = { ...ctx.car.spec, ...(await import('../src/config.js')).VEHICLES.bike };
+      }
+      run(ctx, 5, dir(a));
+      const v = ctx.car;
+      check(speed(v) > 3 && off(moving(v), a) < 0.35, `${type}: stick ${name} from a stop goes ${name} (${(off(moving(v), a) * 57).toFixed(0)}° off, ${(speed(v) * 3.6).toFixed(0)} km/h${vF(v) < 0 ? ', backing' : ''})`);
+      if (type === 'bike' && name === 'left') check(vF(v) > 0, 'bike: pulling straight back from a stop turns round (no backing)');
+    }
+  // Further means more throttle.
+  {
+    const a = screen();
+    run(a, 1.5, { x: 0.35, y: 0, m: 0.35 });
+    const b = screen();
+    run(b, 1.5, dir(0));
+    check(speed(b.car) > speed(a.car) * 1.5, 'a longer pull gives more gas');
+  }
+  // U-turn at speed: sweep the stick from right through down to left.
+  {
+    const ctx = screen();
+    run(ctx, 3, dir(0));
+    let minSpeed = Infinity;
+    for (let k = 0; k <= 30; k++) {
+      run(ctx, 0.05, dir((k / 30) * Math.PI));
+      minSpeed = Math.min(minSpeed, speed(ctx.car));
+    }
+    run(ctx, 3, dir(Math.PI));
+    check(off(moving(ctx.car), Math.PI) < 0.35 && vF(ctx.car) > 3, 'U-turn: sweeping the stick round turns the car round, driving forward');
+    check(minSpeed > 3, 'U-turn keeps moving (does not stop to back up)');
+  }
+  // Straight back at speed: brake first, then back up that way.
+  {
+    const ctx = screen();
+    run(ctx, 3, dir(0));
+    const before = speed(ctx.car);
+    run(ctx, 0.6, dir(Math.PI));
+    check(speed(ctx.car) < before - 4 && vF(ctx.car) >= 0, 'pulling back at speed brakes first');
+    run(ctx, 4, dir(Math.PI));
+    check(ctx.car.vx < -2 && off(ctx.car.heading, 0) < 0.3, 'then it backs up the way you pull (nose still east)');
+  }
+  // From a stop, pulling straight back backs up; pulling back and to the side turns round.
+  {
+    const ctx = screen();
+    run(ctx, 2, dir(Math.PI));
+    check(ctx.car.vx < -1 && vF(ctx.car) < 0, 'from a stop, pulling straight back backs up');
+    const c2 = screen();
+    const a = (125 * Math.PI) / 180;
+    run(c2, 6, dir(a));
+    check(off(moving(c2.car), a) < 0.4 && vF(c2.car) > 2, 'from a stop, pulling back and to the side turns round and drives that way');
+  }
+  // While backing up, pulling forward again stops and drives forward.
+  {
+    const ctx = screen();
+    run(ctx, 2.5, dir(Math.PI));
+    run(ctx, 3, dir(0));
+    check(ctx.car.vx > 2 && vF(ctx.car) > 0, 'after backing, pulling forward drives forward');
+  }
+  // Letting go rolls out softly.
+  {
+    const ctx = screen();
+    run(ctx, 3, dir(0));
+    const before = speed(ctx.car);
+    run(ctx, 0.5, { x: 0, y: 0, m: 0 });
+    check(speed(ctx.car) > before * 0.8, 'letting go does not stop dead');
+    run(ctx, 12, { x: 0, y: 0, m: 0 });
+    check(speed(ctx.car) < 0.3, 'letting go rolls out and stops');
+  }
+  // Brake button plus a pull to the side at speed: handbrake turn.
+  {
+    const ctx = screen();
+    run(ctx, 4, dir(0));
+    run(ctx, 0.3, dir(Math.PI / 2), true);
+    check(ctx.car.handbrake, 'brake button plus a pull to the side at speed starts a handbrake turn');
+    const c2 = screen();
+    run(c2, 4, dir(0));
+    run(c2, 2, dir(0), true);
+    check(speed(c2.car) < 0.5, 'brake button stops the car');
+  }
+}
+
 if (failed) {
   console.log(`${failed} failed`);
   process.exit(1);

@@ -49,11 +49,13 @@ async function start() {
   mark('city');
 
   // ---------- settings: graphics quality and the fps meter ----------
-  const settings = { quality: params.get('q') || 'auto', fps: params.has('fps') };
+  const settings = { quality: params.get('q') || 'auto', fps: params.has('fps'), steer: params.get('styrning') === 'klassisk' ? 'classic' : 'screen' };
+  input.touchSteer = settings.steer;
   const fpsEl = $('fps');
   const showSettings = () => {
     $('set-fps').textContent = settings.fps ? 'Visa fps: på' : 'Visa fps: av';
     $('set-quality').textContent = `Grafik: ${settings.quality === 'auto' ? `auto (${QUALITY[renderer.quality].name})` : QUALITY[settings.quality].name}`;
+    $('set-steer').textContent = settings.steer === 'screen' ? 'Styrning: åt hållet du drar' : 'Styrning: klassisk';
     fpsEl.hidden = !settings.fps;
   };
   $('btn-settings').addEventListener('click', () => {
@@ -63,6 +65,12 @@ async function start() {
   $('set-close').addEventListener('click', () => ($('settings').hidden = true));
   $('set-fps').addEventListener('click', () => {
     settings.fps = !settings.fps;
+    showSettings();
+  });
+  // B-054: touch steering for bikes and cars, by screen direction or classic.
+  $('set-steer').addEventListener('click', () => {
+    settings.steer = settings.steer === 'screen' ? 'classic' : 'screen';
+    input.touchSteer = settings.steer;
     showSettings();
   });
   $('set-quality').addEventListener('click', () => {

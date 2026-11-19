@@ -8,7 +8,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| B-054 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Touchstyrningen för bil och cykel är obegriplig: "upp = gas, sidled = sväng" utgår från fordonets riktning men kameran vrider sig inte. Ny touchstyrning (ersätter F-040 för touch): fordonet åker åt det håll man drar, svänger dit med naturlig radie, mer gas ju längre man drar; drar man bakåt bromsar man först och backar eller vänder när man nästan står still; släpper man rullar fordonet ut. Bromsknapp och handbromssväng som förut, tangentbordet oförändrat. Val under Inställningar: "åt hållet du drar" (förval) eller "Klassisk". Går före grafikarbetet. |
 | F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 8 s med 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
 | D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fotgängare och fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`), buskar och häckar. |
 | F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
@@ -63,6 +62,7 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
+| B-054 | 2026-11-19 | Touchstyrning efter skärmriktning (ersätter F-040 för touch, v0.5.1): bil och cykel åker åt det håll man drar, svänger dit med naturlig radie, mer gas ju längre man drar; drar man bakåt bromsar man först, sedan backar bilen (rakt bakåt) eller vänder (snett bakåt; cykeln vänder alltid); släpper man rullar fordonet ut. Bromsknapp och handbromssväng som förut, tangentbordet oförändrat. Val under Inställningar: "Styrning: åt hållet du drar" (förval) eller "Klassisk" (`?styrning=klassisk` i adressen). Testat med simulerad touch: fyra riktningar, U-sväng, inbromsning och backning. |
 | B-053 | 2026-11-19 | När 3D-grafiken förloras (webglcontextlost) eller inte går att starta slutar spelet och stiltestet rita och visar på svenska att man kan prova en annan webbläsare, t.ex. Chrome. Testat med WEBGL_lose_context. |
 | F-042 | 2026-11-19 | Spelet ritas i 3D i Sommarkväll+ med den lutade kameran (v0.5.0): staden från kartan i bitar, bortklippning av det som skymmer spelaren, kväll, inställningar för grafik och fps-mätare. Med 4× strypning medan bilen kör: cirka 11 ms per bild i median. |
 | D-048 | 2026-11-19 | CC0-modeller från Quaternius i spelet: nio olika träd (två sorters lövträd med lövbilder, björkar, lågpolyträd), två cyklar och spelaren i fyra poser. |

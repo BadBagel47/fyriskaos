@@ -7,6 +7,10 @@ export function createInput(els) {
     stick: { x: 0, y: 0, m: 0 },
     brake: false,
     enabled: false,
+    // How the touch stick steers vehicles (B-054): 'screen' or 'classic'.
+    // The keyboard always steers classic. steer is the one in use right now.
+    touchSteer: 'screen',
+    steer: 'classic',
     actionQueued: false,
     consumeAction() {
       const a = this.actionQueued;
@@ -110,6 +114,7 @@ export function createInput(els) {
   input.update = () => {
     const k = keyVector();
     input.stick = input.enabled ? k || joy : { x: 0, y: 0, m: 0 };
+    input.steer = k ? 'classic' : input.touchSteer;
     input.brake = input.enabled && (brakeTouch || keys.has('Space'));
   };
   return input;

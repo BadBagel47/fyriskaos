@@ -195,6 +195,93 @@ function fail(msg) {
     if (!(before - slide.heading > 0.6)) fail(`handbrake did not swing the car round (${before} -> ${slide.heading})`);
     if (!(slide.speed > 5)) fail(`handbrake stopped the car dead (${slide.speed})`);
 
+    // B-054: touch steering by screen direction (the default). Real touch
+    // events on the joystick; obstacles and other vehicles are moved out of
+    // the way, so only the steering is tested.
+    await page.keyboard.up('ArrowLeft');
+    await page.keyboard.up('Space');
+    const cdpTouch = await context.newCDPSession(page);
+    const touch = (type, x, y) => cdpTouch.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
+    const gameWait = async (sec) => {
+      const t0 = await page.evaluate(() => window.__fyriskaos.game.time);
+      await page.waitForFunction(([t, d]) => window.__fyriskaos.game.time - t > d, [t0, sec], { timeout: 120000 });
+    };
+    const X0 = 200;
+    const Y0 = 250;
+    const dragTo = async (dx, dy) => {
+      await touch('touchStart', X0, Y0);
+      for (let k = 1; k <= 6; k++) await touch('touchMove', X0 + (dx * k) / 6, Y0 + (dy * k) / 6);
+    };
+    const place = (heading, speed) =>
+      page.evaluate(([h, sp]) => {
+        const g = window.__fyriskaos.game;
+        for (const c of g.grid.cells) {
+          c.rects.length = 0;
+          c.circles.length = 0;
+        }
+        const v = g.player.vehicle;
+        for (const o of g.vehicles) if (o !== v) Object.assign(o, { x: -500 - Math.random() * 100, y: -500, vx: 0, vy: 0 });
+        Object.assign(v, { x: 280, y: 200, heading: h, vx: Math.cos(h) * sp, vy: Math.sin(h) * sp, handbrake: false, reversing: false, grip: v.spec.grip });
+      }, [heading, speed]);
+    const motion = () =>
+      page.evaluate(() => {
+        const v = window.__fyriskaos.game.player.vehicle;
+        return { dir: Math.atan2(v.vy, v.vx), speed: Math.hypot(v.vx, v.vy), vF: v.vx * Math.cos(v.heading) + v.vy * Math.sin(v.heading), heading: v.heading, vx: v.vx };
+      });
+    const off = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    if (!(await page.evaluate(() => window.__fyriskaos.game.player.vehicle))) fail('touch test: not in a car');
+    // Four screen directions, each from a stop facing a quarter turn away.
+    // Within the stick's 60 px, so its centre stays put.
+    for (const [name, a, dx, dy] of [['right', 0, 55, 0], ['down', Math.PI / 2, 0, 55], ['left', Math.PI, -55, 0], ['up', -Math.PI / 2, 0, -55]]) {
+      await place(a - Math.PI / 2, 0);
+      await dragTo(dx, dy);
+      await gameWait(3);
+      const m = await motion();
+      await touch('touchEnd');
+      if (!(m.speed > 3 && off(m.dir, a) < 0.4 && m.vF > 0)) fail(`touch: dragging ${name} did not drive ${name} (${(off(m.dir, a) * 57).toFixed(0)}° off, ${m.speed.toFixed(1)} m/s)`);
+    }
+    // U-turn at speed: sweep the finger from right, through down, to left.
+    await place(0, 12);
+    await dragTo(55, 0);
+    for (let k = 1; k <= 24; k++) {
+      const a = (k / 24) * Math.PI;
+      await touch('touchMove', X0 + 55 * Math.cos(a), Y0 + 55 * Math.sin(a));
+      await gameWait(0.06);
+    }
+    await gameWait(2.5);
+    const u = await motion();
+    await touch('touchEnd');
+    if (!(off(u.dir, Math.PI) < 0.4 && u.vF > 2)) fail(`touch: U-turn did not end driving left (${(off(u.dir, Math.PI) * 57).toFixed(0)}° off, forward ${u.vF.toFixed(1)} m/s)`);
+    // Dragging straight back at speed: brake first, then back up that way.
+    await place(0, 20);
+    // Record the forward speed every frame, then check the order: slowing
+    // down first (still facing east), backing up after.
+    await page.evaluate(() => {
+      const log = (window.__vF = []);
+      const tick = () => {
+        const v = window.__fyriskaos.game.player.vehicle;
+        if (!v || log.length > 4000) return;
+        log.push(v.vx * Math.cos(v.heading) + v.vy * Math.sin(v.heading));
+        requestAnimationFrame(tick);
+      };
+      tick();
+    });
+    await dragTo(-55, 0);
+    await gameWait(4);
+    const b2 = await motion();
+    await touch('touchEnd');
+    const vFs = await page.evaluate(() => window.__vF.splice(0));
+    const firstBack = vFs.findIndex((x) => x < -0.3);
+    const slowed = vFs.slice(0, firstBack < 0 ? vFs.length : firstBack).some((x) => x > 0.5 && x < 17);
+    if (!(firstBack > 0 && slowed)) fail(`touch: dragging back at speed did not brake first (${vFs.slice(0, 8).map((x) => x.toFixed(1)).join(' ')})`);
+    if (!(b2.vx < -1.5 && off(b2.heading, 0) < 0.3)) fail(`touch: dragging back did not back up that way (vx ${b2.vx.toFixed(1)})`);
+    // Letting go rolls out softly.
+    await place(0, 10);
+    await gameWait(0.4);
+    const r1 = await motion();
+    if (!(r1.speed > 7)) fail(`touch: letting go stopped the car too hard (${r1.speed.toFixed(1)} m/s)`);
+    if (shots) await page.screenshot({ path: path.join(shots, '7-touch.png') });
+
     // Portrait phone: ask to turn the phone.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(200);
@@ -266,7 +353,7 @@ function fail(msg) {
       if (!msg || !/kunde inte starta/.test(msg)) fail(`${url}: no message when WebGL cannot start (${msg})`);
     }
     await noGl.close();
-    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test, lost 3D context, no WebGL');
+    if (!process.exitCode) console.log('OK: start, joystick, bike, car, brake, get out, sports car, handbrake, portrait hint, gallery, style test, lost 3D context, no WebGL, touch steering by screen direction');
   } finally {
     await browser.close();
     server.kill();

@@ -271,11 +271,51 @@ function onGrass(game, x, y) {
   return false;
 }
 
-// Up is forward (F-040): push the stick up to accelerate, down to brake and
-// then reverse, and sideways to steer. The picture does not turn; the
-// vehicle does.
+// Two ways to steer a bike or car:
+// - classic (F-040, the keyboard): up on the stick is throttle, down brakes
+//   and then reverses, sideways steers, all relative to the vehicle;
+// - screen (B-054, touch by default): the vehicle goes the way the stick
+//   points on the screen, like walking. The camera never turns, so the screen
+//   direction is a map direction.
 const AXIS_DEADZONE = 0.15;
 const axis = (v) => (Math.abs(v) < AXIS_DEADZONE ? 0 : (v - Math.sign(v) * AXIS_DEADZONE) / (1 - AXIS_DEADZONE));
+const FULL_LOCK = 0.5; // radians off the target direction for full steering
+const TURN_LIMIT = (115 * Math.PI) / 180; // beyond this the target counts as behind
+const REVERSE_FROM = (135 * Math.PI) / 180; // from a stop, this far behind: back up
+
+// Turn the stick into throttle (-1..1), braking (0..1) and steering (-1..1).
+function screenControls(v, s, vF) {
+  const m = s.m > AXIS_DEADZONE ? Math.min(1, (s.m - AXIS_DEADZONE) / (1 - AXIS_DEADZONE)) : 0;
+  if (!m) {
+    // Let go: roll out and stop softly.
+    if (vF > -0.3) v.reversing = false;
+    return { throttle: 0, brake: 0, turn: 0 };
+  }
+  const target = Math.atan2(s.y, s.x);
+  const dF = wrapAngle(target - v.heading);
+  const dB = wrapAngle(target - v.heading - Math.PI);
+  const reverse = () => ({ throttle: -m, brake: 0, turn: -clamp(dB / FULL_LOCK, -1, 1) });
+  if (v.reversing) {
+    if (Math.abs(dF) > Math.PI / 2.2) return reverse();
+    // The target is in front again: stop backing, then drive.
+    if (vF < -0.5) return { throttle: 0, brake: m, turn: 0 };
+    v.reversing = false;
+  }
+  if (Math.abs(dF) <= TURN_LIMIT) {
+    // Ahead or to the side: drive and steer towards it; less gas in a tight turn.
+    const throttle = m * Math.max(0.35, Math.cos(Math.min(Math.abs(dF), Math.PI / 2)));
+    return { throttle, brake: 0, turn: clamp(dF / FULL_LOCK, -1, 1) };
+  }
+  // Behind: brake first; when nearly stopped, back up if that is the nearest
+  // way, otherwise turn round. Bikes always turn round (they only back up at
+  // walking pace).
+  if (vF > 1.2) return { throttle: 0, brake: m, turn: 0 };
+  if (Math.abs(dF) >= REVERSE_FROM && v.spec.class === 'car') {
+    v.reversing = true;
+    return reverse();
+  }
+  return { throttle: 0.5 * m, brake: 0, turn: Math.sign(dF) };
+}
 
 function drive(game, v, input, dt) {
   const spec = v.spec;
@@ -284,19 +324,29 @@ function drive(game, v, input, dt) {
   let vF = v.vx * fx + v.vy * fy;
   let vR = -v.vx * fy + v.vy * fx;
   const s = input.stick;
-  const forward = axis(-s.y); // up on the stick is negative y on the screen
-  const turn = axis(s.x);
+  let throttle = 0;
+  let brakeBy = 0; // braking from the stick (not the button), 0..1
+  let turn;
+  if (input.steer === 'screen') {
+    const c = screenControls(v, s, vF);
+    throttle = c.throttle;
+    brakeBy = c.brake;
+    turn = c.turn;
+  } else {
+    const forward = axis(-s.y); // up on the stick is negative y on the screen
+    turn = axis(s.x);
+    // Pulling down brakes first; once (almost) stopped, it reverses.
+    if (forward >= 0) v.reversing = false;
+    else if (vF < 0.5) v.reversing = true;
+    if (forward > 0) throttle = forward;
+    else if (forward < 0) throttle = v.reversing ? forward : 0;
+    if (forward < 0 && !v.reversing) brakeBy = -forward;
+  }
+  const braking = brakeBy > 0;
+  v.braking = braking || input.brake;
   const grassFactor = onGrass(game, v.x, v.y) ? spec.grassFactor : 1;
   const maxF = spec.maxSpeed * grassFactor;
 
-  // Pulling down brakes first; once (almost) stopped, it reverses.
-  if (forward >= 0) v.reversing = false;
-  else if (vF < 0.5) v.reversing = true;
-
-  let throttle = 0;
-  if (forward > 0) throttle = forward;
-  else if (forward < 0) throttle = v.reversing ? forward : 0;
-  const braking = forward < 0 && !v.reversing;
   // Steering works like a real car: backing up turns the nose the other way.
   const steer = clamp(turn, -1, 1) * (vF < -0.2 ? -1 : 1);
 
@@ -319,7 +369,7 @@ function drive(game, v, input, dt) {
     vR -= moved;
     vF += Math.abs(moved) * 0.85;
   } else if (input.brake || braking) {
-    const dv = spec.brake * dt * (braking && !input.brake ? Math.max(0.4, -forward) : 1);
+    const dv = spec.brake * dt * (braking && !input.brake ? Math.max(0.4, brakeBy) : 1);
     if (vF > 0) vF = Math.max(0, vF - dv);
     else vF = Math.min(0, vF + dv);
   } else if (throttle > 0) {
@@ -499,7 +549,7 @@ export function step(game, input, dt) {
   if (p.vehicle) drive(game, p.vehicle, input, dt);
   else walk(p, input, dt);
   // For the tail lights: braking with the button or by pulling down.
-  game.braking = !!(p.vehicle && (input.brake || (input.stick.y > 0.15 && !p.vehicle.reversing)));
+  game.braking = !!(p.vehicle && p.vehicle.braking);
 
   for (const v of game.vehicles) if (!v.driver && v.awake) coast(v, dt);
 
