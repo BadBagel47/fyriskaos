@@ -127,20 +127,21 @@ export function addLamp(B, place, dir = 1) {
   B.add(new THREE.CylinderGeometry(0.22, 0.3, 0.5, 8), iron, at(0, 0.25, 0));
   B.add(new THREE.TorusGeometry(0.22, 0.04, 4, 10), iron, at(0, 0.5, 0, Rx(Math.PI / 2)));
   B.add(new THREE.CylinderGeometry(0.1, 0.17, 1.2, 8), iron, at(0, 1.1, 0));
-  B.add(new THREE.CylinderGeometry(0.07, 0.1, 3.9, 8), iron, at(0, 3.6, 0));
+  B.add(new THREE.CylinderGeometry(0.1, 0.13, 3.9, 8), iron, at(0, 3.6, 0));
   B.add(new THREE.SphereGeometry(0.11, 8, 6), iron, at(0, 1.75, 0));
   // Curved arm towards the street.
   B.add(new THREE.TorusGeometry(0.55, 0.045, 5, 10, Math.PI / 2), iron, at(0, 5.0, dir * 0.55, Ry(dir > 0 ? -Math.PI / 2 : Math.PI / 2)));
   B.add(new THREE.CylinderGeometry(0.015, 0.015, 0.5, 4), iron, at(0, 5.25, dir * 0.95));
   // Lantern: six-sided cap with a finial; the glass is drawn separately (it glows).
-  B.add(new THREE.ConeGeometry(0.36, 0.3, 6), iron, at(0, 5.0, dir * 1.12));
-  B.add(new THREE.SphereGeometry(0.06, 6, 4), iron, at(0, 5.2, dir * 1.12));
-  B.add(new THREE.CylinderGeometry(0.2, 0.12, 0.08, 6), iron, at(0, 4.5, dir * 1.12));
+  B.add(new THREE.ConeGeometry(0.52, 0.42, 6), iron, at(0, 5.06, dir * 1.12));
+  B.add(new THREE.SphereGeometry(0.09, 6, 4), iron, at(0, 5.32, dir * 1.12));
+  B.add(new THREE.CylinderGeometry(0.28, 0.16, 0.1, 6), iron, at(0, 4.36, dir * 1.12));
+  for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; B.add(new THREE.BoxGeometry(0.04, 0.62, 0.04), iron, at(Math.cos(a) * 0.36, 4.66, dir * 1.12 + Math.sin(a) * 0.36)); }
   return [place.elements[12], place.elements[14] + dir * 1.12];
 }
 
 export function lanternGlass() {
-  return new THREE.CylinderGeometry(0.3, 0.2, 0.42, 6);
+  return new THREE.CylinderGeometry(0.42, 0.28, 0.6, 6);
 }
 
 // ---------- signs (faces as small drawn pictures) ----------
@@ -391,7 +392,7 @@ function lumpy(r, seed, detail = 2) {
   const g = new THREE.IcosahedronGeometry(r, detail);
   const p = g.attributes.position;
   const R = rng(seed);
-  const bumps = Array.from({ length: 9 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.05 + R() * 0.08]);
+  const bumps = Array.from({ length: 7 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.03 + R() * 0.05]);
   for (let i = 0; i < p.count; i++) {
     const v = new THREE.Vector3().fromBufferAttribute(p, i).normalize();
     let k = 1;
@@ -433,9 +434,9 @@ function smoothNormals(g) {
 
 // kind: 'lind' (round, wide), 'lonn' (larger, darker), 'bjork' (tall, light, narrow).
 export const TREE_KINDS = {
-  lind: { trunkH: 3.4, lumps: [[0, 0, 0, 2.7], [1.5, -0.5, 1.0, 1.9], [-1.4, -0.4, -1.0, 2.0], [0.2, 1.2, -0.3, 1.9], [-0.9, -0.2, 1.4, 1.7]], top: 5.4, squash: 0.85 },
-  lonn: { trunkH: 3.0, lumps: [[0, 0, 0, 3.1], [1.8, -0.6, 0.6, 2.1], [-1.6, -0.5, -0.8, 2.2], [0.4, 1.0, 1.3, 2.0], [-0.6, 1.1, -1.3, 1.9]], top: 5.2, squash: 0.75 },
-  bjork: { trunkH: 4.6, lumps: [[0, 0, 0, 1.7], [0.4, 1.6, 0.2, 1.4], [-0.3, -1.3, 0.3, 1.5], [0.6, 0.4, -0.8, 1.2]], top: 6.4, squash: 1.35 },
+  lind: { trunkH: 4.0, lumps: [[0, 0, 0, 2.7], [1.5, -0.5, 1.0, 1.9], [-1.4, -0.4, -1.0, 2.0], [0.2, 1.2, -0.3, 1.9], [-0.9, -0.2, 1.4, 1.7]], top: 6.2, squash: 0.85 },
+  lonn: { trunkH: 3.6, lumps: [[0, 0, 0, 3.1], [1.8, -0.6, 0.6, 2.1], [-1.6, -0.5, -0.8, 2.2], [0.4, 1.0, 1.3, 2.0], [-0.6, 1.1, -1.3, 1.9]], top: 6.0, squash: 0.75 },
+  bjork: { trunkH: 4.6, lumps: [[0, 0, 0, 1.7], [0.4, 1.6, 0.2, 1.4], [-0.3, -1.3, 0.3, 1.5], [0.6, 0.4, -0.8, 1.2]], top: 7.0, squash: 1.35 },
 };
 
 // Crown geometry in local space with uv from straight above (for the picture)
@@ -476,8 +477,10 @@ export function crownGeometry(kind, seed) {
     uv.push(0.5 + (px * t + nor[i] * (1 - t)) * 0.42, 0.5 - (pz * t + nor[i + 2] * (1 - t)) * 0.42);
     const up = (pos[i + 1] - minY) / (maxY - minY);
     const outward = Math.max(0, nor[i] * pos[i] + nor[i + 2] * pos[i + 2]) / (Math.hypot(pos[i], pos[i + 2]) + 0.01);
-    const k = 0.62 + 0.45 * up + 0.1 * outward + Math.max(0, nor[i + 1]) * 0.12;
-    col.push(k, k, k);
+    // Light from the low sun in the west-south-west: warm on that side, cooler and darker underneath.
+    const sunSide = Math.max(0, -nor[i] * 0.8 + nor[i + 2] * 0.35);
+    const k = 0.55 + 0.42 * up + 0.08 * outward + Math.max(0, nor[i + 1]) * 0.1;
+    col.push(k + sunSide * 0.28, k + sunSide * 0.2, k * 0.95 + sunSide * 0.02);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -490,7 +493,7 @@ export function crownGeometry(kind, seed) {
 export function trunkGeometry(B, kind) {
   const K = TREE_KINDS[kind];
   const bark = kind === 'bjork' ? 0xe8e4dc : 0x4f3c2c;
-  B.add(new THREE.CylinderGeometry(kind === 'bjork' ? 0.12 : 0.17, kind === 'bjork' ? 0.16 : 0.27, K.trunkH + 1, 8), bark, m4(0, (K.trunkH + 1) / 2, 0));
+  B.add(new THREE.CylinderGeometry(kind === 'bjork' ? 0.15 : 0.22, kind === 'bjork' ? 0.2 : 0.32, K.trunkH + 1.2, 8), bark, m4(0, (K.trunkH + 1.2) / 2, 0));
   B.add(new THREE.CylinderGeometry(0.07, 0.11, 1.8, 6), bark, m4(0.45, K.trunkH + 0.4, 0.15).multiply(Rz(-0.55)));
   B.add(new THREE.CylinderGeometry(0.07, 0.1, 1.6, 6), bark, m4(-0.4, K.trunkH + 0.5, -0.2).multiply(Rz(0.5)));
   if (kind === 'bjork') for (let y = 0.6; y < K.trunkH; y += 0.45) B.add(new THREE.BoxGeometry(0.22, 0.05, 0.3), 0x2a2a2a, m4(0, y, 0));

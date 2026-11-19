@@ -108,9 +108,14 @@ function addHouse(H, h, place) {
     B.add(new THREE.BoxGeometry(out + 0.06, hgt, d), c, at(-w / 2 - out / 2, y, 0));
   };
   band(H.wall, 0.06, 1.0, 0.5, plinth);
+  // Ground floor in a darker, banded stone finish; corner pilasters; ornate houses also between bays.
+  const ground = new THREE.Color(wallC).multiplyScalar(0.82).getHex();
+  band(H.wall, 0.04, FLOOR - 0.2, 1.0 + (FLOOR - 0.2) / 2, ground);
+  for (let k = 0; k < 4; k++) band(H.trim, 0.07, 0.06, 1.3 + k * 0.7, new THREE.Color(ground).multiplyScalar(0.85).getHex());
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) H.trim.add(new THREE.BoxGeometry(0.5, top - 1, 0.5), new THREE.Color(wallC).multiplyScalar(0.92).getHex(), at(sx * (w / 2 - 0.15), (top - 1) / 2 + 1, sz * (d / 2 - 0.15)));
   for (let f = 1; f < floors; f++) band(H.trim, 0.05, 0.16, 1.0 + f * FLOOR, 0xf4efe6);
   band(H.trim, 0.3, 0.45, top + 0.22, 0xf4efe6);
-  const cols = Math.max(3, Math.floor(w / 2.6));
+  const cols = Math.max(3, Math.floor(w / (h.narrow ? 2.3 : h.ornate ? 2.9 : 2.6)));
   const step = w / cols;
   const bayCols = h.bay ? [1, cols - 2] : [];
   const doorCol = Math.floor(cols / 2);
@@ -145,6 +150,7 @@ function addHouse(H, h, place) {
         if (side === 1 && f === 0 && c === doorCol) continue;
         if (side === 1 && f > 0 && bayCols.includes(c)) continue;
         win(-w / 2 + step * (c + 0.5), 1.0 + f * FLOOR + 1.6, side * (d / 2 + 0.04), 0);
+        if (h.ornate && side === 1 && c > 0 && f > 0) H.trim.add(new THREE.BoxGeometry(0.3, FLOOR - 0.1, 0.12), new THREE.Color(wallC).multiplyScalar(1.06).getHex(), at(-w / 2 + step * c, 1.0 + f * FLOOR + FLOOR / 2, d / 2 + 0.06));
       }
   for (const side of [1, -1]) {
     const n = Math.max(1, Math.floor(d / 4));
@@ -374,7 +380,7 @@ export async function buildRich(renderer) {
     slabs: L.worldMapped(slabs, 4, { vertexColors: true, roughness: 0.88, vary: 0.5 }),
     grass: L.worldMapped(grass, 4, { vertexColors: true, roughness: 1, vary: 0.8 }),
     wall: L.worldMapped(plaster, 5, { vertexColors: true, roughness: 0.95, vary: 0.6 }),
-    roof: L.worldMapped(roof, 1.25, { vertexColors: true, roughness: 0.8, vary: 0.9 }),
+    roof: L.worldMapped(roof, 0.95, { vertexColors: true, roughness: 0.8, vary: 0.9 }),
     foliage: L.worldMapped(foliage, 3.6, { vertexColors: true, roughness: 0.85, triplanar: true }),
     plain: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 }),
     glass: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.05, metalness: 0.3, envMapIntensity: 1.6 }),
@@ -411,7 +417,7 @@ export async function buildRich(renderer) {
   // Courtyards, passages and front gardens; gravel under everything else.
   slab(S, X0, X1, -40, 40, 0xb9ad98, -0.03);
   slab(Gr, X0, X1, -40, -21.3, 0xffffff, 0);
-  slab(Gr, X0, X1, 21, 40, 0xffffff, 0);
+  slab(Gr, X0, X1, 10.2, 40, 0xffffff, -0.01); // gardens on the camera side (seen when that row is cut away)
   slab(S, 26.7, 29.3, -21.3, -9.3, 0xd8d2c6, 0.1); // passage between north houses
   slab(S, 40.6, 43.0, 9.0, 21, 0xd8d2c6, 0.1);
   for (const z of [-6.3, -4.5, 4.2, 6.0]) P.box(X1 - X0, 0.16, 0.25, 0x9c968c, (X0 + X1) / 2, 0.08, z); // granite curbs
@@ -469,12 +475,15 @@ export async function buildRich(renderer) {
     const n = new THREE.Vector3(0, -1, k);
     const len = n.length();
     const plane = new THREE.Plane(n.divideScalar(len), (-k * 9.6 + 0.2) / len);
-    for (const m of [...Object.values(nearMats), inside]) {
-      m.clippingPlanes = on ? [plane] : [];
-      m.clipShadows = false;
+    // The cut along the line of sight still showed dark sections; simpler and
+    // cleaner: in the tilted view the row is not drawn but still casts its shadow.
+    void plane;
+    for (const m of Object.values(nearMats)) {
+      m.colorWrite = !on;
+      m.depthWrite = !on;
       m.needsUpdate = true;
     }
-    for (const im of insideMeshes) im.visible = on;
+    for (const im of insideMeshes) im.visible = false;
     for (const nm of nearHouses) {
       nm.renderOrder = on ? 10 : 0;
       nm.castShadow = true;
@@ -535,9 +544,9 @@ export async function buildRich(renderer) {
   addBike(P, m4(58.6, 0.12, 8.6, Math.PI - 0.15), 0x2a4a70);
   // Crates, a pallet and a barrel by two doors (picture 3's clutter).
   for (const [cx, cz] of [[38.5, 7.7], [22.5, -8.1]]) {
-    P3.addCrate(P, m4(cx, 0.12, cz, 0.1), 0.95, 0);
-    P3.addCrate(P, m4(cx + 1.05, 0.12, cz + 0.1, -0.15), 0.85, 1);
-    P3.addCrate(P, m4(cx + 0.5, 0.12 + 0.95 * 0.75, cz + 0.05, 0.3), 0.75, 2);
+    P3.addCrate(P, m4(cx, 0.12, cz, 0.1), 1.2, 0);
+    P3.addCrate(P, m4(cx + 1.3, 0.12, cz + 0.1, -0.15), 1.05, 1);
+    P3.addCrate(P, m4(cx + 0.6, 0.12 + 1.2 * 0.75, cz + 0.05, 0.3), 0.95, 2);
     P3.addPallet(P, m4(cx + 2.4, 0.12, cz + 0.2, 0.05));
     P.add(new THREE.CylinderGeometry(0.3, 0.3, 0.88, 12), 0x2f6aa0, m4(cx - 1.0, 0.56, cz + 0.2));
     for (const y of [0.32, 0.8]) P.add(new THREE.TorusGeometry(0.3, 0.025, 4, 12), 0x24507a, m4(cx - 1.0, y, cz + 0.2).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)));
@@ -548,7 +557,7 @@ export async function buildRich(renderer) {
   for (const [x, z] of [[21, 8.0], [31.5, -8.2], [47.5, -8.3]]) P3.addBin(P, m4(x, 0.12, z));
   for (const [x, z] of [[28, -6.0], [32, -6.0], [28, 5.7], [32, 5.7]]) P3.addBollard(P, m4(x, 0.12, z));
   // Signs: posts in the merged mesh, faces as small pictures turned towards the camera.
-  const signs = [[3, -6.75, 0, 0.62, 0.62, 2.55], [26.6, 6.4, 0, 0.62, 0.62, 2.55], [27.2, -6.75, 1, 1.2, 0.56, 2.9], [55.5, 6.4, 2, 0.55, 0.7, 2.4], [-4, 6.4, 3, 0.6, 0.6, 2.5]];
+  const signs = [[3, -6.75, 0, 0.9, 0.9, 2.6], [26.6, 6.4, 0, 0.9, 0.9, 2.6], [27.2, -6.75, 1, 1.7, 0.8, 3.1], [55.5, 6.4, 2, 0.8, 1.0, 2.5], [-4, 6.4, 3, 0.85, 0.85, 2.6]];
   const atlas = P3.signAtlas();
   const signMat = new THREE.MeshStandardMaterial({ map: atlas, roughness: 0.5, side: THREE.DoubleSide });
   for (const [x, z, face, w2, h2, y] of signs) {
@@ -561,9 +570,10 @@ export async function buildRich(renderer) {
     P.add(new THREE.BoxGeometry(w2 + 0.04, h2 + 0.04, 0.03), 0x9aa0a6, m4(x, y + 0.12, z).multiply(new THREE.Matrix4().makeRotationX(-0.25)).multiply(m4(0, 0, 0.02)));
   }
   // People on the sidewalks.
-  addPerson(P, m4(35.5, 0.12, 7.0, 0.4), { jacket: 0x6a5acd, pants: 0x2f3440, skin: 1, hair: 2, walk: 0.5 });
-  addPerson(P, m4(36.3, 0.12, 7.4, Math.PI + 0.3), { jacket: 0x3f9a6a, pants: 0x44506a, skin: 0, hair: 0, bag: true, walk: 2 });
-  addPerson(P, m4(10.2, 0.12, -8.6, -Math.PI / 2), { jacket: 0xc0504a, pants: 0x2a2a30, skin: 2, hair: 3 });
+  addPerson(P, m4(35.5, 0.12, 7.0, 0.4), { jacket: 0x6a5acd, pants: 0x2f3440, skin: 1, hair: 2, walk: 0.5, scale: 1.3 });
+  addPerson(P, m4(36.5, 0.12, 7.5, Math.PI + 0.3), { jacket: 0x3f9a6a, pants: 0x44506a, skin: 0, hair: 0, bag: true, walk: 2, scale: 1.3 });
+  addPerson(P, m4(10.2, 0.12, -8.6, -Math.PI / 2), { jacket: 0xc0504a, pants: 0x2a2a30, skin: 2, hair: 3, scale: 1.3 });
+  addPerson(P, m4(46.5, 0.12, -8.0, Math.PI / 2 + 0.4), { jacket: 0x2a6a9a, pants: 0x3a3a40, skin: 3, hair: 4, scale: 1.3, walk: 1 });
   mesh(P.build({ outline: false }), mats.plain);
 
   T('props');
@@ -586,7 +596,9 @@ export async function buildRich(renderer) {
       const mtx = m4(x, 0, z, R() * 6.28, sc, sc, sc);
       trunks.setMatrixAt(i, mtx);
       crowns.setMatrixAt(i, mtx);
-      crowns.setColorAt(i, c.setRGB(0.92 + R() * 0.12, 0.95 + R() * 0.1, 0.9 + R() * 0.12));
+      const tint = { lind: [1, 1.02, 0.92], lonn: [0.82, 0.94, 0.78], bjork: [1.18, 1.22, 0.92] }[kind];
+      const v = 0.94 + R() * 0.1;
+      crowns.setColorAt(i, c.setRGB(tint[0] * v, tint[1] * v, tint[2] * v));
     });
     for (const t of [trunks, crowns]) {
       t.castShadow = true;
@@ -663,10 +675,10 @@ export async function buildRich(renderer) {
     return g;
   };
   // The player: the same person model, a little larger, in an orange jacket.
-  const player = actor((b) => addPerson(b, m4(0, 0, 0), { jacket: 0xf07a1a, pants: 0x2a3550, skin: 0, hair: 1, scale: 1.25, walk: 0.6 }));
+  const player = actor((b) => addPerson(b, m4(0, 0, 0), { jacket: 0xf07a1a, pants: 0x2a3550, skin: 0, hair: 1, scale: 1.6, walk: 0.6 }));
   const cyclist = actor((b) => {
     addBike(b, m4(0, 0, 0), 0x2a4a70);
-    addPerson(b, m4(-0.2, 0.42, 0, 0, 1, 0.82, 1), { jacket: 0xd4ac0d, pants: 0x2f3440, skin: 1, hair: 2 });
+    addPerson(b, m4(-0.2, 0.42, 0, 0, 1, 0.82, 1), { jacket: 0xd4ac0d, pants: 0x2f3440, skin: 1, hair: 2, scale: 1.15 });
   });
 
   T('cars');
@@ -737,16 +749,16 @@ export async function buildRich(renderer) {
   };
 
   // ---------- light: low warm evening sun from the west, cool sky ----------
-  const sun = new THREE.DirectionalLight(0xffbe6e, 6.2);
+  const sun = new THREE.DirectionalLight(0xffb560, 6.8);
   sun.castShadow = true;
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.05;
   const sunOffset = new THREE.Vector3(-60, 23, 15); // west-south-west, about 20° above the horizon
   scene.add(sun, sun.target);
-  scene.add(new THREE.HemisphereLight(0xa8b0c8, 0x6a5038, 0.62));
+  scene.add(new THREE.HemisphereLight(0xb8b4c0, 0x7a5a3a, 0.75));
   const fill = new THREE.DirectionalLight(0x9aa8d0, 0.3); // cool light from the east fills the shadows
   fill.position.set(60, 30, -10);
   scene.add(fill);
 
-  return { scene, sun, sunOffset, update, camera: CAMERA, glows, setNearFade, toneMapping: THREE.ACESFilmicToneMapping, exposure: 0.95 };
+  return { scene, sun, sunOffset, update, camera: CAMERA, glows, setNearFade, toneMapping: THREE.ACESFilmicToneMapping, exposure: 1.05 };
 }

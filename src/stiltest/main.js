@@ -178,7 +178,8 @@ function frame(now) {
     built.setNearFade(tilted, TILT);
     built.nearFade = tilted;
   }
-  const c = tilted ? cam.tiltCenter : cam.center;
+  // In portrait the tilted view looks a little further north, at the facades.
+  const c = tilted ? (camera.aspect < 1 ? cam.tiltCenter.clone().setZ(cam.tiltCenter.z - 5) : cam.tiltCenter) : cam.center;
   const portrait = camera.aspect < 1;
   const tx = panning ? c.x + Math.sin(t * 0.15) * 9 : c.x;
   const tz = c.z;
