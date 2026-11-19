@@ -547,12 +547,26 @@ export function treeV2(kind, seed) {
   clusters.push([[top[0], K.h + K.rise + 0.6, top[2]], K.cl[1] * 1.05]);
   if (kind !== 'bjork') clusters.push([[top[0] + 0.5, K.h + K.rise * 0.7, top[2] - 0.6], K.cl[1]]);
   const cy = clusters.reduce((s, c) => s + c[0][1], 0) / clusters.length;
+  const cx = clusters.reduce((s, c) => s + c[0][0], 0) / clusters.length;
+  const cz = clusters.reduce((s, c) => s + c[0][2], 0) / clusters.length;
+  const tmpN = new THREE.Vector3();
   for (const [p, r] of clusters) {
     const g = lumpCluster(r, Math.floor(R() * 1e6));
     const pos = g.attributes.position.array;
     const nor = g.attributes.normal.array;
+    // Shade the crown as one soft shape: bend each normal towards the
+    // direction from the crown centre (a common foliage trick), so the
+    // clusters do not light up as separate faceted balls.
+    g.setAttribute('mapNormal', new THREE.BufferAttribute(nor.slice(), 3));
+    for (let i = 0; i < pos.length; i += 3) {
+      tmpN.set(p[0] + pos[i] - cx, (p[1] + pos[i + 1] - cy) * 1.2, p[2] + pos[i + 2] - cz).normalize();
+      tmpN.multiplyScalar(0.7).add(new THREE.Vector3(nor[i], nor[i + 1], nor[i + 2]).multiplyScalar(0.3)).normalize();
+      nor[i] = tmpN.x;
+      nor[i + 1] = tmpN.y;
+      nor[i + 2] = tmpN.z;
+    }
     const col = new Float32Array(pos.length);
-    const tone = 0.85 + R() * 0.3;
+    const tone = 0.9 + R() * 0.2;
     for (let i = 0; i < pos.length; i += 3) {
       const ndl = Math.max(0, nor[i] * sun.x + nor[i + 1] * sun.y + nor[i + 2] * sun.z);
       const height = (p[1] + pos[i + 1] - cy) / 3;
@@ -606,12 +620,14 @@ class Builder2 {
     this.pos = [];
     this.nor = [];
     this.col = [];
+    this.mapN = [];
   }
   addColoured(g) {
     const ng = g.index ? g.toNonIndexed() : g;
     this.pos.push(...ng.attributes.position.array);
     this.nor.push(...ng.attributes.normal.array);
     this.col.push(...ng.attributes.color.array);
+    this.mapN.push(...(ng.attributes.mapNormal || ng.attributes.normal).array);
   }
   addSolid(g, color) {
     const ng = g.index ? g.toNonIndexed() : g;
@@ -641,6 +657,7 @@ class Builder2 {
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
     g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
+    g.setAttribute('mapNormal', new THREE.Float32BufferAttribute(this.mapN, 3));
     return g;
   }
 }

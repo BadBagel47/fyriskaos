@@ -117,7 +117,10 @@ function addHouse(H, h, place) {
   band(H.trim, 0.3, 0.45, top + 0.22, 0xf4efe6);
   const cols = Math.max(3, Math.floor(w / (h.narrow ? 2.3 : h.ornate ? 2.9 : 2.6)));
   const step = w / cols;
-  const bayCols = h.bay ? [1, cols - 2] : [];
+  // Bay layout and shape differ per house, so the bays do not repeat as one block.
+  const bayKind = Math.abs(Math.round(h.x * 7 + w)) % 4;
+  const bayCols = !h.bay ? [] : bayKind === 0 ? [1, cols - 2] : bayKind === 1 ? [Math.floor(cols / 2)] : bayKind === 2 ? [cols - 2] : [1, Math.floor(cols / 2) + 1];
+  const bayBox = bayKind === 1 || bayKind === 3;
   const doorCol = Math.floor(cols / 2);
   const HR = rng(Math.floor(h.x * 31 + h.facade * 7 + w));
   const frameC = HR() < 0.3 ? 0x5a3a2a : HR() < 0.5 ? 0x2f4a3a : 0xf6f2ea;
@@ -215,8 +218,8 @@ function addHouse(H, h, place) {
     const bh = (floors - 1) * FLOOR;
     const by = 1.0 + FLOOR;
     const bw = step * 1.3;
-    const fw = bw * 0.5;
-    const D = 1.3;
+    const fw = bayBox ? bw : bw * 0.5;
+    const D = bayBox ? 0.9 : 1.3;
     H.wall.add(bayPrism(bw, fw, D, bh), new THREE.Color(wallC).multiplyScalar(1.04).getHex(), at(bx, by, d / 2));
     for (let f = 0; f <= floors - 1; f++) H.trim.add(bayPrism(bw + 0.3, fw + 0.2, D + 0.12, 0.18), 0xf4efe6, at(bx, by + f * FLOOR - 0.09, d / 2));
     // Side facet: centre and outward angle.
@@ -225,7 +228,7 @@ function addHouse(H, h, place) {
     for (let f = 1; f < floors; f++) {
       const y = 1.0 + f * FLOOR + 1.6;
       win(bx, y, d / 2 + D + 0.02, 0, f);
-      for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa, f);
+      if (!bayBox) for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa, f);
     }
     // Hipped sheet-metal cap.
     const o = 0.18, ch = 0.85;
@@ -456,7 +459,7 @@ export async function buildRich(renderer) {
     roof: L.worldMapped(roof, 0.7, { vertexColors: true, roughness: 0.8, vary: 0.9 }),
     foliage: L.worldMapped(foliage, 3.6, { vertexColors: true, roughness: 0.85, triplanar: true }),
     plain: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 }),
-    glass: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.05, metalness: 0.3, envMapIntensity: 1.6 }),
+    glass: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.12, metalness: 0.3, envMapIntensity: 0.9 }),
     paint: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.45, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.6 }),
     lantern: new THREE.MeshBasicMaterial({ color: 0xfff0c8 }),
   };
@@ -652,12 +655,10 @@ export async function buildRich(renderer) {
   T('props');
   // ---------- trees: three kinds, rounded crowns carrying the crown pictures ----------
   const treeSpots = [];
-  for (let x = -8; x < 90; x += 9.5) if (Math.abs(x - 30) > 3.5) treeSpots.push([x + (R() - 0.5), 7.75, 'lind']);
+  for (let x = -8; x < 90; x += 9.5) if (Math.abs(x - 30) > 3.5) treeSpots.push([x + (R() - 0.5), 7.75, R() < 0.6 ? 'lind' : 'lonn']);
   for (const [x, z, k] of [[-1, 11.5, 'lonn'], [41.8, 12.5, 'bjork'], [62, 11.3, 'lonn'], [28, -24, 'lonn'], [10, -27, 'lind'], [50, -26, 'bjork'], [20, 25, 'lonn'], [60, 26, 'lind'], [5, 17, 'bjork'], [33, 18, 'lind'], [48, 17.5, 'bjork'], [70, 18, 'lonn']]) treeSpots.push([x, z, k]);
   // Two shapes per kind, so neighbouring trees differ; instanced per shape.
-  const leafMat = new THREE.MeshStandardMaterial({ map: foliage, vertexColors: true, roughness: 0.9 });
-  leafMat.onBeforeCompile = mats.foliage.onBeforeCompile;
-  leafMat.customProgramCacheKey = mats.foliage.customProgramCacheKey;
+  const leafMat = L.worldMapped(foliage, 3.6, { vertexColors: true, roughness: 0.9, triplanar: true, mapNormal: true });
   const woodMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
   let shapeNo = 0;
   for (const kind of ['lind', 'lonn', 'bjork']) {

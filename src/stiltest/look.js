@@ -22,12 +22,14 @@ export function loadTexture(url) {
 // With triplanar: true the picture is blended from all three directions, so
 // round shapes (tree crowns, hedges) are not smeared; it costs three reads.
 export function worldMapped(map, metresPerTile, opts = {}) {
-  const { triplanar = false, vary = 0, ...rest } = opts;
+  const { triplanar = false, vary = 0, mapNormal = false, ...rest } = opts;
   const m = new THREE.MeshStandardMaterial({ map, roughness: 0.9, metalness: 0, ...rest });
   const scale = { value: 1 / metresPerTile };
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uvScale = scale;
-    sh.vertexShader = 'varying vec3 vWP;\nvarying vec3 vWN;\n' + sh.vertexShader.replace(
+    // mapNormal: take the picture's direction from a separate attribute, for
+    // meshes whose lighting normals are bent on purpose (tree crowns).
+    sh.vertexShader = (mapNormal ? 'attribute vec3 mapNormal;\n' : '') + 'varying vec3 vWP;\nvarying vec3 vWN;\n' + sh.vertexShader.replace(
       '#include <worldpos_vertex>',
       `#include <worldpos_vertex>
       vec4 wpos = vec4(transformed, 1.0);
@@ -36,7 +38,7 @@ export function worldMapped(map, metresPerTile, opts = {}) {
       #endif
       wpos = modelMatrix * wpos;
       vWP = wpos.xyz;
-      vec3 wn = objectNormal;
+      vec3 wn = ${mapNormal ? 'mapNormal' : 'objectNormal'};
       #ifdef USE_INSTANCING
         wn = mat3(instanceMatrix) * wn;
       #endif
@@ -61,7 +63,7 @@ export function worldMapped(map, metresPerTile, opts = {}) {
       diffuseColor *= sampledDiffuseColor;`,
     );
   };
-  m.customProgramCacheKey = () => `wm${metresPerTile}${triplanar}${vary}`;
+  m.customProgramCacheKey = () => `wm${metresPerTile}${triplanar}${vary}${mapNormal}`;
   return m;
 }
 
