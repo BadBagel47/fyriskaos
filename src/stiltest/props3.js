@@ -515,9 +515,9 @@ export function trunkGeometry(B, kind) {
 export function treeV2(kind, seed) {
   const R = rng(seed * 97 + 13);
   const K = {
-    lind: { h: 3.6, br: 5, reach: 2.6, rise: 2.6, cl: [0.5, 0.85], n: 5, leaf: [0.55, 1.2, 0.42], bark: 0x4a3a2c, w: 0.26 },
-    lonn: { h: 3.0, br: 6, reach: 3.0, rise: 2.2, cl: [0.55, 0.9], n: 5, leaf: [0.5, 1.12, 0.38], bark: 0x3f3328, w: 0.3 },
-    bjork: { h: 4.4, br: 5, reach: 1.7, rise: 3.0, cl: [0.42, 0.68], n: 5, leaf: [0.56, 1.2, 0.42], bark: 0xe6e1d6, w: 0.17 },
+    lind: { h: 3.4, br: 5, reach: 2.4, rise: 2.4, cl: [0.85, 1.25], n: 2, leaf: [0.55, 1.2, 0.42], bark: 0x4a3a2c, w: 0.32 },
+    lonn: { h: 3.0, br: 6, reach: 2.8, rise: 2.0, cl: [0.9, 1.3], n: 2, leaf: [0.5, 1.12, 0.38], bark: 0x3f3328, w: 0.34 },
+    bjork: { h: 4.2, br: 5, reach: 1.6, rise: 2.8, cl: [0.65, 0.95], n: 2, leaf: [0.56, 1.2, 0.42], bark: 0xe6e1d6, w: 0.17 },
   }[kind];
   const wood = new Builder2();
   const leaves = new Builder2();
@@ -557,7 +557,9 @@ export function treeV2(kind, seed) {
       const ndl = Math.max(0, nor[i] * sun.x + nor[i + 1] * sun.y + nor[i + 2] * sun.z);
       const height = (p[1] + pos[i + 1] - cy) / 3;
       const inner = Math.max(0, -(nor[i] * p[0] + nor[i + 2] * p[2])) * 0.08;
-      const k = tone * (0.7 + 0.25 * height - inner);
+      // Bright crown top, clearly darker underside and inside.
+      const up = nor[i + 1] * 0.5 + 0.5;
+      const k = tone * (0.45 + 0.3 * up + 0.25 * Math.min(1, Math.max(0, height + 0.5)) - inner);
       // Leaf green, warmed towards gold where the evening sun hits.
       // The real sun already brightens the lit side; damp it there so lit
       // leaves stay yellow-green instead of burning out to gold.
@@ -579,10 +581,10 @@ function lumpCluster(r, seed) {
   const g = new THREE.IcosahedronGeometry(r, 1);
   const R = rng(seed);
   const p = g.attributes.position;
-  const bumps = Array.from({ length: 7 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.15 + R() * 0.35]);
+  const bumps = Array.from({ length: 5 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.1 + R() * 0.2]);
   for (let i = 0; i < p.count; i++) {
     const v = new THREE.Vector3().fromBufferAttribute(p, i).normalize();
-    let k = 0.72 + R() * 0.16;
+    let k = 0.82 + R() * 0.08;
     for (const [bx, by, bz, a] of bumps) k += a * Math.max(0, v.x * bx + v.y * by + v.z * bz) ** 2;
     v.multiplyScalar(r * k);
     v.y *= v.y < 0 ? 0.5 : 0.8;

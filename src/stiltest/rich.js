@@ -121,27 +121,53 @@ function addHouse(H, h, place) {
   const doorCol = Math.floor(cols / 2);
   const HR = rng(Math.floor(h.x * 31 + h.facade * 7 + w));
   const frameC = HR() < 0.3 ? 0x5a3a2a : HR() < 0.5 ? 0x2f4a3a : 0xf6f2ea;
-  const ww = h.narrow ? 0.85 : 1.05;
-  const win = (x, y, z, rot) => {
-    // Recess, frame, two sashes with a cross bar, glass, sill and a lintel.
-    const glass = [0x8fa6bf, 0x6f879f, 0xa9bccc, 0x5d7186][Math.floor(HR() * 4)];
-    H.dark.add(new THREE.BoxGeometry(ww + 0.32, 1.86, 0.06), 0x3c3530, at(x, y, z, rot));
-    H.trim.add(new THREE.BoxGeometry(ww + 0.2, 1.72, 0.1), frameC, at(x, y, z, rot));
-    H.glass.add(new THREE.BoxGeometry(ww, 1.5, 0.12), glass, at(x, y, z, rot));
+  const ww0 = h.narrow ? 0.85 : 1.05;
+  // Each house gets its own window type, so the rows do not share one grid:
+  // 0 two sashes with a transom, 1 paired narrow windows, 2 round-arched, 3 tall.
+  const wstyle = h.wstyle ?? Math.floor(HR() * 4);
+  const lintelKind = h.ornate ? (HR() < 0.5 ? 'pediment' : 'hood') : ['hood', 'keystone', 'none'][Math.floor(HR() * 3)];
+  const boxChance = HR() < 0.4 ? 0.25 : 0.04;
+  const pane = (x, y, z, rot, ww, gh) => {
+    const lit = HR() < 0.1;
+    const glass = lit ? 0xffc98a : [0x8fa6bf, 0x6f879f, 0xa9bccc, 0x5d7186][Math.floor(HR() * 4)];
+    H.dark.add(new THREE.BoxGeometry(ww + 0.32, gh + 0.36, 0.06), 0x3c3530, at(x, y, z, rot));
+    H.trim.add(new THREE.BoxGeometry(ww + 0.2, gh + 0.22, 0.1), frameC, at(x, y, z, rot));
+    H.glass.add(new THREE.BoxGeometry(ww, gh, 0.12), glass, at(x, y, z, rot));
     const r = HR();
-    if (r < 0.35) H.trim.add(new THREE.BoxGeometry(ww * 0.42, 1.3, 0.13), [0xf3eee0, 0xd9c7a0, 0xc7d4e0][Math.floor(HR() * 3)], at(x - ww * 0.24 * (r < 0.17 ? 1 : -1), y + 0.05, z, rot)); // curtain
-    if (r > 0.88) H.trim.add(new THREE.BoxGeometry(ww * 0.95, 0.5, 0.13), 0xe8dcc0, at(x, y + 0.45, z, rot)); // blind
-    H.trim.add(new THREE.BoxGeometry(0.06, 1.5, 0.15), frameC, at(x, y, z, rot)); // mullion
-    H.trim.add(new THREE.BoxGeometry(ww, 0.05, 0.15), frameC, at(x, y + 0.3, z, rot)); // transom
-    H.trim.add(new THREE.BoxGeometry(ww + 0.3, 0.08, 0.3), 0x8e949a, at(x, y - 0.93, z, rot)); // sheet-metal sill
-    if (h.ornate) {
-      H.trim.add(new THREE.BoxGeometry(ww + 0.45, 0.22, 0.14), 0xf4efe6, at(x, y + 1.0, z, rot)); // lintel
-      H.trim.add(new THREE.ConeGeometry((ww + 0.4) / 2, 0.3, 4, 1), 0xf4efe6, at(x, y + 1.25, z, rot).multiply(new THREE.Matrix4().makeScale(1, 1, 0.25)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 4))); // pediment
+    if (!lit && r < 0.3) H.trim.add(new THREE.BoxGeometry(ww * 0.42, gh * 0.85, 0.13), [0xf3eee0, 0xd9c7a0, 0xc7d4e0][Math.floor(HR() * 3)], at(x - ww * 0.24 * (r < 0.15 ? 1 : -1), y + 0.05, z, rot)); // curtain
+    if (r > 0.9) H.trim.add(new THREE.BoxGeometry(ww * 0.95, gh * 0.33, 0.13), 0xe8dcc0, at(x, y + gh * 0.3, z, rot)); // blind
+    if (ww > 0.7) H.trim.add(new THREE.BoxGeometry(0.06, gh, 0.15), frameC, at(x, y, z, rot)); // mullion
+    H.trim.add(new THREE.BoxGeometry(ww, 0.05, 0.15), frameC, at(x, y + gh * 0.2, z, rot)); // transom
+  };
+  const win = (x, y, z, rot, f = 1) => {
+    const topFloor = f === floors - 1;
+    const gh = topFloor ? 1.15 : wstyle === 3 ? 1.8 : 1.5;
+    const yc = y + (gh - 1.5) / 2;
+    let ww = ww0;
+    if (wstyle === 1 && rot === 0) {
+      for (const o of [-0.36, 0.36]) pane(x + o, yc, z, rot, 0.52, gh);
+      ww = 1.3;
+    } else pane(x, yc, z, rot, ww, gh);
+    if (wstyle === 2 && !topFloor) {
+      // Round arch over the window.
+      const arch = new THREE.CylinderGeometry(ww / 2 + 0.1, ww / 2 + 0.1, 0.1, 8, 1, false, -Math.PI / 2, Math.PI);
+      arch.rotateX(Math.PI / 2);
+      H.trim.add(arch, frameC, at(x, yc + gh / 2 + 0.11, z, rot));
+      const archG = new THREE.CylinderGeometry(ww / 2 - 0.02, ww / 2 - 0.02, 0.12, 8, 1, false, -Math.PI / 2, Math.PI);
+      archG.rotateX(Math.PI / 2);
+      H.glass.add(archG, 0x6f879f, at(x, yc + gh / 2 + 0.11, z + 0.01, rot));
     }
+    H.trim.add(new THREE.BoxGeometry(ww + 0.3, 0.08, 0.3), 0x8e949a, at(x, yc - gh / 2 - 0.18, z, rot)); // sheet-metal sill
+    const ly = yc + gh / 2 + (wstyle === 2 && !topFloor ? ww / 2 + 0.3 : 0.25);
+    if (lintelKind === 'pediment' && !topFloor) {
+      H.trim.add(new THREE.BoxGeometry(ww + 0.45, 0.22, 0.14), 0xf4efe6, at(x, ly, z, rot));
+      H.trim.add(new THREE.ConeGeometry((ww + 0.4) / 2, 0.3, 4, 1), 0xf4efe6, at(x, ly + 0.25, z, rot).multiply(new THREE.Matrix4().makeScale(1, 1, 0.25)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 4)));
+    } else if (lintelKind === 'hood') H.trim.add(new THREE.BoxGeometry(ww + 0.5, 0.16, 0.24), 0xf4efe6, at(x, ly, z, rot));
+    else if (lintelKind === 'keystone') H.trim.add(new THREE.BoxGeometry(0.28, 0.34, 0.16), 0xf4efe6, at(x, ly, z, rot));
     // A window box with flowers on some windows facing the street.
-    if (rot === 0 && z > 0 && y > 3 && HR() < 0.3) {
-      H.dark.add(new THREE.BoxGeometry(ww + 0.1, 0.22, 0.25), 0x5a3a26, at(x, y - 0.82, z + 0.16, rot));
-      for (let k = 0; k < 5; k++) H.trim.add(new THREE.IcosahedronGeometry(0.11, 0), [0xe0506a, 0x4f8f3a, 0xf2c94c, 0x4f8f3a, 0xd96aa0][k], at(x - ww / 2 + 0.1 + k * (ww / 4.4), y - 0.65, z + 0.2, rot));
+    if (rot === 0 && z > 0 && y > 3 && HR() < boxChance) {
+      H.dark.add(new THREE.BoxGeometry(ww + 0.1, 0.22, 0.25), 0x5a3a26, at(x, yc - gh / 2 - 0.07, z + 0.16, rot));
+      for (let k = 0; k < 5; k++) H.trim.add(new THREE.IcosahedronGeometry(0.11, 0), [0xe0506a, 0x4f8f3a, 0xf2c94c, 0x4f8f3a, 0xd96aa0][k], at(x - ww / 2 + 0.1 + k * (ww / 4.4), yc - gh / 2 + 0.1, z + 0.2, rot));
     }
   };
   for (const side of [1, -1])
@@ -150,13 +176,13 @@ function addHouse(H, h, place) {
         if (side === 1 && f === 0 && c === doorCol) continue;
         if (side === 1 && f === 0 && h.shop) continue;
         if (side === 1 && f > 0 && bayCols.includes(c)) continue;
-        win(-w / 2 + step * (c + 0.5), 1.0 + f * FLOOR + 1.6, side * (d / 2 + 0.04), 0);
+        win(-w / 2 + step * (c + 0.5), 1.0 + f * FLOOR + 1.6, side * (d / 2 + 0.04), 0, f);
         if (h.ornate && side === 1 && c > 0 && f > 0) H.trim.add(new THREE.BoxGeometry(0.3, FLOOR - 0.1, 0.12), new THREE.Color(wallC).multiplyScalar(1.06).getHex(), at(-w / 2 + step * c, 1.0 + f * FLOOR + FLOOR / 2, d / 2 + 0.06));
       }
   for (const side of [1, -1]) {
     const n = Math.max(1, Math.floor(d / 4));
     for (let f = 0; f < floors; f++)
-      for (let c = 0; c < n; c++) win(side * (w / 2 + 0.04), 1.0 + f * FLOOR + 1.6, -d / 2 + (d / n) * (c + 0.5), Math.PI / 2);
+      for (let c = 0; c < n; c++) win(side * (w / 2 + 0.04), 1.0 + f * FLOOR + 1.6, -d / 2 + (d / n) * (c + 0.5), Math.PI / 2, f);
   }
   // Door with a stone portal and steps.
   const dx = -w / 2 + step * (doorCol + 0.5);
@@ -198,8 +224,8 @@ function addHouse(H, h, place) {
     const sa = Math.atan2(D, (bw - fw) / 2);
     for (let f = 1; f < floors; f++) {
       const y = 1.0 + f * FLOOR + 1.6;
-      win(bx, y, d / 2 + D + 0.02, 0);
-      for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa);
+      win(bx, y, d / 2 + D + 0.02, 0, f);
+      for (const sgn of [-1, 1]) win(bx + sgn * (sx + Math.sin(sa) * 0.03), y, d / 2 + D / 2 + Math.cos(sa) * 0.03, sgn * sa, f);
     }
     // Hipped sheet-metal cap.
     const o = 0.18, ch = 0.85;
@@ -427,7 +453,7 @@ export async function buildRich(renderer) {
     slabs: L.worldMapped(slabs, 4, { vertexColors: true, roughness: 0.88, vary: 0.5 }),
     grass: L.worldMapped(grass, 4, { vertexColors: true, roughness: 1, vary: 0.8 }),
     wall: L.worldMapped(plaster, 5, { vertexColors: true, roughness: 0.95, vary: 0.6 }),
-    roof: L.worldMapped(roof, 0.95, { vertexColors: true, roughness: 0.8, vary: 0.9 }),
+    roof: L.worldMapped(roof, 0.7, { vertexColors: true, roughness: 0.8, vary: 0.9 }),
     foliage: L.worldMapped(foliage, 3.6, { vertexColors: true, roughness: 0.85, triplanar: true }),
     plain: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, envMapIntensity: 0.4 }),
     glass: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.05, metalness: 0.3, envMapIntensity: 1.6 }),
@@ -595,8 +621,6 @@ export async function buildRich(renderer) {
   for (const [cx, cz] of [[38.5, 7.7], [22.5, -8.1]]) {
     P3.addCrate(P, m4(cx, 0.12, cz, 0.1), 1.2, 0);
     P3.addCrate(P, m4(cx + 1.3, 0.12, cz + 0.1, -0.15), 1.05, 1);
-    P3.addCrate(P, m4(cx + 0.6, 0.12 + 1.2 * 0.75, cz + 0.05, 0.3), 0.95, 2);
-    P3.addPallet(P, m4(cx + 2.4, 0.12, cz + 0.2, 0.05));
     P.add(new THREE.CylinderGeometry(0.3, 0.3, 0.88, 12), 0x2f6aa0, m4(cx - 1.0, 0.56, cz + 0.2));
     for (const y of [0.32, 0.8]) P.add(new THREE.TorusGeometry(0.3, 0.025, 4, 12), 0x24507a, m4(cx - 1.0, y, cz + 0.2).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)));
   }
@@ -645,7 +669,7 @@ export async function buildRich(renderer) {
       const wood = new THREE.InstancedMesh(g.wood, woodMat, sub.length);
       const leaves = new THREE.InstancedMesh(g.leaves, leafMat, sub.length);
       sub.forEach(([x, z], i) => {
-        const sc = 0.9 + R() * 0.25;
+        const sc = 0.75 + R() * 0.5;
         // Turned only by small amounts, so the sunlit side stays towards the sun.
         const mtx = m4(x, 0.12, z, (R() - 0.5) * 0.6, sc, sc * (0.95 + R() * 0.1), sc);
         wood.setMatrixAt(i, mtx);
@@ -803,9 +827,10 @@ export async function buildRich(renderer) {
   sun.castShadow = true;
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.05;
+  sun.shadow.radius = 3;
   const sunOffset = new THREE.Vector3(-52, 24, 34); // south-west, low: lights the facades facing the street
   scene.add(sun, sun.target);
-  scene.add(new THREE.HemisphereLight(0xa8b0c8, 0x6a4a30, 0.6));
+  scene.add(new THREE.HemisphereLight(0xb4b0c0, 0x7a5434, 0.85));
   const fill = new THREE.DirectionalLight(0x9aa8d0, 0.3); // cool light from the east fills the shadows
   fill.position.set(60, 30, -10);
   scene.add(fill);
