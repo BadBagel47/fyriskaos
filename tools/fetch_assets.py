@@ -30,7 +30,7 @@ QUATERNIUS = {
     "stylizedtree": ("1GlrFUFcNj6KIuc4-QpVEiRcXVUzSClP2", r"^(FBX/(Tree|Birch)_\d+\.fbx|Textures/(Tree_Bark|Tree_Leaves|Birch_Bark|Birch_Leaves_Green)\.\w+)$"),
     "ultimatenature": ("1-Kl0L_Jg8awbh0S5T-z3zxh4mVlnxTpa", r"^FBX/(CommonTree_[1-5]|BirchTree_[1-5]|Bush_[12]|BushBerries_[12])\.fbx$"),
     "simplenature": ("18hb-5HGCLL9BS8jmxkE4h31wmHGeqfts", r"^OBJ/(Tree\d|Bush\d)\.(obj|mtl)$"),
-    "backgroundposedhumans": ("18dWyZlA53euzsc1WobITqFYLcT5sFULz", r"/(Poses|Hairstyles)/OBJ/[^/]+\.(obj|mtl)$"),
+    "backgroundposedhumans": ("18dWyZlA53euzsc1WobITqFYLcT5sFULz", r"(Poses|Hairstyles)/OBJ/[^/]+\.(obj|mtl)$"),
     "animatedmen": ("17LibivOaUidsQhSkcxP3YYvDr0n7wIwu", r"^OBJ/Male_\w+\.(obj|mtl)$"),
     "animatedwomen": ("1c13R--fMqdR6r2MRlcKKsbPky0__T-yJ", r"^OBJ/Female_\w+\.(obj|mtl)$"),
     "cars": ("1fKlbDry77iY8KlEoxzUxIAZQL_XhzWlA", r"^OBJ/\w+\.(obj|mtl)$"),
@@ -57,11 +57,16 @@ def log(msg):
     report.append(msg)
 
 
-def get(url, data=None, tries=3):
+import http.cookiejar
+
+OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+
+
+def get(url, data=None, tries=3, headers=None):
     for k in range(tries):
         try:
-            req = urllib.request.Request(url, data=data, headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=300) as r:
+            req = urllib.request.Request(url, data=data, headers={"User-Agent": UA, **(headers or {})})
+            with OPENER.open(req, timeout=300) as r:
                 return r.read()
         except Exception as e:  # noqa: BLE001 - report and retry
             log(f"  try {k + 1} failed for {url}: {e}")
@@ -118,15 +123,20 @@ def fetch_kenney():
         page = get(page_url)
         if not page:
             continue
-        m = re.search(rb'(?:https://kenney\.nl)?/media/pages/assets/[^"\'\s<>]+?\.zip', page)
+        # The page asks for a fresh signed link with its download id.
+        m = re.search(rb"data-download-id='([0-9a-f]+)'", page) or re.search(rb'data-download-id="([0-9a-f]+)"', page)
         if not m:
-            os.makedirs(os.path.join(OUT, "kenney"), exist_ok=True)
-            with open(os.path.join(OUT, "kenney", f"{pack}.page.html"), "wb") as f:
-                f.write(page)
-            log("  no zip link on the page (page saved for a look)")
+            log("  no download id on the page")
             continue
-        link = m.group(0).decode()
-        blob = get(link if link.startswith("http") else "https://kenney.nl" + link)
+        info = get("https://kenney.nl/download-link/" + m.group(1).decode(), headers={"Referer": page_url, "Accept": "application/json"})
+        try:
+            link = json.loads(info or b"{}").get("url")
+        except ValueError:
+            link = None
+        if not link:
+            log("  no signed link")
+            continue
+        blob = get(link)
         if not blob:
             continue
         dest = os.path.join(OUT, "kenney", pack)
