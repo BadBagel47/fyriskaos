@@ -18,6 +18,7 @@ Läs det här först, sedan `AGENTS.md` (hänvisning till agentreglerna) och `do
 
 ## Beslut
 
+- **Första området (2026-11-19, F-005, fråga Q1):** första versionen av den riktiga kartan blir bara centrum kring Fyrisån och Slottsbacken, förenklat och spelbart från OpenStreetMap. Landmärken (Domkyrkan, Slottet och Slottsbacken, Gunillaklockan, Fyrisån med broarna) får egna modeller. Stiltestets detaljnivå byggs direkt i den nya generatorn; teststaden putsas inte. En enda trädstil i hela staden. Sikten går först: det får aldrig vara svårt att se vart man kör.
 - **Testwebbläsare (2026-11-19, B-053):** projektets testwebbläsare är Chrome på Android (ägarens Pixel 10 Pro). Brave stöds inte: där slutar 3D-grafiken fungera efter några blinkningar, också i Three.js egna exempel och med Shields av, medan Chrome kör stiltestet i 60 fps på Medel. Ingen felsökningssida och inget Brave-specifikt arbete.
 - **Designdokument (2026-11-17, D-001):** ägarens design från Claude-chatten gäller, se `docs/design.md`.
 - **Startinstruktioner (2026-11-17, issue #1):** ägarens instruktioner för första sessionen; innehållet finns här och i backloggen.

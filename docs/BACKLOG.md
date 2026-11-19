@@ -10,9 +10,12 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | --- | --- | --- | --- |
 | F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 8 s med 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
 | D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fotgängare och fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`), buskar och häckar. |
-| F-005 | Medel | Öppen | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, med vårdcentral, polis och ett första uppdrag. |
+| B-055 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Sikten i fart: när kameran zoomar ut täcker hustak nedanför spelaren halva skärmen. Klipp bort eller gör genomskinligt allt på kamerasidan som skymmer, också i fart, och låt kameran se längre framåt i färdriktningen. Det får aldrig vara svårt att se vart man kör. |
+| F-005 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Första riktiga området: centrum kring Fyrisån och Slottsbacken från OpenStreetMap, förenklat och spelbart, med vårdcentral, polis och ett första uppdrag. Landmärken som egna modeller: Domkyrkan, Slottet och Slottsbacken, Gunillaklockan och Fyrisån med broarna. |
+| D-057 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Stiltestets detaljnivå direkt i den nya generatorn: röda cykelbanor, häckar, staket, blomlådor, markiser och butiker, cykelställ med cyklar, parkerade bilar, skyltar och människor på trottoarerna. Stiltestets bilar (rundade, glans, lampor) för alla bilar. En enda trädstil i hela staden. |
+| B-056 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Spelarens figur ska synas tydligt (lite större, tydlig markering), och en liggande cykel ska se ut som en cykel. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
-| F-011 | Medel | Öppen | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
+| F-011 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Död och vårdcentraler: återuppstå på en vårdcentral mot en kostnad, stjärnorna nollställs, kölapp med "Beräknad väntetid: 4 sek". I co-op ligger man först nere några sekunder och kan räddas. |
 | F-012 | Medel | Öppen | Strid och pengar: siktet låser på närmaste fiende, skjutknapp; pengar går bara till vård och vapen. |
 | F-013 | Medel | Öppen | Stadens generering: fast skelett från OpenStreetMap (ån, slottet, domkyrkan, centralen, stora vägar, stadsdelar) och genererade kvarter, vägarbeten, gängområden, NPC:er, fordon och uppdrag. |
 | F-014 | Medel | Öppen | Levande stad nära spelarna: fotgängare, trafik i filer, trafikljus; resten av staden sover. |
@@ -21,8 +24,8 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 | F-017 | Medel | Öppen | Uppdragsgenerator: 1–4 steg, hinder och twist, co-op-roller; kommer via SMS, Swish-parodi och Blocket-parodi; klättrar uppåt i gängen till bossen. |
 | F-020 | Medel | Öppen | Fordonen enligt designen (elsparkcykel, EPA-traktor, buss, traktor, helikoptrar, pansarvagn, halvfärdig spårvagn, sopbil, snöplog). Specialfordon bara via efterlysning, logiska platser eller uppdrag. Cykel och bil kommer i F-002. |
 | F-022 | Medel | Öppen | Valborgsfinalen: forsränningen och sedan kung på täppan på Slottsbacken mot alla grupper; den som håller backen kröns till Slottsbackens kungar. |
-| F-023 | Medel | Öppen | Vägvisning: en stor pil mot nästa mål. |
-| F-028 | Medel | Öppen | Credits och licenser i spelet: "© OpenStreetMap contributors" med länk, PixiJS (MIT), senare röster. Bearbetade kartfiler läggs i en egen mapp med ODbL-licens (se `docs/legal.md`). |
+| F-023 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Vägvisning: en stor pil mot nästa mål. |
+| F-028 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Credits och licenser i spelet: "© OpenStreetMap contributors" med länk, PixiJS (MIT), senare röster. Bearbetade kartfiler läggs i en egen mapp med ODbL-licens (se `docs/legal.md`). |
 | F-018 | Låg | Öppen | Uppsala-uppdrag: forsränning med sabotage, punschreceptet, nattmackor före sittningens slut, cykeljakter, traktorkaos, stjäla spårvagnen. |
 | F-019 | Låg | Öppen | Platser med egna uppdrag: Slottsbacken (pulkajakt, kungakronan, klockan), Evolutionsmuseet (Benkuppen, Skelettfrakten), Botaniska trädgården (Näckroskuppen, Lagerträdsrånet). |
 | F-021 | Låg | Öppen | Zonhändelser: snöoväder, översvämning, spontan studentfest, grävkaos, dinosaurieutbrott, tropisk afton. |
