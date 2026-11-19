@@ -69,6 +69,11 @@ function fail(msg) {
       while (Date.now() - t0 < maxMs && (await vehicleSpeed()) < target) await page.waitForTimeout(50);
       await page.keyboard.up(key);
     };
+    // Wait until the game has drawn a few more frames (robust on slow machines).
+    const frames = async (n = 3) => {
+      const f0 = await page.evaluate(() => window.__fyriskaos.perf.frames);
+      await page.waitForFunction((f) => window.__fyriskaos.perf.frames >= f, f0 + n, { timeout: 60000 });
+    };
     const hold = async (key, ms) => {
       await page.keyboard.down(key);
       await page.waitForTimeout(ms);
@@ -90,11 +95,11 @@ function fail(msg) {
 
     // Back to the start, next to the bike, and take it.
     await page.evaluate((s) => Object.assign(window.__fyriskaos.game.player, { x: s.x, y: s.y, vx: 0, vy: 0 }), startPos);
-    await page.waitForTimeout(100);
+    await frames();
     let s2 = await state();
     if (s2.action !== 'Ta cykeln') fail(`not next to the bike after walking back (${s2.action})`);
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(100);
+    await frames();
     let s3 = await state();
     if (s3.vehicle !== 'bike') fail('could not take the bike');
     if (!s3.brakeVisible) fail('brake button hidden on the bike');
@@ -104,13 +109,16 @@ function fail(msg) {
     let s4 = await state();
     if (!(s4.speed > 3)) fail(`bike too slow: ${s4.speed}`);
     if (shots) await page.screenshot({ path: path.join(shots, '3-bike.png') });
+    // Brake for 1.2 s of game time (slow machines draw fewer frames per second).
     await page.keyboard.down('Space');
-    await page.waitForTimeout(1200);
+    const tBrake = await page.evaluate(() => window.__fyriskaos.game.time);
+    await page.waitForFunction((t0) => window.__fyriskaos.game.time - t0 > 1.2, tBrake, { timeout: 60000 });
     await page.keyboard.up('Space');
     let s5 = await state();
     if (s5.vehicle === 'bike' && s5.speed > 0.5) fail(`bike did not stop when braking: ${s5.speed}`);
     if (s5.vehicle === 'bike') await page.keyboard.press('KeyE');
-    await page.waitForTimeout(1500);
+    const tOff = await page.evaluate(() => window.__fyriskaos.game.time);
+    await page.waitForFunction((t0) => window.__fyriskaos.game.time - t0 > 1.5, tOff, { timeout: 60000 });
 
     // Put the player next to the start car and drive it.
     await page.evaluate(() => {
@@ -121,11 +129,11 @@ function fail(msg) {
       g.player.vx = g.player.vy = 0;
       g.player.stun = 0;
     });
-    await page.waitForTimeout(100);
+    await frames();
     let s6 = await state();
     if (s6.action !== 'Kliv in') fail(`expected "Kliv in" next to the car, got ${s6.action}`);
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(100);
+    await frames();
     let s7 = await state();
     if (s7.vehicle !== 'car') fail('could not get in the car');
     await holdUntilSpeed('ArrowUp', 14, 30000);
@@ -155,7 +163,7 @@ function fail(msg) {
     if (!(s9.speed < 0.5)) fail(`car did not stop when braking: ${s9.speed}`);
     if (s9.action !== 'Kliv ur') fail(`expected "Kliv ur" in the car, got ${s9.action}`);
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(100);
+    await frames();
     let s10 = await state();
     if (s10.vehicle) fail('could not get out of the car');
     if (shots) await page.screenshot({ path: path.join(shots, '5-out.png') });
@@ -166,9 +174,9 @@ function fail(msg) {
       const car = g.vehicles.find((v) => v.type === 'sport');
       Object.assign(g.player, { x: car.x - 3, y: car.y + 1.7, vx: 0, vy: 0, stun: 0 });
     });
-    await page.waitForTimeout(100);
+    await frames();
     await page.keyboard.press('KeyE');
-    await page.waitForTimeout(100);
+    await frames();
     const sportName = await page.textContent('#speed');
     if (!/^Sportbil/.test(sportName)) fail(`expected the sports car, got "${sportName}"`);
     await holdUntilSpeed('ArrowUp', 16, 30000);
