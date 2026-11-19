@@ -552,8 +552,8 @@ export async function buildRich(renderer) {
     for (const y of [0.32, 0.8]) P.add(new THREE.TorusGeometry(0.3, 0.025, 4, 12), 0x24507a, m4(cx - 1.0, y, cz + 0.2).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)));
   }
   // Benches, bins, bollards.
-  P3.addBench(P, m4(18, 0.12, 8.0, Math.PI));
-  P3.addBench(P, m4(34, 0.12, -8.2, 0));
+  P3.addBench(P, m4(18, 0.12, 8.0, Math.PI, 1.3, 1.3, 1.3));
+  P3.addBench(P, m4(34, 0.12, -8.2, 0, 1.3, 1.3, 1.3));
   for (const [x, z] of [[21, 8.0], [31.5, -8.2], [47.5, -8.3]]) P3.addBin(P, m4(x, 0.12, z));
   for (const [x, z] of [[28, -6.0], [32, -6.0], [28, 5.7], [32, 5.7]]) P3.addBollard(P, m4(x, 0.12, z));
   // Signs: posts in the merged mesh, faces as small pictures turned towards the camera.
@@ -570,10 +570,10 @@ export async function buildRich(renderer) {
     P.add(new THREE.BoxGeometry(w2 + 0.04, h2 + 0.04, 0.03), 0x9aa0a6, m4(x, y + 0.12, z).multiply(new THREE.Matrix4().makeRotationX(-0.25)).multiply(m4(0, 0, 0.02)));
   }
   // People on the sidewalks.
-  addPerson(P, m4(35.5, 0.12, 7.0, 0.4), { jacket: 0x6a5acd, pants: 0x2f3440, skin: 1, hair: 2, walk: 0.5, scale: 1.3 });
-  addPerson(P, m4(36.5, 0.12, 7.5, Math.PI + 0.3), { jacket: 0x3f9a6a, pants: 0x44506a, skin: 0, hair: 0, bag: true, walk: 2, scale: 1.3 });
-  addPerson(P, m4(10.2, 0.12, -8.6, -Math.PI / 2), { jacket: 0xc0504a, pants: 0x2a2a30, skin: 2, hair: 3, scale: 1.3 });
-  addPerson(P, m4(46.5, 0.12, -8.0, Math.PI / 2 + 0.4), { jacket: 0x2a6a9a, pants: 0x3a3a40, skin: 3, hair: 4, scale: 1.3, walk: 1 });
+  addPerson(P, m4(35.5, 0.12, 7.0, 0.4), { jacket: 0x6a5acd, pants: 0x2f3440, skin: 1, hair: 2, walk: 0.5, scale: 1.55 });
+  addPerson(P, m4(36.5, 0.12, 7.5, Math.PI + 0.3), { jacket: 0x3f9a6a, pants: 0x44506a, skin: 0, hair: 0, bag: true, walk: 2, scale: 1.55 });
+  addPerson(P, m4(10.2, 0.12, -8.6, -Math.PI / 2), { jacket: 0xc0504a, pants: 0x2a2a30, skin: 2, hair: 3, scale: 1.55 });
+  addPerson(P, m4(46.5, 0.12, -8.0, Math.PI / 2 + 0.4), { jacket: 0x2a6a9a, pants: 0x3a3a40, skin: 3, hair: 4, scale: 1.55, walk: 1 });
   mesh(P.build({ outline: false }), mats.plain);
 
   T('props');
@@ -675,7 +675,7 @@ export async function buildRich(renderer) {
     return g;
   };
   // The player: the same person model, a little larger, in an orange jacket.
-  const player = actor((b) => addPerson(b, m4(0, 0, 0), { jacket: 0xf07a1a, pants: 0x2a3550, skin: 0, hair: 1, scale: 1.6, walk: 0.6 }));
+  const player = actor((b) => addPerson(b, m4(0, 0, 0), { jacket: 0xf07a1a, pants: 0x2a3550, skin: 0, hair: 1, scale: 1.8, walk: 0.6 }));
   const cyclist = actor((b) => {
     addBike(b, m4(0, 0, 0), 0x2a4a70);
     addPerson(b, m4(-0.2, 0.42, 0, 0, 1, 0.82, 1), { jacket: 0xd4ac0d, pants: 0x2f3440, skin: 1, hair: 2, scale: 1.15 });
@@ -749,16 +749,16 @@ export async function buildRich(renderer) {
   };
 
   // ---------- light: low warm evening sun from the west, cool sky ----------
-  const sun = new THREE.DirectionalLight(0xffb560, 6.8);
+  const sun = new THREE.DirectionalLight(0xffb052, 7.4);
   sun.castShadow = true;
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.05;
   const sunOffset = new THREE.Vector3(-60, 23, 15); // west-south-west, about 20° above the horizon
   scene.add(sun, sun.target);
-  scene.add(new THREE.HemisphereLight(0xb8b4c0, 0x7a5a3a, 0.75));
+  scene.add(new THREE.HemisphereLight(0xc8b8a8, 0x8a6440, 0.85));
   const fill = new THREE.DirectionalLight(0x9aa8d0, 0.3); // cool light from the east fills the shadows
   fill.position.set(60, 30, -10);
   scene.add(fill);
 
-  return { scene, sun, sunOffset, update, camera: CAMERA, glows, setNearFade, toneMapping: THREE.ACESFilmicToneMapping, exposure: 1.05 };
+  return { scene, sun, sunOffset, update, camera: CAMERA, glows, setNearFade, toneMapping: THREE.ACESFilmicToneMapping, exposure: 1.15 };
 }

@@ -392,7 +392,7 @@ function lumpy(r, seed, detail = 2) {
   const g = new THREE.IcosahedronGeometry(r, detail);
   const p = g.attributes.position;
   const R = rng(seed);
-  const bumps = Array.from({ length: 7 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.03 + R() * 0.05]);
+  const bumps = Array.from({ length: 5 }, () => [R() * 2 - 1, R() * 2 - 1, R() * 2 - 1, 0.02 + R() * 0.03]);
   for (let i = 0; i < p.count; i++) {
     const v = new THREE.Vector3().fromBufferAttribute(p, i).normalize();
     let k = 1;
@@ -480,7 +480,7 @@ export function crownGeometry(kind, seed) {
     // Light from the low sun in the west-south-west: warm on that side, cooler and darker underneath.
     const sunSide = Math.max(0, -nor[i] * 0.8 + nor[i + 2] * 0.35);
     const k = 0.55 + 0.42 * up + 0.08 * outward + Math.max(0, nor[i + 1]) * 0.1;
-    col.push(k + sunSide * 0.28, k + sunSide * 0.2, k * 0.95 + sunSide * 0.02);
+    col.push(k * 1.08 + sunSide * 0.32, k * 1.06 + sunSide * 0.24, k * 0.88 + sunSide * 0.02);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

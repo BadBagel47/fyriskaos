@@ -77,6 +77,14 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Träd och bilar:** genererade bilder sedda rakt ovanifrån, utklippta, lagda i sin höjd så att de kastar rätt skugga; två lager per trädkrona; bilarna tonas i olika färger.
 - **Gatan:** sex sorters parkerade bilar, häckar, staket, blomlådor, cykelställ, lådor, pall, tunna, bänkar, papperskorgar, pollare och skyltar.
 
+## Steg 3: lutad kamera (D-045)
+
+- **Kamera:** fast vinkel 33° från lodrätt, från söder, 56 m från gatan, 34 m synligt på kortsidan (stående läge något närmare). Rakt ovanifrån finns kvar bakom en knapp. Husraden närmast kameran ritas inte i den lutade vyn men kastar sin skugga.
+- **Stil:** påkostat mobilspel, inte fotorealism (målbilder `docs/screenshots/stiltest/malbild-3.jpg` och `-4.jpg`).
+- **Detaljnivå:** alla föremål byggs som riktiga små modeller med delar (se `src/stiltest/props3.js`); inga klossar eller platta rutor.
+- **Bilder:** WebP; små förhandsbilder laddas först, fullstora efteråt.
+- **Granskning:** fasta kriterier i `docs/screenshots/stiltest/kriterier.md`.
+
 ## Prestanda (mobil från start)
 
 - **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.

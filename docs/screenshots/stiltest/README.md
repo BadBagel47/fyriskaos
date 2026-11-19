@@ -72,3 +72,41 @@ Varje omgång bedömdes av en ny granskare, så poängen varierar något mellan 
 
 - Nedladdning: koden cirka 165 kB komprimerad plus bilder cirka 690 kB, alltså ungefär fyra gånger D-043. Starten på långsamt mobilnät tog 13–15 s mot 4–6 s förut.
 - Läget Hög har långa toppar i molnet (skuggor med mjuka kanter räknas i processorn där); på en telefon med grafikkort får fps-mätaren visa.
+
+# Grafik steg 3 (D-045) – lutad kamera
+
+Nya målbilder i den lutade vinkeln, i stil med ett påkostat mobilspel (genererade med ElevenLabs bildgenerator):
+
+![Målbild 3](malbild-3.jpg)
+![Målbild 4](malbild-4.jpg)
+
+Stiltestet, båda kameravinklarna (skärmdumpar 2026-11-19, mobilstorlek, kvalitet Hög):
+
+![Jämförelse liggande](jamforelse3-liggande.jpg)
+![Jämförelse stående](jamforelse3-staende.jpg)
+![Lutad, liggande](steg3-lutad-liggande.jpg)
+![Lutad, stående](steg3-lutad-staende.jpg)
+![Ovanifrån, liggande](steg3-ovanifran-liggande.jpg)
+![Ovanifrån, stående](steg3-ovanifran-staende.jpg)
+
+## Poäng med fasta kriterier (`kriterier.md`, samma instruktion varje omgång)
+
+| Omgång | 1 Kamera och läsbarhet | 2 Jämn detaljnivå | 3 Träd | 4 Tak och fasader | 5 Ytor och ljus |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 5 | 4 | 4 | 5 | 6 |
+| 2 | 6 | 5 | 6 | 5 | 6 |
+| 3 (sista) | 7 | 5 | 6 | 5 | 7 |
+
+Målet minst 8 på allt nåddes inte. Se `docs/HANDOFF.md` för vad som återstår.
+
+## Prestanda (samma långsamma test: 1,6 Mbit/s, 150 ms fördröjning)
+
+| Processor | Första bilden | Alla fullstora bilder | Processortid per bild (median) | Anrop | Trianglar |
+| --- | --- | --- | --- | --- | --- |
+| normal | 2,7 s | 9,5 s | 2,8 ms | 85 | 357 000 |
+| 4× långsammare | 4,1 s | 12,6 s | 29 ms | 85 | 357 000 |
+| 6× långsammare | 5,1 s | 13,8 s | 45 ms | 85 | 357 000 |
+
+- Start under 6 s: uppnått (4,1–5,1 s). Scenen visas med små förhandsbilder och de fullstora bilderna laddas efteråt; alla bilder är WebP.
+- Nedladdning: koden 171 kB komprimerad, bilderna 426 kB (förra steget 690 kB).
+- Processortiden per bild har ökat (träden, personerna och prylarna har många fler trianglar). Med strypt processor ligger den över 17 ms, alltså under 60 bilder per sekund på en svag telefon. Det behöver bantas innan stilen förs in i spelet.
