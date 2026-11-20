@@ -327,6 +327,7 @@ export async function createRenderer3d(container, game) {
       litLevel.value = 0.25 + 5 * night;
       mats.lantern.color.setRGB(1, 0.94, 0.78).multiplyScalar(0.9 + 20 * night);
       mats.halo.color.setRGB(1, 0.8, 0.52).multiplyScalar(7 * night);
+      mats.halo.visible = night > 0.02;
       ents.night = night;
     }
     ents.update(dt, night);
@@ -344,8 +345,17 @@ export async function createRenderer3d(container, game) {
     post.render(dt);
   }
 
-  // Prepare the shaders before the first frame (in parallel where the browser can).
+  // Prepare the shaders before the first frame (in parallel where the browser
+  // can), the river's mirror and the glow's passes too.
+  // With post-processing everything is drawn into its buffer, which needs
+  // other shader variants than the screen: compile for that buffer.
+  const hideMirror = river.prepare();
+  if (post.on) renderer.setRenderTarget(post.composer.renderTarget1);
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera).catch(() => {});
+  // One pass of the mirror too: its sky background is set up on first use.
+  if (river.mirror) river.mirror.onBeforeRender(renderer, scene, camera);
+  renderer.setRenderTarget(null);
+  hideMirror();
 
   const api = {
     frame,

@@ -8,10 +8,6 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Prio | Status | Beskrivning |
 | --- | --- | --- | --- |
-| F-059 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Glöd (bloom) ovanpå den nuvarande bilden: bara starka ljuskällor glöder (lyktornas lampor, billyktor och bakljus, tända fönster på kvällen, blåljus). Hög tröskel i linjärt HDR; ljuskällorna får ljusstyrka över tröskeln. Låg: ingen glöd; Medel: halv upplösning; Hög: full upplösning. |
-| F-060 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Blank lack: bilarna med klarlack som speglar kvällshimlen, och en miljökarta gjord av en himmel med låg sol, så att lack och rutor speglar den. |
-| F-061 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Kvällsljus och dimma: lägre och varmare sol på kvällen (cirka 4–5° över horisonten) med långa skuggor, svagare himmelsljus för mer kontrast, och exponentiell dimma i en varm, dämpad ton som tonar bort det som ligger långt bort. |
-| F-062 | Hög | Pågår 2026-11-19 (session ccr-319e3a0a-gey2ih) | Spegling i Fyrisån: husen, broarna och lyktorna speglas i ån (bara när ån syns). Låg och Medel: ån speglar bara miljökartan; Hög: riktig spegling i låg upplösning. |
 | F-051 | Medel | Öppen | Snabbare start på långsamt mobilnät: i dag cirka 9 s med centrum och 4× strypt processor (mål under 6 s). Förslag: tätare modellfiler, bygga staden i bitar efter första bilden. |
 | D-052 | Låg | Öppen | Fler CC0-modeller i spelet: fler bilar från Quaternius eller Kenney (finns i `assets/cc0/`) och buskar. |
 | F-010 | Medel | Öppen | Seed: hela staden utgår från ett startnummer, så att båda spelarna får exakt samma stad. |
@@ -61,6 +57,10 @@ ID: en löpande serie, B- bugg, F- funktion, D- planering/design. Prioritet: Hö
 
 | ID | Klart | Beskrivning |
 | --- | --- | --- |
+| F-059 | 2026-11-20 | Glöd (bloom) ovanpå bilden (v0.7.0): bara starka ljuskällor glöder: lyktor (med en gloria vid lykthuvudet som syns ovanifrån), billyktor och bakljus på spelarens bil och polisen, tända fönster på kvällen och blåljus. Låg: ingen glöd; Medel: halv upplösning; Hög: full upplösning. |
+| F-060 | 2026-11-20 | Blank lack: bilarna har klarlack över metallisk lack, blanka rutor och matta däck; miljökartan är en himmel med solen på rätt plats, så lack, rutor och vatten speglar kvällshimlen. |
+| F-061 | 2026-11-20 | Kvällsljus och dimma: på kvällen sjunker solen till 4,5° och blir orange (från väster, längs gatorna), himmelsljuset blir svagare för mer kontrast, och en exponentiell dimma i varm, dämpad ton tonar bort det som ligger långt bort. |
+| F-062 | 2026-11-20 | Spegling i Fyrisån på Hög: husen, broarna och lyktorna speglas (512 × 512, ritas om var annan bild, bara när ån syns); Låg och Medel speglar himlen. |
 | B-058 | 2026-11-19 | Fotgängarna gick baklänges (modellerna var vridna ett kvarts varv åt fel håll) och spelaren bytte ryckigt mellan tre poser. Nu tittar spelaren, fotgängarna och spelaren på cykeln åt rörelseriktningen; armar och ben svänger mjukt i grafikkortet med en takt som följer farten; fotgängarna svänger lugnt längs trottoarerna; testet `tests/facing.cjs` kontrollerar riktningen. Cyklar och träd var rätt vridna. (v0.6.1) |
 | F-005 | 2026-11-19 | Första riktiga området (v0.6.0): centrala Uppsala kring Fyrisån och Slottsbacken från OpenStreetMap (`tools/build_map.mjs` → `data/map/centrum.json`), förenklat och spelbart, gatunätet vridet så att gatorna går rakt i bild. Landmärken som egna modeller: Domkyrkan, Slottet, Gunillaklockan; Fyrisån med broar och räcken. Polis (tre polisbilar som jagar längs gatorna när man är efterlyst, griper den som stannar) och ett första uppdrag (Nattmackorna, med twist). |
 | B-055 | 2026-11-19 | Sikten: hus på kamerasidan om spelaren klipps ner till bottenvåningen, också i fart; träd och lyktor i vägen blir genomskinliga; kameran ser längre framåt i färdriktningen. |

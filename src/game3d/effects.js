@@ -205,8 +205,13 @@ export function createRiver(map, plain, sunDir, skyTexture) {
     mirror.material.uniforms.size.value = 6;
     mirror.visible = false;
     // The mirror sees the sky (the main view never does; it keeps the haze colour).
+    // The mirror is drawn again every other frame only (half the cost; the
+    // waves hide the lag).
     const render = mirror.onBeforeRender;
+    let odd = false;
     mirror.onBeforeRender = (renderer, scene, camera) => {
+      odd = !odd;
+      if (odd && !mirror.userData.always) return;
       const bg = scene.background;
       const fog = scene.fog;
       const bgLevel = scene.backgroundIntensity;
@@ -231,6 +236,21 @@ export function createRiver(map, plain, sunDir, skyTexture) {
   return {
     get mirror() {
       return mirror;
+    },
+    // Make the mirror before the first frame, shown, so its shader is
+    // compiled with the rest (no stall the first time the river shows).
+    prepare() {
+      const m = make();
+      if (m) {
+        m.visible = true;
+        m.userData.always = true;
+      }
+      return () => {
+        if (m) {
+          m.visible = false;
+          m.userData.always = false;
+        }
+      };
     },
     // real: the quality allows the mirror; the rest: the ground on screen.
     update(dt, real, ax, az, bx, bz, sun) {
