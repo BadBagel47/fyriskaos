@@ -19,8 +19,9 @@ Bil i 90 km/h österut över bron vid Fyrisån och genom centrum, kvällsläget,
 | --- | --- | --- | --- | --- | --- |
 | Låg | 10,8 / 15,5 | 11,6 / 18,5 | 2,5 / 3,8 | 2,6 / 3,3 | 3,6 → 3,5 |
 | Medel | 13,0 / 18,8 | 15,1 / 21,0 | 2,9 / 4,6 | 3,2 / 4,3 | 1,6 → 1,4 |
-| Hög | 12,7 / 17,0 | 16,8 / 34,1 | 2,9 / 3,9 | 3,7 / 12,6 | 0,8 → 0,8 |
+| Hög | 12,7 / 17,0 | 15,3 / 36,0 | 2,9 / 3,9 | 3,7 / 12,6 | 0,8 → 0,8 |
 
 - **Medel** håller budgeten (under 17 ms per bild med 4× strypning) i median. Den 90:e percentilen låg över budgeten redan före ändringen.
-- **Hög** med ån i bild: 24,8 ms i median med 4× strypning (resten av körningen 13,0 ms), eftersom speglingen ritar staden en gång till. Den ritas därför om bara var annan bild. Hög räknas inte in i budgeten.
-- En stopp på cirka 0,7 s första gången ån syntes på Hög är borttagen: speglingen och dess himmel förbereds nu vid starten.
+- **Hög** med ån i bild: 20,1 ms i median med 4× strypning (resten av körningen 12,0 ms), eftersom speglingen ritar staden en gång till. Den ritas därför om bara var annan bild. Hög räknas inte in i budgeten.
+- En stopp på cirka 0,6 s första gången ån syntes på Hög är borttagen. Spegeln stängde av dimman, så varje material kompilerades en gång till; nu behålls dimman, och spegeln och dess himmel förbereds strax efter starten.
+- **Starten** tar cirka 0,5 s längre lokalt (2,0 → 2,5 s till första bilden), mest för himmelskartan och kompileringen av fler grafikprogram.

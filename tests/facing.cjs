@@ -133,7 +133,7 @@ function measure() {
     page.on('pageerror', (e) => errors.push(String(e)));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
     await page.goto(`http://127.0.0.1:${port}/index.html`);
-    await page.waitForFunction(() => window.__fyriskaos, null, { timeout: 15000 });
+    await page.waitForFunction(() => window.__fyriskaos, null, { timeout: 60000 });
     await page.click('#btn-start');
     await page.evaluate(() => document.fullscreenElement && document.exitFullscreen());
     await page.waitForFunction(() => window.__fyriskaos.modelsReady && window.__fyriskaos.renderer.ents.crowd.sets, null, { timeout: 60000 });

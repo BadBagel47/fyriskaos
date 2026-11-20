@@ -350,13 +350,22 @@ export async function createRenderer3d(container, game) {
   // can), the river's mirror and the glow's passes too.
   // With post-processing everything is drawn into its buffer, which needs
   // other shader variants than the screen: compile for that buffer.
-  const hideMirror = river.prepare();
   if (post.on) renderer.setRenderTarget(post.composer.renderTarget1);
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera).catch(() => {});
-  // One pass of the mirror too: its sky background is set up on first use.
-  if (river.mirror) river.mirror.onBeforeRender(renderer, scene, camera);
   renderer.setRenderTarget(null);
-  hideMirror();
+  // The river's mirror is prepared a little after the start, when the game
+  // already shows: its shader and its sky background are set up on first
+  // use, which would otherwise stall the first time the river shows (F-062).
+  setTimeout(() => {
+    const hide = river.prepare();
+    if (river.mirror) {
+      renderer.setRenderTarget(post.on ? post.composer.renderTarget1 : null);
+      renderer.compile(river.mirror, camera, scene);
+      river.mirror.onBeforeRender(renderer, scene, camera);
+      renderer.setRenderTarget(null);
+    }
+    hide();
+  }, 2500);
 
   const api = {
     frame,

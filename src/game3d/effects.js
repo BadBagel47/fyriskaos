@@ -212,16 +212,15 @@ export function createRiver(map, plain, sunDir, skyTexture) {
     mirror.onBeforeRender = (renderer, scene, camera) => {
       odd = !odd;
       if (odd && !mirror.userData.always) return;
+      // The fog stays: without it every material would need another shader
+      // variant, compiled the first time the river shows.
       const bg = scene.background;
-      const fog = scene.fog;
       const bgLevel = scene.backgroundIntensity;
       scene.background = skyTexture() || bg;
       scene.backgroundIntensity = scene.environmentIntensity;
-      scene.fog = null;
       render(renderer, scene, camera);
       scene.background = bg;
       scene.backgroundIntensity = bgLevel;
-      scene.fog = fog;
     };
     plain.parent.add(mirror);
     return mirror;
