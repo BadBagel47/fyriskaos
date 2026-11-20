@@ -372,18 +372,23 @@ function rects(map, type, x0, z0, x1, z1) {
   return out;
 }
 
-function slabBox(B, r, top, color, bottom = -1.2) {
-  const [x0, z0, x1, z1] = r;
-  const g = new THREE.BoxGeometry(x1 - x0, top - bottom, z1 - z0);
-  // The side walls are lit almost like the top: thin cracks between two
-  // slabs show the wall below, and a low evening sun would light it far more
-  // than the ground and draw bright lines (F-061).
+// Ground pieces: their side walls are lit almost like the top. Thin cracks
+// between two pieces show the wall below, and a low evening sun would light
+// it far more than the ground and draw bright lines (F-061).
+function flatSides(g) {
   const N = g.attributes.normal;
   for (let i = 0; i < N.count; i++)
     if (Math.abs(N.getY(i)) < 0.5) {
       const l = Math.hypot(N.getX(i) * 0.25, 1, N.getZ(i) * 0.25);
       N.setXYZ(i, (N.getX(i) * 0.25) / l, 1 / l, (N.getZ(i) * 0.25) / l);
     }
+  return g;
+}
+
+function slabBox(B, r, top, color, bottom = -1.2) {
+  const [x0, z0, x1, z1] = r;
+  const g = new THREE.BoxGeometry(x1 - x0, top - bottom, z1 - z0);
+  flatSides(g);
   B.add(g, color, m4((x0 + x1) / 2, (top + bottom) / 2, (z0 + z1) / 2));
 }
 
@@ -407,7 +412,8 @@ function mergeBuilders(a, b) {
 function along(B, ax, az, bx, bz, y, width, height, color) {
   const L = Math.hypot(bx - ax, bz - az);
   if (L < 0.05) return;
-  B.add(new THREE.BoxGeometry(L, height, width), color, m4((ax + bx) / 2, y, (az + bz) / 2, -Math.atan2(bz - az, bx - ax)));
+  const g = new THREE.BoxGeometry(L, height, width);
+  B.add(height <= 0.3 ? flatSides(g) : g, color, m4((ax + bx) / 2, y, (az + bz) / 2, -Math.atan2(bz - az, bx - ax)));
 }
 
 const BIKE_COLORS = [0xc0504a, 0x4a76c0, 0x3f9a6a, 0xd6b13c, 0x2f2f33];

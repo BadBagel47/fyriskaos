@@ -432,7 +432,7 @@ function lampOf(r, g, b) {
 // coat. Glass is smooth without metal, tyres and trim matt; head and tail
 // lamps shine (lamps.head, lamps.tail: brightness in linear HDR, F-059).
 function carMaterial(lamps) {
-  const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.2 });
+  const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.3, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 2.2 });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uHead = { get value() { return lamps.head; } };
     sh.uniforms.uTail = { get value() { return lamps.tail; } };

@@ -19,7 +19,7 @@ import { createPost, createSkyEnv, createRiver } from './effects.js';
 const TILT = THREE.MathUtils.degToRad(33);
 // Average light of the sky map (linear, over all directions) by day and in the evening.
 const ENV_DAY = 0.3;
-const ENV_EVE = 0.5; // the low sun's glare is most of the evening sky's average
+const ENV_EVE = 0.32; // the low sun's glare is most of the evening sky's average
 const FOV = 24; // a long lens: less leaning at the screen edges (B-050)
 const TEX = (n) => new URL(`stiltest/tex/${n}.webp`, document.baseURI).href;
 const SMALL = (n) => new URL(`stiltest/tex/small/${n}.webp`, document.baseURI).href;
@@ -216,7 +216,7 @@ export async function createRenderer3d(container, game) {
   // orange and still strong on what faces it, the sky light is weaker (more
   // contrast) and the haze is warm and muted.
   const day = { sun: new THREE.Color(0xffa848), sky: new THREE.Color(0xb4b0c0), ground: new THREE.Color(0x7a5434), haze: new THREE.Color(0xcfae8c) };
-  const eve = { sun: new THREE.Color(0xff6a24), sky: new THREE.Color(0x4a5a88), ground: new THREE.Color(0x2a2228), haze: new THREE.Color(0x5e5058) };
+  const eve = { sun: new THREE.Color(0xff6a24), sky: new THREE.Color(0x5468a0), ground: new THREE.Color(0x2a2430), haze: new THREE.Color(0x5e5058) };
   const sunState = { dir: sunDir, color: new THREE.Color() };
   const lightRight = new THREE.Vector3();
   const lightUp = new THREE.Vector3();
@@ -265,8 +265,9 @@ export async function createRenderer3d(container, game) {
     api.buildMs = performance.now() - tb;
     camera.far = dist * 2.4 + 40;
     camera.updateProjectionMatrix();
-    // Fog: about 8 % at the player's distance, under half at the top of the screen.
-    scene.fog.density = 0.29 / dist;
+    // Fog: in the evening about 8 % at the player's distance and under half at
+    // the top of the screen; thinner by day, so daylight stays clear.
+    scene.fog.density = (0.17 + 0.12 * lastNight) / dist;
 
     // The cut-away plane runs from just above the player towards the camera.
     cut.value.set(focus.x, focus.y, 1 / Math.tan(TILT), 0.9);
@@ -312,7 +313,7 @@ export async function createRenderer3d(container, game) {
       sunState.color.copy(sun.color).multiplyScalar(0.6 + 0.4 * (1 - night));
       hemi.color.copy(day.sky).lerp(eve.sky, night);
       hemi.groundColor.copy(day.ground).lerp(eve.ground, night);
-      hemi.intensity = 0.75 - 0.35 * night;
+      hemi.intensity = 0.75 - 0.15 * night; // blue sky light in the shade, against the warm sun and lamps
       fill.intensity = 0.3 * (1 - 0.6 * night);
       scene.background.copy(day.haze).lerp(eve.haze, night);
       scene.fog.color.copy(scene.background);
@@ -321,7 +322,7 @@ export async function createRenderer3d(container, game) {
       const step = Math.round(night * 4) / 4;
       if (skyEnv.update(SUN.dayElev + (SUN.eveElev - SUN.dayElev) * step, SUN.az, step)) scene.environment = skyEnv.texture;
       scene.environmentIntensity = (ENV_DAY + (ENV_EVE - ENV_DAY) * night) / skyEnv.level;
-      glowMat.opacity = 0.3 + 0.6 * night;
+      glowMat.opacity = 0.08 + 0.4 * night;
       // Strong lights are above the glow's threshold in the evening (F-059):
       // lit windows about 2×, lamps about 8× the threshold (linear HDR).
       litLevel.value = 0.25 + 5 * night;

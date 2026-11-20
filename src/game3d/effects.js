@@ -73,8 +73,8 @@ export function createSkyEnv(renderer) {
   u.rayleigh.value = 1.6;
   u.mieCoefficient.value = 0.006;
   u.mieDirectionalG.value = 0.86;
-  // The ground under the horizon: dark, warm (streets and roofs).
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x1c1712 }));
+  // The ground under the horizon: dim, warm (streets and roofs).
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(60, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x3a332c }));
   ground.position.y = -1.5;
   envScene.add(ground);
   // To measure the sky's average light: a tiny cube of it, read back.
@@ -114,7 +114,7 @@ export function createSkyEnv(renderer) {
       // Later in the evening the sky is darker and redder.
       u.rayleigh.value = 1.6 + 1.4 * dusk;
       u.turbidity.value = 6 + 4 * dusk;
-      ground.material.color.setHex(0x1c1712).multiplyScalar(1 - 0.5 * dusk);
+      ground.material.color.setHex(0x3a332c).multiplyScalar(1 - 0.5 * dusk);
       const tone = renderer.toneMapping;
       renderer.toneMapping = THREE.NoToneMapping;
       level = average();
@@ -196,7 +196,7 @@ export function createRiver(map, plain, sunDir, skyTexture) {
       waterNormals: waterNormals(),
       sunDirection: sunDir.clone(),
       sunColor: 0xffb070,
-      waterColor: 0x16303c,
+      waterColor: 0x2a5266,
       distortionScale: 0.9,
       fog: true,
     });
