@@ -2,7 +2,9 @@
 // tilted camera. The camera looks north at a fixed tilt and follows the
 // player, further out at speed. Quality levels and an fps meter are kept
 // from the style test; the evening (F-039) dims the sun and lights lamps,
-// windows and car lights.
+// windows and car lights. On top (F-059 to F-062): glow on strong lights,
+// a sky with a low sun as the environment map, a low warm evening sun with
+// long shadows, exponential fog, and Fyrisån as a mirror on High.
 
 import * as THREE from '../../vendor/three/three.module.js';
 import * as L from '../stiltest/look.js';
@@ -12,8 +14,12 @@ import { createEntities } from './entities.js';
 import { cut, withCut } from './cut.js';
 import { eveningLevel } from '../daylight.js';
 import { treeTextures, loadModels } from './load.js';
+import { createPost, createSkyEnv, createRiver } from './effects.js';
 
 const TILT = THREE.MathUtils.degToRad(33);
+// Average light of the sky map (linear, over all directions) by day and in the evening.
+const ENV_DAY = 0.3;
+const ENV_EVE = 0.5; // the low sun's glare is most of the evening sky's average
 const FOV = 24; // a long lens: less leaning at the screen edges (B-050)
 const TEX = (n) => new URL(`stiltest/tex/${n}.webp`, document.baseURI).href;
 const SMALL = (n) => new URL(`stiltest/tex/small/${n}.webp`, document.baseURI).href;
@@ -36,10 +42,21 @@ function litWindows(m) {
   return m;
 }
 
+// bloom: the glow's resolution as a part of the screen (0 = no glow, and no
+// post-processing at all); mirror: Fyrisån reflects the city.
 export const QUALITY = {
-  low: { name: 'Låg', ratio: 1, shadow: 0 },
-  medium: { name: 'Medel', ratio: 1.5, shadow: 1024 },
-  high: { name: 'Hög', ratio: 2, shadow: 2048 },
+  low: { name: 'Låg', ratio: 1, shadow: 0, bloom: 0, mirror: false },
+  medium: { name: 'Medel', ratio: 1.5, shadow: 1024, bloom: 0.5, mirror: false },
+  high: { name: 'Hög', ratio: 2, shadow: 2048, bloom: 1, mirror: true },
+};
+
+// The sun's place in the sky (degrees over the horizon), by day and in the
+// evening (F-061), and its compass direction: from the west, almost along the east-west streets, so the evening sun lights long strips down them.
+const SUN = { dayElev: 21, eveElev: 4.5, az: 262 };
+const sunVector = (elev, az, out) => {
+  const e = THREE.MathUtils.degToRad(elev);
+  const a = THREE.MathUtils.degToRad(az);
+  return out.set(Math.sin(a) * Math.cos(e), Math.sin(e), -Math.cos(a) * Math.cos(e));
 };
 
 export async function createRenderer3d(container, game) {
@@ -60,10 +77,17 @@ export async function createRenderer3d(container, game) {
   const haze = new THREE.Color(0xd9b48a);
   const scene = new THREE.Scene();
   scene.background = haze;
-  scene.fog = new THREE.Fog(haze, 70, 150);
+  // Exponential fog in a warm, muted tone (F-061); its density follows the
+  // camera's distance every frame.
+  scene.fog = new THREE.FogExp2(haze, 0.005);
   TT('textures', tq);
   tq = performance.now();
-  scene.environment = L.eveningEnvironment(renderer);
+  // The sky with the low sun as the environment (F-060): paint, glass and
+  // water reflect it.
+  const skyEnv = createSkyEnv(renderer);
+  skyEnv.update(SUN.dayElev, SUN.az, 0);
+  scene.environment = skyEnv.texture;
+  scene.environmentIntensity = ENV_DAY / skyEnv.level;
   TT('env', tq);
 
   const mats = {
@@ -82,6 +106,8 @@ export async function createRenderer3d(container, game) {
     darkI: withCut(new THREE.MeshStandardMaterial({ roughness: 0.9, envMapIntensity: 0.3 })),
     glassI: withCut(litWindows(new THREE.MeshStandardMaterial({ roughness: 0.12, metalness: 0.3, envMapIntensity: 0.9 }))),
     lantern: withCut(new THREE.MeshBasicMaterial({ color: 0xfff0c8 })),
+    // Halos at the lanterns, lit in the evening (F-059).
+    halo: new THREE.MeshBasicMaterial({ map: L.glowTex(), color: 0x000000, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
   };
 
   // CC0 trees (D-048): leaf clusters with see-through gaps, bark pictures.
@@ -100,7 +126,8 @@ export async function createRenderer3d(container, game) {
 
   // Water under the whole map (land covers it except in the river) and
   // flat ground outside the map.
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(map.width + 40, map.height + 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x2f5a70, roughness: 0.15, metalness: 0.2, envMapIntensity: 1.2 }));
+  // Low and Medium: the water reflects the sky map only (F-062).
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(map.width + 40, map.height + 40).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x24485a, roughness: 0.06, metalness: 0.3, envMapIntensity: 1.6 }));
   water.position.set(map.width / 2, -0.85, map.height / 2);
   water.receiveShadow = true;
   scene.add(water);
@@ -136,8 +163,9 @@ export async function createRenderer3d(container, game) {
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.05;
   sun.shadow.radius = 3;
-  const sunDir = new THREE.Vector3(-52, 24, 34).normalize();
+  const sunDir = sunVector(SUN.dayElev, SUN.az, new THREE.Vector3());
   scene.add(sun, sun.target);
+  const river = createRiver(map, water, sunDir, () => skyEnv.texture);
   const hemi = new THREE.HemisphereLight(0xb4b0c0, 0x7a5434, 0.85);
   scene.add(hemi);
   const fill = new THREE.DirectionalLight(0x9aa8d0, 0.3);
@@ -145,6 +173,7 @@ export async function createRenderer3d(container, game) {
   scene.add(fill);
 
   const camera = new THREE.PerspectiveCamera(FOV, 1, 4, 260);
+  const post = createPost(renderer, scene, camera);
   const cam = { x: game.player.x, z: game.player.y, metres: 0 };
 
   let quality = 'medium';
@@ -153,6 +182,7 @@ export async function createRenderer3d(container, game) {
     const Q = QUALITY[q];
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.ratio));
     sun.castShadow = Q.shadow > 0;
+    post.set(Q.bloom > 0, Q.bloom);
     if (Q.shadow) {
       sun.shadow.mapSize.set(Q.shadow, Q.shadow);
       if (sun.shadow.map) {
@@ -170,6 +200,7 @@ export async function createRenderer3d(container, game) {
     renderer.domElement.style.height = '100%';
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    post.setSize(w, h, renderer.getPixelRatio());
   }
   window.addEventListener('resize', resize);
   setQuality('medium');
@@ -181,8 +212,15 @@ export async function createRenderer3d(container, game) {
     return v.spec.class === 'car' ? 28 + s * 0.6 : 26 + s * 0.5;
   }
 
-  const day = { sun: new THREE.Color(0xffa848), sky: new THREE.Color(0xb4b0c0), ground: new THREE.Color(0x7a5434), haze: new THREE.Color(0xd9b48a) };
-  const eve = { sun: new THREE.Color(0xff8a40), sky: new THREE.Color(0x4a5a8a), ground: new THREE.Color(0x2a2430), haze: new THREE.Color(0x3a4060) };
+  // Day and evening light (F-039, F-061): in the evening the sun is low,
+  // orange and still strong on what faces it, the sky light is weaker (more
+  // contrast) and the haze is warm and muted.
+  const day = { sun: new THREE.Color(0xffa848), sky: new THREE.Color(0xb4b0c0), ground: new THREE.Color(0x7a5434), haze: new THREE.Color(0xcfae8c) };
+  const eve = { sun: new THREE.Color(0xff6a24), sky: new THREE.Color(0x4a5a88), ground: new THREE.Color(0x2a2228), haze: new THREE.Color(0x5e5058) };
+  const sunState = { dir: sunDir, color: new THREE.Color() };
+  const lightRight = new THREE.Vector3();
+  const lightUp = new THREE.Vector3();
+  const UP = new THREE.Vector3(0, 1, 0);
   let lastNight = -1;
 
   function frame(dt) {
@@ -227,57 +265,83 @@ export async function createRenderer3d(container, game) {
     api.buildMs = performance.now() - tb;
     camera.far = dist * 2.4 + 40;
     camera.updateProjectionMatrix();
-    scene.fog.near = dist * 1.25;
-    scene.fog.far = dist * 2.6;
+    // Fog: about 8 % at the player's distance, under half at the top of the screen.
+    scene.fog.density = 0.29 / dist;
 
     // The cut-away plane runs from just above the player towards the camera.
     cut.value.set(focus.x, focus.y, 1 / Math.tan(TILT), 0.9);
 
-    // Sun and its shadow box follow the camera, snapped so shadows do not shimmer.
-    // Just big enough for what is on screen (the screen is about twice as wide as high).
-    const half = cam.metres * 0.62;
+    // Sun and its shadow box follow the camera. The box is just big enough for
+    // what is on screen (about twice as wide as high) and the houses on it; a
+    // low sun sees the ground almost edge-on, so the box is wide and low. Its
+    // place is snapped to whole shadow-map pixels so shadows do not shimmer.
+    const across = Math.ceil((Math.hypot(cam.metres * 1.2, cam.metres * 0.8) + 6) / 4) * 4;
+    const se = sunDir.y;
+    const ce = Math.sqrt(1 - se * se);
     const sc = sun.shadow.camera;
-    sc.left = -half * 1.9;
-    sc.right = half * 1.9;
-    sc.top = half * 1.3;
-    sc.bottom = -half * 1.3;
+    sc.left = -across;
+    sc.right = across;
+    sc.top = Math.ceil(across * se + 34 * ce);
+    sc.bottom = -Math.ceil(across * se + 3);
+    // Houses up to this far towards the sun cast shadows onto the screen.
+    const reach = 60 + 100 * ce * ce;
     sc.near = 1;
-    sc.far = 260;
+    sc.far = reach + across * 2 + 40;
     sc.updateProjectionMatrix();
-    const snap = (half * 2) / (sun.shadow.mapSize.x || 1024);
-    const ox = Math.round(cam.x / snap) * snap;
-    const oz = Math.round((cam.z - 4) / snap) * snap;
-    sun.target.position.set(ox, 0, oz);
-    sun.position.set(ox + sunDir.x * 120, sunDir.y * 120, oz + sunDir.z * 120);
+    lightRight.crossVectors(sunDir, UP).normalize();
+    lightUp.crossVectors(lightRight, sunDir).normalize();
+    const ms = sun.shadow.mapSize.x || 1024;
+    const texX = (2 * across) / ms;
+    const texY = (sc.top - sc.bottom) / ms;
+    const target = sun.target.position.set(cam.x, 0, cam.z - 4);
+    const pr = target.dot(lightRight);
+    const pu = target.dot(lightUp);
+    target.addScaledVector(lightRight, Math.round(pr / texX) * texX - pr).addScaledVector(lightUp, Math.round(pu / texY) * texY - pu);
+    sun.position.copy(target).addScaledVector(sunDir, reach);
 
     // Evening (F-039).
     const night = eveningLevel(game.time + (game.clockOffset || 0));
     if (Math.abs(night - lastNight) > 0.002) {
       lastNight = night;
-      sun.intensity = 8.2 * (1 - 0.88 * night);
+      sunVector(SUN.dayElev + (SUN.eveElev - SUN.dayElev) * night, SUN.az, sunDir);
+      // A low sun meets the ground almost edge-on: more bias against stripes.
+      sun.shadow.bias = -0.0004 - 0.0009 * night;
+      sun.shadow.normalBias = 0.05 + 0.1 * night;
+      sun.intensity = 8.2 * (1 - 0.45 * night);
       sun.color.copy(day.sun).lerp(eve.sun, night);
+      sunState.color.copy(sun.color).multiplyScalar(0.6 + 0.4 * (1 - night));
       hemi.color.copy(day.sky).lerp(eve.sky, night);
       hemi.groundColor.copy(day.ground).lerp(eve.ground, night);
-      hemi.intensity = 0.85 - 0.35 * night;
+      hemi.intensity = 0.75 - 0.35 * night;
+      fill.intensity = 0.3 * (1 - 0.6 * night);
       scene.background.copy(day.haze).lerp(eve.haze, night);
       scene.fog.color.copy(scene.background);
-      renderer.toneMappingExposure = 1.15 - 0.15 * night;
+      renderer.toneMappingExposure = 1.15 - 0.1 * night;
+      // The sky map in five steps from day to evening.
+      const step = Math.round(night * 4) / 4;
+      if (skyEnv.update(SUN.dayElev + (SUN.eveElev - SUN.dayElev) * step, SUN.az, step)) scene.environment = skyEnv.texture;
+      scene.environmentIntensity = (ENV_DAY + (ENV_EVE - ENV_DAY) * night) / skyEnv.level;
       glowMat.opacity = 0.3 + 0.6 * night;
-      litLevel.value = 0.25 + 0.95 * night;
-      mats.lantern.color.setRGB(1, 0.94, 0.78).multiplyScalar(0.9 + 0.8 * night);
+      // Strong lights are above the glow's threshold in the evening (F-059):
+      // lit windows about 2×, lamps about 8× the threshold (linear HDR).
+      litLevel.value = 0.25 + 5 * night;
+      mats.lantern.color.setRGB(1, 0.94, 0.78).multiplyScalar(0.9 + 20 * night);
+      mats.halo.color.setRGB(1, 0.8, 0.52).multiplyScalar(7 * night);
       ents.night = night;
     }
     ents.update(dt, night);
+    // Fyrisån as a mirror on High, while it is on screen (F-062).
+    const m = cam.metres;
+    api.mirror = river.update(dt, QUALITY[quality].mirror && !api.debugTop, cam.x - m * 1.2, cam.z - m * 0.95, cam.x + m * 1.2, cam.z + m * 0.7, sunState);
     // An overview from high up (checks and screenshots only).
     if (api.debugTop) {
       camera.position.set(api.debugTop.x, api.debugTop.h, api.debugTop.y + api.debugTop.h * 0.6);
       camera.lookAt(api.debugTop.x, 0, api.debugTop.y);
       camera.far = api.debugTop.h * 2;
-      scene.fog.near = 1e4;
-      scene.fog.far = 2e4;
+      scene.fog.density = 0;
       camera.updateProjectionMatrix();
     }
-    renderer.render(scene, camera);
+    post.render(dt);
   }
 
   // Prepare the shaders before the first frame (in parallel where the browser can).
@@ -294,6 +358,8 @@ export async function createRenderer3d(container, game) {
     },
     city,
     ents,
+    post,
+    river,
     // Load the CC0 models after the start and swap them in (D-048).
     async upgradeModels() {
       const [, tt] = await Promise.all([loadModels(), treeTextures(L.loadTexture)]);

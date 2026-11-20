@@ -4,7 +4,7 @@
 
 | Vad | Licens | Var |
 | --- | --- | --- |
-| [Three.js](https://threejs.org) 0.187.0 | MIT | `vendor/three/` (spelet, stiltestet och galleriets 3D-test); som utvecklingsverktyg också för att göra om modeller (`tools/convert_models.mjs`) |
+| [Three.js](https://threejs.org) 0.187.0 | MIT | `vendor/three/` (spelet, stiltestet och galleriets 3D-test); tilläggen i `vendor/three/addons/` (efterbehandling med glöd, himmel och vatten) från samma version; som utvecklingsverktyg också för att göra om modeller (`tools/convert_models.mjs`) |
 | [PixiJS](https://pixijs.com) 8.23.0 | MIT | `vendor/pixi/` (galleriet) |
 | [esbuild](https://esbuild.github.io) | MIT | bygger spelets och stiltestets paket, finns inte i det som publiceras |
 | [gdown](https://github.com/wkentaro/gdown) | MIT | hämtar Quaternius paket från Google Drive i arbetsflödet `fetch-assets.yml`, finns inte i det som publiceras |

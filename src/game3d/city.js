@@ -374,7 +374,17 @@ function rects(map, type, x0, z0, x1, z1) {
 
 function slabBox(B, r, top, color, bottom = -1.2) {
   const [x0, z0, x1, z1] = r;
-  B.add(new THREE.BoxGeometry(x1 - x0, top - bottom, z1 - z0), color, m4((x0 + x1) / 2, (top + bottom) / 2, (z0 + z1) / 2));
+  const g = new THREE.BoxGeometry(x1 - x0, top - bottom, z1 - z0);
+  // The side walls are lit almost like the top: thin cracks between two
+  // slabs show the wall below, and a low evening sun would light it far more
+  // than the ground and draw bright lines (F-061).
+  const N = g.attributes.normal;
+  for (let i = 0; i < N.count; i++)
+    if (Math.abs(N.getY(i)) < 0.5) {
+      const l = Math.hypot(N.getX(i) * 0.25, 1, N.getZ(i) * 0.25);
+      N.setXYZ(i, (N.getX(i) * 0.25) / l, 1 / l, (N.getZ(i) * 0.25) / l);
+    }
+  B.add(g, color, m4((x0 + x1) / 2, (top + bottom) / 2, (z0 + z1) / 2));
 }
 
 function mergeBuilders(a, b) {
@@ -690,12 +700,25 @@ export function createCity(map, mats) {
       ch.lanterns.forEach((mm, i) => lg.setMatrixAt(i, mm));
       lg.computeBoundingSphere();
       add(lg, null, false, false);
+      // A halo at each lantern (F-059): from the tilted camera the lantern's
+      // roof hides its glass, so the light shows as a small glow facing the
+      // camera; bright enough in the evening for the bloom to pick it up.
+      if (mats.halo) {
+        const hm = new THREE.InstancedMesh(haloGeo, mats.halo, ch.lanterns.length);
+        ch.lanterns.forEach((mm, i) => hm.setMatrixAt(i, haloAt.makeTranslation(mm.elements[12], mm.elements[13] + 0.1, mm.elements[14])));
+        hm.computeBoundingSphere();
+        hm.renderOrder = 4;
+        add(hm, null, false, false);
+      }
     }
     const entry = { meshes, trees: [], plan: p };
     live.set(key, entry);
     treesFor(entry);
   }
   const lanternGeo = P3.lanternGlass();
+  // The halo faces the camera, which always looks north at the same tilt.
+  const haloGeo = new THREE.PlaneGeometry(1.5, 1.5).rotateX(-(Math.PI / 2 - THREE.MathUtils.degToRad(33)));
+  const haloAt = new THREE.Matrix4();
   const signMat = new THREE.MeshStandardMaterial({ map: P3.signAtlas(), roughness: 0.5, side: THREE.DoubleSide });
   function treesFor(entry) {
     for (const m of entry.trees) group.remove(m);

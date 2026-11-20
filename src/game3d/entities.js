@@ -15,17 +15,23 @@ const CAR_MODEL = { small: ['hatch'], car: ['sedan', 'estate', 'sedan'], sport: 
 export function createEntities(game, mats) {
   const group = new THREE.Group();
   const parts = {};
-  // One glossy material for every car and bike; colours are baked into each
-  // vehicle's own merged geometry, so a car is one draw call (F-042).
-  const carMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.34, metalness: 0.35, envMapIntensity: 1.4 });
+  // One material for every car; colours are baked into each vehicle's own
+  // merged geometry, so a car is one draw call (F-042). The paint has a clear
+  // coat that reflects the evening sky (F-060); each vertex knows its part
+  // (PART), so glass, tyres and lamps get their own look in the same draw.
+  const carMat = carMaterial({ head: 0, tail: 0 });
+  // The same with the lamps on: the player's car and the police (F-059).
+  const lampsOn = { head: 0, tail: 0 };
+  const carMatLit = carMaterial(lampsOn);
   const merged = (list) => {
     const n = list.reduce((s, [g]) => s + (g.index ? g.index.count : g.attributes.position.count), 0);
     const pos = new Float32Array(n * 3);
     const nor = new Float32Array(n * 3);
     const col = new Float32Array(n * 3);
+    const part = new Float32Array(n);
     let o = 0;
     const c = new THREE.Color();
-    for (const [g0, colour] of list) {
+    for (const [g0, colour, kind = PART.trim] of list) {
       const g = g0.index ? g0.toNonIndexed() : g0;
       const P = g.attributes.position;
       const N = g.attributes.normal;
@@ -38,12 +44,14 @@ export function createEntities(game, mats) {
         nor.set([nx / l, ny / l, nz / l], o * 3);
         if (colour != null) col.set([c.r, c.g, c.b], o * 3);
         else col.set([C.getX(i), C.getY(i), C.getZ(i)], o * 3);
+        part[o] = kind === PART.trim ? lampOf(col[o * 3], col[o * 3 + 1], col[o * 3 + 2]) : kind;
       }
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    g.setAttribute('part', new THREE.BufferAttribute(part, 1));
     g.computeBoundingSphere();
     return g;
   };
@@ -69,8 +77,8 @@ export function createEntities(game, mats) {
       // Police car (D-036: "POLIS", own blue and white, no real emblem).
       const p = (parts.sedan ||= carParts('sedan'));
       const box = (w, h, d, x, y, z, c) => [new THREE.BoxGeometry(w, h, d).translate(x, y, z), c];
-      const geo = cached('police', () => merged([[p.paint, 0xf4f4f2], [p.glass, 0x1d2633], [p.det, null], box(4.0, 0.22, 1.86, 0, 0.62, 0, 0x1f4fae), box(0.5, 0.06, 1.2, -0.3, 1.6, 0, 0x2a2a2e)]));
-      const m = new THREE.Mesh(geo, carMat);
+      const geo = cached('police', () => merged([[p.paint, 0xf4f4f2, PART.paint], [p.glass, 0x1d2633, PART.glass], [p.det, null], [...box(4.0, 0.22, 1.86, 0, 0.62, 0, 0x1f4fae), PART.paint], box(0.5, 0.06, 1.2, -0.3, 1.6, 0, 0x2a2a2e)]));
+      const m = new THREE.Mesh(geo, carMatLit);
       m.castShadow = true;
       const g = new THREE.Group();
       g.add(m);
@@ -87,7 +95,7 @@ export function createEntities(game, mats) {
       const list = CAR_MODEL[v.type] || CAR_MODEL.car;
       const name = list[Math.abs(hash(v.id)) % list.length];
       const p = (parts[name] ||= carParts(name));
-      const geo = cached(`${name}:${v.color}`, () => merged([[p.paint, v.color], [p.glass, 0x1d2633], [p.det, null]]));
+      const geo = cached(`${name}:${v.color}`, () => merged([[p.paint, v.color, PART.paint], [p.glass, 0x1d2633, PART.glass], [p.det, null]]));
       const m = new THREE.Mesh(geo, carMat);
       m.scale.set(v.spec.length / MODELS[name].L, 1, (v.spec.width / 1.8) * 0.98);
       m.castShadow = true;
@@ -160,6 +168,14 @@ export function createEntities(game, mats) {
     group.add(b);
   }
 
+  let litCar = null;
+  const bodyMesh = (v) => {
+    let m = null;
+    views.get(v).traverse((o) => {
+      if (!m && o.isMesh) m = o;
+    });
+    return m;
+  };
   let stepPhase = 0;
   let stepAmt = 0;
   function update(dt, night) {
@@ -210,15 +226,25 @@ export function createEntities(game, mats) {
       pillar.position.set(tgt.x, 20, tgt.y);
       pillar.material.opacity = 0.25 + 0.12 * Math.sin(game.time * 3);
     }
-    // Blue lights on police cars that are after you.
+    // Blue lights on police cars that are after you; bright enough to glow (F-059).
     for (const [v, bar] of policeLights) {
       const on = !!v.ai;
       const k = Math.floor(game.time * 6) % 2;
       bar[0].visible = on ? k === 0 : true;
       bar[1].visible = on ? k === 1 : true;
-      bar[0].material.color.setHex(on ? 0x3a7bff : 0x1f3f8f);
-      bar[1].material.color.setHex(on ? 0xff3a3a : 0x8f1f1f);
+      bar[0].material.color.setHex(on ? 0x3a7bff : 0x1f3f8f).multiplyScalar(on ? 18 : 1);
+      bar[1].material.color.setHex(on ? 0xff3a3a : 0x8f1f1f).multiplyScalar(on ? 16 : 1);
     }
+    // Lamps on the player's car (and the police) in the evening: above the
+    // glow's threshold; brake lights brighter.
+    const carNow = veh && veh.spec.class === 'car' ? veh : null;
+    if (carNow !== litCar) {
+      if (litCar && !litCar.police) bodyMesh(litCar).material = carMat;
+      if (carNow) bodyMesh(carNow).material = carMatLit;
+      litCar = carNow;
+    }
+    lampsOn.head = 16 * night;
+    lampsOn.tail = (game.braking && carNow ? 24 : 12) * night;
     crowd.update(game.play ? game.play.peds : [], dt);
     skids.update(game.vehicles);
     const showLights = veh && night > 0.05;
@@ -390,4 +416,42 @@ function createCrowd(group, game, mats) {
       }
     },
   };
+}
+
+// Parts of a car (F-059, F-060), stored per vertex.
+const PART = { paint: 0, head: 1, tail: 2, trim: 3, glass: 4 };
+const HEAD = new THREE.Color(0xfff4d0);
+const TAIL = new THREE.Color(0xd02a1e);
+// The details of the style test's cars: the lamps are told by their colour.
+function lampOf(r, g, b) {
+  const near = (c) => Math.abs(r - c.r) + Math.abs(g - c.g) + Math.abs(b - c.b) < 0.03;
+  return near(HEAD) ? PART.head : near(TAIL) ? PART.tail : PART.trim;
+}
+
+// Car paint with a clear coat (F-060): metallic base under a smooth, glossy
+// coat. Glass is smooth without metal, tyres and trim matt; head and tail
+// lamps shine (lamps.head, lamps.tail: brightness in linear HDR, F-059).
+function carMaterial(lamps) {
+  const m = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.5, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.2 });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uHead = { get value() { return lamps.head; } };
+    sh.uniforms.uTail = { get value() { return lamps.tail; } };
+    sh.vertexShader = 'attribute float part;\nvarying float vPart;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvPart = part;');
+    sh.fragmentShader = 'varying float vPart;\nuniform float uHead;\nuniform float uTail;\n' + sh.fragmentShader
+      .replace(
+        '#include <metalnessmap_fragment>',
+        `#include <metalnessmap_fragment>
+        if (vPart > 3.5) { metalnessFactor = 0.0; roughnessFactor = 0.06; }
+        else if (vPart > 0.5) { metalnessFactor = 0.0; roughnessFactor = 0.7; }`,
+      )
+      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\nif (vPart > 0.5 && vPart < 3.5) material.clearcoat = 0.0;')
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+        if (abs(vPart - 1.0) < 0.5) totalEmissiveRadiance += vec3(1.0, 0.92, 0.75) * uHead;
+        if (abs(vPart - 2.0) < 0.5) totalEmissiveRadiance += vec3(1.0, 0.06, 0.03) * uTail;`,
+      );
+  };
+  m.customProgramCacheKey = () => 'carpaint';
+  return m;
 }

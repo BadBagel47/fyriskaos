@@ -99,7 +99,7 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Skymning:** allt på kamerasidan om spelaren klipps bort ovanför siktlinjen från spelaren till kameran. Snittet ses rakt från kanten, så husen ser hela ut. Träd och lyktor i vägen blir glest genomskinliga i stället. Skuggorna ritas utan snitt.
 - **Hus:** byggs från kartans tomter. Fasader mot söder, öster och väster får fönster (norrsidan syns aldrig från kameran), utom väggar närmare än 3 m från grannhuset. Fönster och fasaddetaljer är instansade lådor med färg per låda.
 - **Modeller:** träd, cyklar och spelaren är CC0-modeller från Quaternius (se `CREDITS.md`). Lövens färg är något mörkare och grönare än i originalbilderna, så att de inte blir gula i kvällssolen. Spelaren har orange tröja.
-- **Kväll (F-039):** solen blir svagare och rödare, himlen blå, lyktornas sken och de tända fönstren starkare, och spelarens fordon får strålkastare och bakljus.
+- **Kväll (F-039, F-061):** solen sjunker och blir orange, himmelsljuset blir svagare och blåare, lyktornas sken och de tända fönstren blir starkare och glöder, och spelarens fordon får strålkastare och bakljus.
 
 ## Centrum (F-005, D-057)
 
@@ -110,12 +110,22 @@ Begränsad: sex fasadfärger, tre takfärger, fasta färger för mark, metall oc
 - **Landmärken:** Domkyrkan i rött tegel med två västtorn och kopparspiror, Slottet i laxrött med runda torn och kupoler på en stenterrass, Gunillaklockan som ett rosa klocktorn med kopparhuv. Egna skyltar: Vårdcentral (vit hjärtsymbol på grönt, inget rött kors), Polis, Mackbaren, Punschbergs nation.
 - **Folk och markering:** fotgängare är CC0-figurer med olika tröjfärger; spelaren är 25 % större, har en pulserande orange ring och en orange markering över huvudet; pilen mot målet är orange.
 
+## Ljuseffekter (F-059–F-062)
+
+Efter en snabb Three.js-demo av en kaj i kvällsljus, som såg mycket bättre ut än sin enkla geometri tack vare ljus och effekter. Effekterna ligger ovanpå det som fanns; stilen är densamma.
+
+- **Glöd:** bara starka ljuskällor glöder: lyktornas glas och en liten gloria vid varje lykthuvud (taket döljer glaset ovanifrån), billyktor och bakljus på spelarens bil och polisen, tända fönster på kvällen och blåljusen. Tröskeln ligger på 2,6 i linjärt ljus, eftersom spelets sol är stark (solbelysta väggar når 1–2). Ljuskällorna står i samma proportion till tröskeln som i demon: lampor cirka 8 gånger tröskeln, fönster cirka 2 gånger. Styrka 0,5, radie 0,45.
+- **Lack och himmel:** bilarna har metallisk lack under en blank klarlack; glas är blankt utan metall, däck och detaljer matta. Miljökartan är en himmel med solen på rätt plats över mörk mark, så lack, rutor och vatten speglar kvällshimlen. Himlens ljusstyrka mäts och skalas till en fast nivå, eftersom himmelsmodellen är mycket ljusare när solen står högt.
+- **Kvällsljus:** på dagen står solen 21° över horisonten. På kvällen sjunker den till 4,5°, blir orange och kommer från väster, nästan längs gatorna, så att den lyser upp fasader och gatustråk och ger långa skuggor. Himmelsljuset är svagare, vilket ger mer kontrast.
+- **Dimma:** exponentiell i en varm, dämpad ton. Den är cirka 8 % vid spelaren och knappt hälften upptill i bild.
+- **Fyrisån:** på Hög speglar ån staden (husen, broarna, lyktorna) i 512 × 512 bildpunkter, med svaga vågor och liten förvrängning, och bara när ån syns. På Låg och Medel speglar ån bara himlen.
+
 ## Prestanda (mobil från start)
 
 - **Mål:** 60 bilder per sekund på en vanlig mellanklass-Android, aldrig under 30.
 - **Få anrop:** allt som står still i ett kvarter slås ihop till en enda mesh med färg per hörn. Upprepade saker (träd, lyktor, bänkar, papperskorgar, cykelställ, pollare) ritas med instancing. Stiltestet: 21–31 anrop och 41 000–61 000 trianglar.
 - **Upplösning:** pixel ratio högst 2.
-- **Kvalitetslägen:** Låg (pixel ratio 1, inga skuggor), Medel (1,5, skuggor 1024), Hög (2, skuggor 2048). Auto går ner ett steg om det blir under 50 bilder per sekund i en sekund, och upp igen efter 8 sekunder på 59 eller mer om det inte gått ner de senaste 20 sekunderna.
+- **Kvalitetslägen:** Låg (pixel ratio 1, inga skuggor, ingen glöd och ingen efterbehandling, ån speglar bara himlen), Medel (1,5, skuggor 1024, glöd i halv upplösning), Hög (2, skuggor 2048, glöd i full upplösning, Fyrisån speglar staden). Auto går ner ett steg om det blir under 50 bilder per sekund i en sekund, och upp igen efter 8 sekunder på 59 eller mer om det inte gått ner de senaste 20 sekunderna.
 - **Snabb start:** inga modellfiler att ladda; hela stiltestet (Three.js och egen kod) är ett komprimerat paket på cirka 145 kB.
 - **Mätt i molnet** 2026-11-18 och 2026-11-19 (steg 4: 4–7 ms per bild med 4× strypning, efter laddningen), se `docs/screenshots/stiltest/README.md`.
 
